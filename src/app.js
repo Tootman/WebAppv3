@@ -1,330 +1,818 @@
-import L from 'leaflet'
-import { myUrl } from './djs_module';
+"use strict";
+
+//import L from 'leaflet';
+import firebase from 'firebase';
+//import Sidebar from 'L.Control.Sidebar';
+//import Sidebar from 'L.Control.Sidebar.js';
+// import { myUrl } from './djs_module';
 // import 'bootstrap/dist/css/bootstrap.min.css';
 
-var freeBus = {
-    "type": "FeatureCollection",
-    "features": [{
-            "type": "Feature",
-            "geometry": {
-                "type": "LineString",
-                "coordinates": [
-                    [-105.00341892242432, 39.75383843460583],
-                    [-105.0008225440979, 39.751891803969535]
-                ]
+// Overview: when a feature on the geo layer is clicked it is assigned to  App.selectedFeature for interaction
+
+// the myMap object holds all the map and global settings, and sets up and manages the basemaps
+
+
+
+let myMap = {
+    settings: {
+        symbology: {
+            taskCompleteStyle: {
+                fillColor: "grey",
+                color: "black"
             },
-            "properties": {
-                "popupContent": "This is a free bus line that will take you across downtown.",
-                "underConstruction": false
+            pointTaskNotCompleteStyle: {
+                fillColor: "red",
+                color: "red"
             },
-            "id": 1
+            lineTaskNotCompleteStyle: {
+                fillColor: "red",
+                color: "red"
+            },
+            polyTaskNotCompleteStyle: {
+                fillColor: "yellow",
+                color: "black",
+                weight: 1
+            }
         },
-        {
-            "type": "Feature",
-            "geometry": {
-                "type": "LineString",
-                "coordinates": [
-                    [-105.0008225440979, 39.751891803969535],
-                    [-104.99820470809937, 39.74979664004068]
-                ]
-            },
-            "properties": {
-                "popupContent": "This is a free bus line that will take you across downtown.",
-                "underConstruction": true
-            },
-            "id": 2
-        },
-        {
-            "type": "Feature",
-            "geometry": {
-                "type": "LineString",
-                "coordinates": [
-                    [-104.99820470809937, 39.74979664004068],
-                    [-104.98689651489258, 39.741052354709055]
-                ]
-            },
-            "properties": {
-                "popupContent": "This is a free bus line that will take you across downtown.",
-                "underConstruction": false
-            },
-            "id": 3
+
+
+        mbAttr: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+        mbUrl: "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w",
+        //demoJSONmapdata: 'ham-green-demo.json',
+        // demoJSONmapdata: 'richmondriverside.json',
+        uploadjsonURL: "https://geo.danieljsimmons.uk/dan1/upload/uploadjson.php",
+        editform: {
+            assetConditionOptions: [6, 5, 4, 3, 2, 1, "n/a"]
         }
-    ]
-};
 
-
-window.openNav = () => {
-    document.getElementById("mySidenav").style.width = "250px";
-}
-
-window.closeNav = () => {
-    document.getElementById("mySidenav").style.width = "0";
-}
-
-var lightRailStop = {
-    "type": "FeatureCollection",
-    "features": [{
-        "type": "Feature",
-        "properties": {
-            "popupContent": "18th & California Light Rail Stop"
-        },
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-104.98999178409576, 39.74683938093904]
-        }
-    }, {
-        "type": "Feature",
-        "properties": {
-            "popupContent": "20th & Welton Light Rail Stop"
-        },
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-104.98689115047453, 39.747924136466565]
-        }
-    }]
-};
-
-var bicycleRental = {
-    "type": "FeatureCollection",
-    "features": [{
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-104.9998241,
-                    39.7471494
-                ]
-            },
-            "type": "Feature",
-            "properties": {
-                "popupContent": "This is a B-Cycle Station. Come pick up a bike and pay by the hour. What a deal!"
-            },
-            "id": 51
-        },
-        {
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-104.9983545,
-                    39.7502833
-                ]
-            },
-            "type": "Feature",
-            "properties": {
-                "popupContent": "This is a B-Cycle Station. Come pick up a bike and pay by the hour. What a deal!"
-            },
-            "id": 52
-        },
-        {
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-104.9963919,
-                    39.7444271
-                ]
-            },
-            "type": "Feature",
-            "properties": {
-                "popupContent": "This is a B-Cycle Station. Come pick up a bike and pay by the hour. What a deal!"
-            },
-            "id": 54
-        },
-        {
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-104.9960754,
-                    39.7498956
-                ]
-            },
-            "type": "Feature",
-            "properties": {
-                "popupContent": "This is a B-Cycle Station. Come pick up a bike and pay by the hour. What a deal!"
-            },
-            "id": 55
-        },
-        {
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-104.9933717,
-                    39.7477264
-                ]
-            },
-            "type": "Feature",
-            "properties": {
-                "popupContent": "This is a B-Cycle Station. Come pick up a bike and pay by the hour. What a deal!"
-            },
-            "id": 57
-        },
-        {
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-104.9913392,
-                    39.7432392
-                ]
-            },
-            "type": "Feature",
-            "properties": {
-                "popupContent": "This is a B-Cycle Station. Come pick up a bike and pay by the hour. What a deal!"
-            },
-            "id": 58
-        },
-        {
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-104.9788452,
-                    39.6933755
-                ]
-            },
-            "type": "Feature",
-            "properties": {
-                "popupContent": "This is a B-Cycle Station. Come pick up a bike and pay by the hour. What a deal!"
-            },
-            "id": 74
-        }
-    ]
-};
-
-
-var campus = {
-    "type": "Feature",
-    "properties": {
-        "popupContent": "This is the Auraria West Campus",
-        "style": {
-            weight: 2,
-            color: "#999",
-            opacity: 1,
-            fillColor: "#B0DE5C",
-            fillOpacity: 0.8
-        }
     },
-    "geometry": {
-        "type": "MultiPolygon",
-        "coordinates": [
-            [
-                [
-                    [-105.00432014465332, 39.74732195489861],
-                    [-105.00715255737305, 39.74620006835170],
-                    [-105.00921249389647, 39.74468219277038],
-                    [-105.01067161560059, 39.74362625960105],
-                    [-105.01195907592773, 39.74290029616054],
-                    [-105.00989913940431, 39.74078835902781],
-                    [-105.00758171081543, 39.74059036160317],
-                    [-105.00346183776855, 39.74059036160317],
-                    [-105.00097274780272, 39.74059036160317],
-                    [-105.00062942504881, 39.74072235994946],
-                    [-105.00020027160645, 39.74191033368865],
-                    [-105.00071525573731, 39.74276830198601],
-                    [-105.00097274780272, 39.74369225589818],
-                    [-105.00097274780272, 39.74461619742136],
-                    [-105.00123023986816, 39.74534214278395],
-                    [-105.00183105468751, 39.74613407445653],
-                    [-105.00432014465332, 39.74732195489861]
-                ],
-                [
-                    [-105.00361204147337, 39.74354376414072],
-                    [-105.00301122665405, 39.74278480127163],
-                    [-105.00221729278564, 39.74316428375108],
-                    [-105.00283956527711, 39.74390674342741],
-                    [-105.00361204147337, 39.74354376414072]
-                ]
-            ],
-            [
-                [
-                    [-105.00942707061768, 39.73989736613708],
-                    [-105.00942707061768, 39.73910536278566],
-                    [-105.00685214996338, 39.73923736397631],
-                    [-105.00384807586671, 39.73910536278566],
-                    [-105.00174522399902, 39.73903936209552],
-                    [-105.00041484832764, 39.73910536278566],
-                    [-105.00041484832764, 39.73979836621592],
-                    [-105.00535011291504, 39.73986436617916],
-                    [-105.00942707061768, 39.73989736613708]
-                ]
-            ]
-        ]
+
+    state: { // Hopefully this is where all data will live, after the app is refactored to be more like React
+        latestLocation: null // lat Lng
+    },
+
+    setupBaseLayer: function() {
+        const greyscaleLayer = L.tileLayer(this.settings.mbUrl, {
+            id: "mapbox.light",
+            attribution: myMap.settings.mbAttr,
+            maxZoom: 24
+        });
+        const streetsLayer = L.tileLayer(this.settings.mbUrl, {
+            id: "mapbox.streets",
+            attribution: myMap.settings.mbAttr,
+            maxZoom: 24
+        });
+        const satLayer = L.tileLayer(this.settings.mbUrl, {
+            id: "mapbox.satellite",
+            attribution: myMap.settings.mbAttr,
+            maxZoom: 24
+        });
+        const myLayerGroup = L.layerGroup();
+        this.myLayerGroup = myLayerGroup;
+
+        // create map with 3 layers
+        const map = L.map("map", {
+            center: [51.4384332, -0.3147865],
+            zoom: 18,
+            maxZoom: 24,
+            layers: [streetsLayer, myLayerGroup] // loads with this layer initially
+        });
+
+        // create group of basemap layers
+        let baseMaps = {
+            Greyscale: greyscaleLayer,
+            Streets: streetsLayer,
+            Satellite: satLayer
+        };
+        this.basemaps = baseMaps;
+
+        // create group of overlay layers
+        let overlayMaps = {
+            myLayers: myLayerGroup
+        };
+        this.overlayMap = overlayMaps;
+
+        this.LayersControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+        return map;
     }
 };
 
-var coorsField = {
-    "type": "Feature",
-    "properties": {
-        "popupContent": "Coors Field"
+// the App object holds the GeoJSON layer and manages all it's interactions with the user
+const App = {
+    whenGeoFeatureClicked: function() {
+        function renderSideBar() {
+            App.sidebar.setContent(
+                document.getElementById("form-template").innerHTML
+            );
+            //document.getElementById("take-photo-btn").addEventListener('click', RelatedData.addPhoto());
+        }
+        let p = App.selectedFeature.properties;
+        renderSideBar();
+        this.generateFormElements(p);
+
+        if (p.photo !== null && p.photo !== undefined) {
+            this.getPhoto(p.photo);
+        }
+        console.log(" read task completed: " + p.taskCompleted);
+        App.sidebar.show();
     },
-    "geometry": {
-        "type": "Point",
-        "coordinates": [-104.99404191970824, 39.756213909328125]
+
+    findNearestFeatures: function() {
+
+        
+
+        if (myMap.state.latestLocation)
+
+        {
+            const nearest = leafletKnn(App.geoLayer).nearest(L.latLng(myMap.state.latestLocation), 1) // example usage for Ham Green
+            nearest[0].layer.fire('click')
+
+        } else {
+            window.alert("Sorry - failed - You need to get a GPS location first")
+        }
+    },
+
+    createFormItem: function(parentTag, el, type, prop, value) {
+        const wrapperDiv = createWrapperDiv(parentTag);
+        createLabel(wrapperDiv, el, type, prop, value);
+        createInputBox(wrapperDiv, el, type, prop, value);
+
+        function createWrapperDiv() {
+            let x = document.createElement("div");
+            x.classList.add("form-group");
+            parentTag.appendChild(x);
+            return x;
+        }
+
+        function createInputBox(parent) {
+            let x = document.createElement(el);
+            x.setAttribute("type", type);
+            x.type = type;
+            x.classList.add("form-control");
+            x.value = value;
+            x.id = String("input_" + prop);
+            if (type === "Checkbox") {
+                console.log("checkboxValue: " + value);
+                x.checked = value;
+            }
+            parent.appendChild(x);
+        }
+
+        function createLabel(parent) {
+            let x = document.createElement("label");
+            x.innerHTML = prop;
+            parent.appendChild(x);
+        }
+    },
+    generateFormElements: function(props) {
+        // console.log(sampleGeoData.features[featureID].properties.Asset)
+        const fs = document.getElementById("fields-section");
+        fs.innerHTML = null;
+        // const props = sampleGeoData.features[featureID].properties
+        const myFunc = Object.keys(props).forEach(function(key) {
+            //console.log("generateElements: " + typeof(key)+ " " + key + ": " + props[key])
+            // fs.innerHTML += "<br>"
+            const propType = typeof props[key];
+            if (propType === "string" || propType === "number") {
+                App.createFormItem(fs, "Input", "text", key, props[key]);
+            } else if (propType === "boolean") {
+                App.createFormItem(fs, "Input", "Checkbox", key, props[key]);
+            } else {
+                console.log("NOT OK: " + typeof key);
+            }
+            //fs.insertAdjacentHTML('beforeEnd', '<br>');
+        });
+    },
+
+    submitForm: function() {
+        let p = App.selectedFeature.properties;
+        readSidebarFormProperties(p);
+        // saveFeatureToFirebase()
+        App.selectedLayer.setTooltipContent(p.Asset);
+        App.sidebar.hide();
+        this.assignTaskCompletedStyle(this.selectedLayer, p);
+        Map.closePopup();
+
+        this.selectedFeature = null;
+        console.log("toGeo: " + JSON.stringify(this.geoLayer.toGeoJSON()));
+        localStorage.setItem(
+            "geoJSON",
+            JSON.stringify(this.geoLayer.toGeoJSON())
+        );
+
+        function readSidebarFormProperties(props) {
+            const myFunc = Object.keys(props).forEach(function(key) {
+                const propType = typeof props[key];
+                const el = document.getElementById(String("input_" + key));
+                if (propType === "string" || propType === "number") {
+                    props[key] = el.value;
+                } else if (propType === "boolean") {
+                    props[key] = el.checked;
+                }
+            });
+        }
+
+        function saveFeatureToFirebase() {
+            // current id - id of 1st element in geo Array - I guess
+            if (!window.confirm("Save feature to cloud")) {
+                console.log("save Cancelled!");
+                return;
+            }
+            const featureIndex =
+                App.selectedLayer._leaflet_id -
+                Object.keys(App.geoLayer._layers)[0] -
+                1;
+            const nodePath = String(
+                "App/Maps/" + App.firebaseHash + "/Geo/features"
+            );
+            const Ob = {};
+            const myKey = featureIndex;
+            Ob[myKey] = App.selectedFeature;
+            fbDatabase
+                .ref(nodePath)
+                .update(Ob)
+                .then(function() {
+                    console.log("saved to firebase!");
+                })
+                .catch(function() {
+                    alert("Sorry - you need to be logged in to do this");
+                });
+        }
+    },
+
+    assignTaskCompletedStyle: function(layer, featureProperty) {
+        const s = myMap.settings.symbology;
+        if (featureProperty.taskCompleted == true) {
+            layer.setStyle(s.taskCompleteStyle);
+        } else {
+            if (layer.feature.geometry.type.includes("Poly")) {
+                layer.setStyle(s.polyTaskNotCompleteStyle);
+            } else if (layer.feature.geometry.type.includes("Line")) {
+                layer.setStyle(s.lineTaskNotCompleteStyle);
+            } else if (layer.feature.geometry.type.includes("Point")) {
+                layer.setStyle(s.pointTaskNotCompleteStyle);
+            }
+        }
+    },
+    loadGeoJSONLayer: function(myFile) {
+        fetch(myFile)
+            .then(function(response) {
+                if (response.status !== 200) {
+                    console.log(
+                        "Looks like there was a problem. Status Code: " +
+                        response.status
+                    );
+                    return;
+                }
+                response.json().then(function(data) {
+                    App.setupGeoLayer(data);
+                    console.log("fetch called!");
+                });
+            })
+            .catch(function(err) {
+                console.log("Fetch Error :-S", err);
+            });
+    },
+    resetMap: function() {
+        localStorage.removeItem("geoJSON");
+        App.geoLayer = {};
+        App.loadGeoJSONLayer(demoJSONmapdata);
+    },
+    getPhoto: function(photoURL) {
+        fetch(photoURL)
+            .then(res => res.blob()) // Gets the response and returns it as a blob
+            .then(blob => {
+                console.log("blob!");
+                const objectURL = URL.createObjectURL(blob);
+                const myImage = new Image(350);
+                myImage.src = objectURL;
+                myImage.css = "width:500px";
+                document.getElementById("photo-div").appendChild(myImage);
+            });
+    },
+    uploadChanges: function() {
+        // posts to shared hosting
+        const url = App.settings.uploadjsonURL;
+        fetch(url, {
+                method: "POST", // or 'PUT'
+                body: "name=" + JSON.stringify(this.geoLayer.toGeoJSON()), // data can be `string` or {object}!
+                headers: {
+                    "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+                }
+            })
+            .then(res => {
+                console.log("json sent ok apparently!");
+            })
+            .catch(error => console.error("Error:", error))
+            .then(response => console.log("Success:", response));
+    },
+
+    initSettingsControl: function() {
+        L.Control.myControl = L.Control.extend({
+            onAdd: e => {
+                const myControl_div = L.DomUtil.create("div", "custom-control");
+                myControl_div.onclick = function() {
+                    console.log("custom control clicked!");
+                    App.sidebar.setContent(
+                        document.getElementById("settings-template").innerHTML
+                    );
+                    //document.getElementById("upload-map-to-firebase").style.display = 'none';
+                    //document.getElementById("upload-map-to-firebase").style.visibility = 'hidden';
+                    // temp fudge - for if no map loaded into geoLayer yet
+                    User().initLoginForm();
+
+                    const savefb = document.getElementById(
+                        "upload-map-to-firebase"
+                    );
+                    if (App.geoLayer === undefined || App.geoLayer === null) {
+                        savefb.style.display = "none";
+                        console.log(" save display none");
+                    } else {
+                        savefb.style.display = "block";
+                        console.log(" save display block");
+                        App.populateMapMeta();
+                    }
+
+                    document
+                        .getElementById("open-new-project-button")
+                        .addEventListener("click", function() {
+                            loadMyLayer("dummy");
+                        });
+                    //loadMyLayer("dummy")
+                    App.sidebar.show();
+                    //alert("Load Shapefile or do something else");
+                };
+                return myControl_div;
+            }
+        });
+        L.control.myControl = opts => {
+            return new L.Control.myControl(opts);
+        };
+        L.control
+            .myControl({
+                position: "bottomright"
+            })
+            .addTo(Map);
+    },
+
+    populateMapMeta: function() {
+        const container = document.getElementById("map-info-section");
+        let content = "";
+        for (const item in App.mapMeta) {
+            if (item !== null && item !== undefined) {
+                console.log("meta attribute: " + item);
+                content += String(item + ": " + App.mapMeta[item] + "<br>");
+            }
+        }
+        container.innerHTML = content;
+        //containter.innerHTML = content
+    },
+
+    retrieveMapFromFireBase: function(index) {
+        let nodePath = String("/App/Maps/" + index);
+
+        fbDatabase
+            .ref(nodePath)
+            .once("value")
+            .then(function(snapshot) {
+                // loadOverlayLayer(snapshot.val())  // checks storage then tries downliading file
+                const layerData = snapshot.val();
+                console.log("Node: " + layerData);
+                myMap.myLayerGroup.clearLayers(App.geoLayer);
+                App.setupGeoLayer(layerData.Geo, layerData.Meta);
+                Map.fitBounds(App.geoLayer.getBounds());
+                App.firebaseHash = snapshot.key;
+                document.getElementById("opennewproject").style.display =
+                    "none";
+                App.sidebar.hide();
+            });
+    },
+
+    setupGeoLayer: function(myJSONdata, meta) {
+        //
+        console.log("meta: ", meta);
+        App.mapMeta = meta;
+        //App.mapMeta = myJSONdata.Meta
+        App.geoLayer = L.geoJson(myJSONdata, {
+            onEachFeature: function(feature, layer) {
+                console.log("clicked: " + feature.properties.Asset);
+                App.assignTaskCompletedStyle(layer, feature.properties);
+                layer.on("click", function(e) {
+                    App.selectedFeature = feature; // expose selected feature and layer
+                    App.selectedLayer = layer;
+                    App.whenGeoFeatureClicked();
+                });
+                //layer.bindPopup("<button> Edit</button>");
+                //layer.bindTooltip(feature.properties.Asset, { className: 'tool-tip-class' });
+                try {
+                    layer.bindTooltip(feature.properties[meta.LabelProperty], {
+                        className: "tool-tip-class"
+                    });
+                } catch (err){
+                    console.log("failed to find prop",err);
+                }
+            },
+            style: function(feature) {
+                return {
+                    fillOpacity: 0.6
+                };
+            },
+            pointToLayer: function(feature, latlng) {
+                return L.circleMarker(latlng, {
+                    radius: 8,
+                    stroke: true,
+                    weight: 3,
+                    opacity: 1,
+                    weight: 4,
+                    fillOpacity: 1
+                });
+            },
+            interactive: true
+        });
+        // App.map.addLayer(App.geoLayer);
+        myMap.myLayerGroup.addLayer(App.geoLayer);
+        //mapOb.myLayerGroup.addLayer(App.geoLayer);
     }
 };
 
+var HOUNDLOWLAYER = {};
 
-const test = () => { console.log("hello") };
-alert(myUrl)
+const loadHatheropShp = () => {
+    HOUNDLOWLAYER = new L.Shapefile("hounslow-photos-almost-complete.zip");
+    console.log("my shp: ", HOUNDLOWLAYER);
+    HOUNDLOWLAYER.addTo(Map);
+};
+
+const RelatedData = {
+    //let featureKey = null
+    submit: function() {
+        // calculate key from OBJECTID + geometrytype
+        this.featureKey = String(
+            App.selectedFeature.properties.OBJECTID +
+            App.selectedFeature.geometry.type
+        );
+
+        App.selectedFeature.geometry.type + "/";
+        console.log("key: " + this.featureKey);
+        this.nodePath = String(
+            "App/Maps/" + App.firebaseHash + "/Related/" + this.featureKey + "/"
+        );
+        console.log("nodePath: " + this.nodePath);
+        const relatedRecord = {};
+        relatedRecord.timestamp = Date();
+        relatedRecord.user = firebase.auth().currentUser.uid;
+        relatedRecord.condition = document.getElementById(
+            "related-data-condition"
+        ).value;
+        if (document.getElementById("related-data-comments").value) {
+            relatedRecord.comments = document.getElementById(
+                "related-data-comments"
+            ).value;
+        }
+        if (document.getElementById("related-data-photo").value) {
+            relatedRecord.photo = document.getElementById(
+                "related-data-photo"
+            ).value;
+        }
+        fbDatabase
+            .ref(this.nodePath)
+            .push(relatedRecord)
+            .catch(error => {
+                console.log("My Error: " + error.message);
+                alert("Sorry - you need to be logged in to do this ");
+                //document.getElementById("message-area").innerHTML="Sorry - "+ error.message
+            });
+        document.getElementById("related-data-info").innerHTML = "Submitted!";
+    },
+
+    addPhoto: function() {
+        const el = document.getElementById("photo-capture");
+        // console.log("photo file: " + this.files[0].name)
+        console.log(el.files[0].name);
+        document.getElementById("related-data-photo").value = el.files[0].name;
+    }
+};
+
+function uploadMapToFirebase() {
+    // grab the blobal Mapindex, then send gson layer up to node
+    //const nodePath = String("'/App/Maps/" + myMap.settings.mapIndex)
+    const nodePath = String("App/Maps/" + App.firebaseHash + "/Geo");
+
+    fbDatabase
+        .ref(nodePath)
+        .set(App.geoLayer.toGeoJSON())
+        .catch(function(error) {
+            alert("Sorry you need to be logged in to do this");
+        });
+}
+
+const User = function() {
+    const email = document.getElementById("emailInput");
+    const pw = document.getElementById("passwordInput");
+    const msg = document.getElementById("Login-status-message");
+    const loginBtn = document.getElementById("login-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const loginForm = document.getElementById("login-form");
+    const auth = firebase.auth;
+
+    function signIn() {
+        auth()
+            .signInWithEmailAndPassword(email.value, pw.value)
+            .then(function(user) {
+                console.log(user, "signed in!");
+                userSignedIn();
+            })
+            .catch(function(error) {
+                console.log("sorry couldn't sign in -  Error: " + error);
+                alert("sorry couldn't sign in -  Error: " + error);
+            });
+    }
+
+    function signOut() {
+        firebase
+            .auth()
+            .signOut()
+            .then(
+                function() {
+                    // Sign-out successful.
+                    console.log("successfully signed out");
+                    userSignedOut();
+                },
+                function(error) {
+                    // An error happened.
+                    console.log("problem signing out - error: ", error);
+                }
+            );
+    }
+
+    function userSignedIn() {
+        msg.innerHTML = "you are now signed in!";
+        pw.innerHTML = null;
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "block";
+        loginForm.style.display = "none";
+    }
+
+    function userSignedOut() {
+        msg.innerHTML = "Bye  - you have now signed out";
+        loginBtn.style.display = "block";
+        logoutBtn.style.display = "none";
+        loginForm.style.display = "block";
+    }
+
+    function testFunc() {
+        console.log("testing only!");
+    }
+
+    function testFunc2() {
+        console.log("testing only - func2!");
+    }
+
+    function initLoginForm() {
+        console.log("initLoginForm");
+        if (firebase.auth().currentUser) {
+            userSignedIn();
+            console.log("user is logged in");
+        } else {
+            console.log("user is logged out");
+            userSignedOut();
+        }
+    }
+
+    return {
+        btnLogin: signIn,
+        btnLogout: signOut,
+        btntest: testFunc,
+        initLoginForm: initLoginForm
+    };
+};
+
+function loadMyLayer(layerName) {
+    // just for testing
+    clearMyLayers();
+    document.getElementById("open-new-project-button").style.display = "none";
+    loadFromPresetButtons(layerName);
+    // console.log("LoadmyLayer!")
+    loadProjectFromFirebase();
+
+    function loadProjectFromFirebase() {
+        retriveMapIndex();
+
+        function retriveMapIndex() {
+            document.getElementById("message-area").innerHTML =
+                "<p>waiting for network connection ...</p>";
+            fbDatabase
+                .ref("/App/Mapindex")
+                .once("value")
+                .then(function(snapshot) {
+                    document.getElementById("message-area").innerHTML = null;
+                    console.log("fetched ok: ");
+                    const el = document.getElementById("opennewproject");
+                    el.insertAdjacentHTML("afterBegin", "Open project");
+                    displayMapIndeces(snapshot);
+                })
+                .catch(error => {
+                    console.log("My Error: " + error.message);
+                    document.getElementById("message-area").innerHTML =
+                        "Sorry - " + error.message;
+                });
+        }
+
+        function displayMapIndeces(snapshot) {
+            const el = document.getElementById("opennewproject");
+            Object.values(snapshot.val()).map(item => {
+                const btn = document.createElement("button");
+                console.log(item.description);
+                btn.setAttribute("value", item.mapID);
+                btn.setAttribute("title", item.description);
+                btn.className = "btn btn-primary open-project-button";
+                //btn.setAttribute("onClick", String("this.loadJSONFromFB" + "()"))
+                const id = item.mapID;
+                btn.addEventListener("click", function(e) {
+                    App.retrieveMapFromFireBase(e.target.value);
+                    myMap.settings.mapIndex = e.target.value; // store map Index
+                });
+                btn.innerHTML = item.name;
+                maplist.appendChild(btn);
+                //const str = String("<p>" + item.description + "</p><br>")
+                //el.insertAdjacentHTML('beforeEnd', str);
+            });
+        }
+    }
+
+    function loadFromPresetButtons(layerName) {
+        if (layerName === "Ham") {
+            myMap.settings.demoJSONmapdata = "ham-green-demo.json";
+            loadOverlayLayer(myMap.settings.demoJSONmapdata);
+        } else if (layerName === "Richmond") {
+            myMap.settings.demoJSONmapdata = "richmondriverside.json";
+            loadOverlayLayer(myMap.settings.demoJSONmapdata);
+        } else if (layerName === "Richmond-all") {
+            myMap.settings.demoJSONmapdata = "richmond-terr-all.json";
+            loadOverlayLayer(myMap.settings.demoJSONmapdata);
+        }
+    }
+}
+
+function clearMyLayers() {
+    // just for testing
+}
+
+function initLogoWatermark() {
+    L.Control.watermark = L.Control.extend({
+        onAdd: e => {
+            const watermark = L.DomUtil.create("IMG", "custom-control");
+            watermark.src = "ORCL-logo-cropped.png";
+            watermark.style.opacity = 0.3;
+            watermark.style.background = "none";
+            return watermark;
+        }
+    });
+    L.control.watermark = opts => {
+        return new L.Control.watermark(opts);
+    };
+    L.control.watermark({ position: "bottomright" }).addTo(Map);
+}
+
+function initDebugControl() {
+    let debugControl_div;
+    Map.on("locationfound", onLocationFound);
+    Map.on("locationerror", onLocationError);
+
+    function onLocationFound(e) {
+        debugToMap("type: " + e.type + ", accuracy: " + e.accuracy + "<br>");
+        console.log("location success");
+        console.log("location found: ", e);
+    }
+
+    function onLocationError() {
+        debugToMap("location failed");
+    }
+
+    function debugToMap(message) {
+        let d = new Date();
+        debugControl_div.innerHTML +=
+            d.getMinutes() + ":" + d.getSeconds() + " " + message + "<br>";
+    }
+
+    L.Control.debugControl = L.Control.extend({
+        onAdd: e => {
+            debugControl_div = L.DomUtil.create("div");
+            debugControl_div.onclick = function() {
+                console.log("debug control clicked!");
+            };
+
+            debugControl_div.style = "background-color:white; max-width:50vw";
+            return debugControl_div;
+        }
+    });
+    L.control.debugControl = opts => {
+        return new L.Control.debugControl(opts);
+    };
+    L.control
+        .debugControl({
+            position: "bottomleft"
+        })
+        .addTo(Map);
+}
+// firebase
+const fireBaseconfig = {
+    apiKey: "AIzaSyB977vJdWTGA-JJ03xotQkeu8X4_Ds_BLQ",
+    authDomain: "fir-realtime-db-24299.firebaseapp.com",
+    databaseURL: "https://fir-realtime-db-24299.firebaseio.com",
+    projectId: "fir-realtime-db-24299",
+    storageBucket: "fir-realtime-db-24299.appspot.com",
+    messagingSenderId: "546067641349"
+};
+firebase.initializeApp(fireBaseconfig);
+
+// --------------------------------------- Main ---------------------
+const fbDatabase = firebase.database();
+
+let Map = myMap.setupBaseLayer();
+// initDebugControl()
+App.initSettingsControl();
+L.control.scale().addTo(Map);
+initLogoWatermark();
+setupSideBar();
+initLocationControl();
+//loadOverlayLayer("myMap.settings.demoJSONmapdata") // loads GeoJSON Browser's local storage if available otherwise loads local (initial) file
+
+function loadOverlayLayer(fileRef) {
+    myMap.myLayerGroup.clearLayers(App.geoLayer);
+    if (localStorage.getItem("geoJSON") == null) {
+        App.loadGeoJSONLayer(fileRef);
+        console.log("no localstoge so retrieving fresh file");
+    } else {
+        console.log("reading json from Local storage");
+        App.setupGeoLayer(JSON.parse(localStorage.getItem("geoJSON")));
+    }
+}
+
+//  ------------------------  leaflet controls
+
+// ------sidebar controll plugin
+function setupSideBar() {
+     window.alert("halt!");
+    App.sidebar = window.L.control.sidebar("sidebar", {
+       
+        position: "left",
+        closeButton: "true",
+        autoPan: false
+    });
+
+    Map.addControl(App.sidebar);
+}
+
+// -------------------- GPS location plugin
+function initLocationControl() {
+    App.lc = L.control
+        .locate({
+            position: "topright",
+            keepCurrentZoomLevel: true,
+            strings: {
+                title: "My location (will use GPS if available)"
+            },
+            cacheLocation: false,
+            locateOptions: {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 3000
+                //watch: true
+            }
+
+            //setView: 'Once'
+            // layer: App.myLayerGroup
+        })
+        .addTo(Map);
+}
+
+Map.on("click", onMapClick);
+
+function onMapClick(e) {
+    //App.sidebar.hide();
+    console.log(e);
+
+}
+
+Map.on("locationfound", updateLatestLocation)
 
 
-var map = L.map('map').setView([39.74739, -105], 13);
 
-L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-    maxZoom: 18,
-    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
-        '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-        'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-    id: 'mapbox.light'
-}).addTo(map);
 
-var baseballIcon = L.icon({
-    iconUrl: 'baseball-marker.png',
-    iconSize: [32, 37],
-    iconAnchor: [16, 37],
-    popupAnchor: [0, -28]
+function updateLatestLocation(e) {
+    console.log("locates location:", e)
+
+    myMap.state.latestLocation = e.latlng
+}
+
+Map.on("popupclose", function(e) {
+    App.sidebar.hide();
+    App.selectedFeature = null;
 });
 
-function onEachFeature(feature, layer) {
-    var popupContent = "<p>I started out as a GeoJSON " +
-        feature.geometry.type + ", but now I'm a Leaflet vector!</p>";
-
-    if (feature.properties && feature.properties.popupContent) {
-        popupContent += feature.properties.popupContent;
-    }
-
-    layer.bindPopup(popupContent);
-}
-
-L.geoJSON([bicycleRental, campus], {
-
-    style: function(feature) {
-        return feature.properties && feature.properties.style;
-    },
-
-    onEachFeature: onEachFeature,
-
-    pointToLayer: function(feature, latlng) {
-        return L.circleMarker(latlng, {
-            radius: 8,
-            fillColor: "#ff7800",
-            color: "#000",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-        });
-    }
-}).addTo(map);
-
-L.geoJSON(freeBus, {
-
-    filter: function(feature, layer) {
-        if (feature.properties) {
-            // If the property "underConstruction" exists and is true, return false (don't render features under construction)
-            return feature.properties.underConstruction !== undefined ? !feature.properties.underConstruction : true;
-        }
-        return false;
-    },
-
-    onEachFeature: onEachFeature
-}).addTo(map);
-
-var coorsLayer = L.geoJSON(coorsField, {
-
-    pointToLayer: function(feature, latlng) {
-        return L.marker(latlng, { icon: baseballIcon });
-    },
-
-    onEachFeature: onEachFeature
-}).addTo(map);
-
-test();
+const loadFromShp = () => {
+    var shpLayer = new L.Shapefile("test-park.zip");
+    console.log("shpLayer: ", shpLayer);
+    shpLayer.addTo(Map);
+};
