@@ -1,8 +1,11 @@
 "use strict";
 
-//import L from 'leaflet';
+import L from 'leaflet';
 import firebase from 'firebase';
-//import Sidebar from 'L.Control.Sidebar';
+//import Sidebar from '';
+require ('./L.Control.Sidebar');
+// require ('./L.Control.Sidebar');
+require ('./L.Control.Locate.min');
 //import Sidebar from 'L.Control.Sidebar.js';
 // import { myUrl } from './djs_module';
 // import 'bootstrap/dist/css/bootstrap.min.css';
