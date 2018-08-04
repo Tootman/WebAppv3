@@ -1,5 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const precss = require('precss');
+const autoprefixer = require('autoprefixer');
 
 
 module.exports = {
@@ -20,10 +22,30 @@ module.exports = {
                     presets: ['env']
                 }
             } //,
-          //  {
-          //      test: /\.css$/,
-          //      use: ['style-loader', 'css-loader']
-          //  }
+            //  {
+            //      test: /\.css$/,
+            //      use: ['style-loader', 'css-loader']
+            //  }
+            ,
+            {
+                test: /\.scss$/,
+                use: [
+                    { loader: 'style-loader' },
+                    { loader: 'css-loader' },
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            plugins() {
+                                return [
+                                    precss,
+                                    autoprefixer,
+                                ];
+                            },
+                        },
+                    },
+                    { loader: 'sass-loader' },
+                ],
+            }
         ]
     },
     plugins: [

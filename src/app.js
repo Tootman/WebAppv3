@@ -2,19 +2,16 @@
 
 import L from 'leaflet';
 import firebase from 'firebase';
-//import Sidebar from '';
+import './style.scss';
+
 require ('./L.Control.Sidebar');
-// require ('./L.Control.Sidebar');
 require ('./L.Control.Locate.min');
 //import Sidebar from 'L.Control.Sidebar.js';
 // import { myUrl } from './djs_module';
-// import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Overview: when a feature on the geo layer is clicked it is assigned to  App.selectedFeature for interaction
 
 // the myMap object holds all the map and global settings, and sets up and manages the basemaps
-
-
 
 let myMap = {
     settings: {
