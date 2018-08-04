@@ -12,7 +12,6 @@ module.exports = {
         path: path.resolve(__dirname, 'build'),
         filename: 'app.bundle.js'
     },
-
     module: {
         rules: [{
                 test: /\.js?$/,
@@ -44,7 +43,12 @@ module.exports = {
                         },
                     },
                     { loader: 'sass-loader' },
+
                 ],
+            },
+            {
+                test: /\.css$/,
+                loaders: ['style-loader', 'css-loader']
             }
         ]
     },
