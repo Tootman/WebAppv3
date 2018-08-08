@@ -244,6 +244,7 @@ const App = {
     },
 
     assignTaskCompletedStyle: function(layer, featureProperty) {
+        debugger
         const s = myMap.settings.symbology;
         if (featureProperty.taskCompleted == true) {
             layer.setStyle(s.taskCompleteStyle);
@@ -756,9 +757,7 @@ function loadOverlayLayer(fileRef) {
 
 // ------sidebar controll plugin
 function setupSideBar() {
-     window.alert("halt!");
     App.sidebar = window.L.control.sidebar("sidebar", {
-       
         position: "left",
         closeButton: "true",
         autoPan: false
