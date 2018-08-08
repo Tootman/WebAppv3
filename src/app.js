@@ -439,6 +439,8 @@ const App = {
     }
 };
 
+window.App = App
+
 var HOUNDLOWLAYER = {};
 
 const loadHatheropShp = () => {
