@@ -782,8 +782,10 @@ function initLocationControl() {
                 enableHighAccuracy: true,
                 timeout: 10000,
                 maximumAge: 3000
+
                 //watch: true
-            }
+            },
+            icon: 'icon-direction'
 
             //setView: 'Once'
             // layer: App.myLayerGroup
