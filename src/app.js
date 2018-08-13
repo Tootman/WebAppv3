@@ -244,7 +244,7 @@ const App = {
     },
 
     assignTaskCompletedStyle: function(layer, featureProperty) {
-        debugger
+        
         const s = myMap.settings.symbology;
         if (featureProperty.taskCompleted == true) {
             layer.setStyle(s.taskCompleteStyle);
@@ -441,6 +441,7 @@ const App = {
 
 window.App = App
 
+
 var HOUNDLOWLAYER = {};
 
 const loadHatheropShp = () => {
@@ -453,6 +454,7 @@ const RelatedData = {
     //let featureKey = null
     submit: function() {
         // calculate key from OBJECTID + geometrytype
+        debugger
         this.featureKey = String(
             App.selectedFeature.properties.OBJECTID +
             App.selectedFeature.geometry.type
@@ -498,6 +500,8 @@ const RelatedData = {
         document.getElementById("related-data-photo").value = el.files[0].name;
     }
 };
+
+window.RelatedData = RelatedData
 
 function uploadMapToFirebase() {
     // grab the blobal Mapindex, then send gson layer up to node

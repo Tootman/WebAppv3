@@ -5,6 +5,7 @@ const autoprefixer = require('autoprefixer');
 
 
 module.exports = {
+    devtool: '_source-map',
     entry: {
         app: './src/app.js'
     },
