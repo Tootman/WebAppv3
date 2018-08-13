@@ -124,6 +124,21 @@ const App = {
             this.getPhoto(p.photo);
         }
         console.log(" read task completed: " + p.taskCompleted);
+        const reldiv = document.getElementById("latest-related")
+        reldiv.innerHTML = ""
+        const fId = App.selectedFeature.properties.OBJECTID + App.selectedFeature.geometry.type
+        console.log("fID:", fId)
+
+       const relSet = App.State.relatedData[fId]
+
+        if (relSet) {
+            Object.keys(relSet).map((key) => {
+                reldiv.innerHTML += key + ": " + relSet[key] + "<br>"
+            })
+        }
+        else
+            reldiv.innerHTML = "(no related data)"
+
         App.sidebar.show();
     },
 
@@ -532,7 +547,7 @@ const RelatedData = {
     //let featureKey = null
     submit: function() {
         // calculate key from OBJECTID + geometrytype
-        debugger
+
         this.featureKey = String(
             App.selectedFeature.properties.OBJECTID +
             App.selectedFeature.geometry.type
