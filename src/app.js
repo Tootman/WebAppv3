@@ -402,26 +402,37 @@ const App = {
     },
 
     populateRelated: related => {
-        console.log("relData:", related)
-        App.State.relatedData = related
+        //console.log("relData:", related)
+        //App.State.relatedData = related
         const relDataObject = {}; // to be replaced with State etc
-       
-        Object.keys(related).map((relKey, index) => {
-
-            //attachRelatedToRecord(relKey, index, relDataObject);
-            console.log (relKey,index)
-        });
-        const attachRelatedToRecord = (relKey, index, relDataOb) => {
-            // creates an ob with set of keys with related properties as their values
-            relDataOb[relKey] = getLastRelDataItem(related[relKey]);
-        };
         const getLastRelDataItem = RelDataSet => {
             const sortedKeys = Object.keys(RelDataSet).sort();
             const lastDataItem = RelDataSet[sortedKeys[sortedKeys.length - 1]];
             return lastDataItem;
         };
+
+        App.State.relatedData = Object.keys(related).map((relKey, index) => {
+
+            //attachRelatedToRecord(relKey, index, relDataObject);
+            console.log("relkey, Index:", relKey, index)
+            const itemOb = {}
+            const lastItem = getLastRelDataItem(related[relKey])
+            itemOb[relKey] = lastItem
+            relDataObject[relKey] = lastItem
+            return itemOb
+        });
+        App.State.relatedData = relDataObject
+        /*
+        const attachRelatedToRecord = (relKey, index, relDataOb, tempOb) => {
+            // creates an ob with set of keys with related properties as their values
+            relDataOb[relKey] = this.getLastRelDataItem(related[relKey]);
+
+        };
+        */
+
     },
 
+    /*
     appendRelatedDataToFeatureState(featureSet, related) {
         if (related === null || related === undefined) {
             return featureSet; // return straight back as is
@@ -457,6 +468,7 @@ const App = {
         //featureState.features = featureSet;
         //this.setState(featureState);
     },
+    */
 
     setupGeoLayer: function(myJSONdata, meta) {
         //
