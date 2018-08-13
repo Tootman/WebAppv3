@@ -4,11 +4,11 @@ import L from 'leaflet';
 import firebase from 'firebase';
 import './style.scss';
 
-require ('./L.Control.Sidebar');
-require ('./L.Control.Locate.min');
+require('./L.Control.Sidebar');
+require('./L.Control.Locate.min');
 
-require ('./L.Control.Sidebar.css');
-require ('./L.Control.Locate.min.css');
+require('./L.Control.Sidebar.css');
+require('./L.Control.Locate.min.css');
 //import Sidebar from 'L.Control.Sidebar.js';
 // import { myUrl } from './djs_module';
 
@@ -100,8 +100,15 @@ let myMap = {
     }
 };
 
+
+
+
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 const App = {
+    State: {
+        relatedData: {} // init value
+    },
+
     whenGeoFeatureClicked: function() {
         function renderSideBar() {
             App.sidebar.setContent(
@@ -122,7 +129,7 @@ const App = {
 
     findNearestFeatures: function() {
 
-        
+
 
         if (myMap.state.latestLocation)
 
@@ -134,6 +141,7 @@ const App = {
             window.alert("Sorry - failed - You need to get a GPS location first")
         }
     },
+
 
     createFormItem: function(parentTag, el, type, prop, value) {
         const wrapperDiv = createWrapperDiv(parentTag);
@@ -244,7 +252,7 @@ const App = {
     },
 
     assignTaskCompletedStyle: function(layer, featureProperty) {
-        
+
         const s = myMap.settings.symbology;
         if (featureProperty.taskCompleted == true) {
             layer.setStyle(s.taskCompleteStyle);
@@ -389,7 +397,65 @@ const App = {
                 document.getElementById("opennewproject").style.display =
                     "none";
                 App.sidebar.hide();
+                App.populateRelated(layerData.Related);
             });
+    },
+
+    populateRelated: related => {
+        console.log("relData:", related)
+        App.State.relatedData = related
+        const relDataObject = {}; // to be replaced with State etc
+       
+        Object.keys(related).map((relKey, index) => {
+
+            //attachRelatedToRecord(relKey, index, relDataObject);
+            console.log (relKey,index)
+        });
+        const attachRelatedToRecord = (relKey, index, relDataOb) => {
+            // creates an ob with set of keys with related properties as their values
+            relDataOb[relKey] = getLastRelDataItem(related[relKey]);
+        };
+        const getLastRelDataItem = RelDataSet => {
+            const sortedKeys = Object.keys(RelDataSet).sort();
+            const lastDataItem = RelDataSet[sortedKeys[sortedKeys.length - 1]];
+            return lastDataItem;
+        };
+    },
+
+    appendRelatedDataToFeatureState(featureSet, related) {
+        if (related === null || related === undefined) {
+            return featureSet; // return straight back as is
+        }
+        const getLastRelDataItem = RelDataSet => {
+            const sortedKeys = Object.keys(RelDataSet).sort();
+            const lastDataItem = RelDataSet[sortedKeys[sortedKeys.length - 1]];
+            return lastDataItem;
+        };
+
+        const attachRelatedToRecord = (relKey, index, relDataOb) => {
+            // creates an ob with set of keys with related properties as their values
+            relDataOb[relKey] = getLastRelDataItem(related[relKey]);
+        };
+        const relDataObject = {};
+        Object.keys(related).map((relKey, index) => {
+            attachRelatedToRecord(relKey, index, relDataObject);
+        });
+
+        const assignPropsToFeature = (feature, featureIndex, relDataObject) => {
+            const ObId = String(
+                feature.properties.OBJECTID + feature.geometry.type
+            );
+            Object.assign(
+                featureSet[featureIndex].properties,
+                relDataObject[ObId]
+            ); // asign related Props to feature
+        };
+        const updatedFeatureSet = featureSet.map((feature, index) => {
+            assignPropsToFeature(feature, index, relDataObject);
+        });
+        const featureState = this.state.geoJson; // get a ref to state
+        //featureState.features = featureSet;
+        //this.setState(featureState);
     },
 
     setupGeoLayer: function(myJSONdata, meta) {
@@ -412,8 +478,8 @@ const App = {
                     layer.bindTooltip(feature.properties[meta.LabelProperty], {
                         className: "tool-tip-class"
                     });
-                } catch (err){
-                    console.log("failed to find prop",err);
+                } catch (err) {
+                    console.log("failed to find prop", err);
                 }
             },
             style: function(feature) {
