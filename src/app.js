@@ -129,14 +129,13 @@ const App = {
         const fId = App.selectedFeature.properties.OBJECTID + App.selectedFeature.geometry.type
         console.log("fID:", fId)
 
-       const relSet = App.State.relatedData[fId]
+        const relSet = App.State.relatedData[fId]
 
         if (relSet) {
             Object.keys(relSet).map((key) => {
                 reldiv.innerHTML += key + ": " + relSet[key] + "<br>"
             })
-        }
-        else
+        } else
             reldiv.innerHTML = "(no related data)"
 
         App.sidebar.show();
@@ -544,15 +543,12 @@ const loadHatheropShp = () => {
 };
 
 const RelatedData = {
-    //let featureKey = null
-    submit: function() {
+
+    submit: () => {
         // calculate key from OBJECTID + geometrytype
-
         this.featureKey = String(
-            App.selectedFeature.properties.OBJECTID +
-            App.selectedFeature.geometry.type
+            App.selectedFeature.properties.OBJECTID + App.selectedFeature.geometry.type
         );
-
         App.selectedFeature.geometry.type + "/";
         console.log("key: " + this.featureKey);
         this.nodePath = String(
@@ -689,6 +685,8 @@ const User = function() {
         initLoginForm: initLoginForm
     };
 };
+window.User = User
+
 
 function loadMyLayer(layerName) {
     // just for testing
