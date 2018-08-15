@@ -39,7 +39,8 @@ let myMap = {
         },
 
 
-        mbAttr: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+        //mbAttr: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+        mbAttr: 'Map&copy; <a href="http://openstreetmap.org">OSMap</a>Imagery©<a href="http://mapbox.com">Mapbox</a>',
         mbUrl: "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w",
         //demoJSONmapdata: 'ham-green-demo.json',
         // demoJSONmapdata: 'richmondriverside.json',
@@ -70,6 +71,8 @@ let myMap = {
             attribution: myMap.settings.mbAttr,
             maxZoom: 24
         });
+        
+
         const myLayerGroup = L.layerGroup();
         this.myLayerGroup = myLayerGroup;
 
@@ -90,6 +93,7 @@ let myMap = {
         this.basemaps = baseMaps;
 
         // create group of overlay layers
+        
         let overlayMaps = {
             myLayers: myLayerGroup
         };
@@ -106,7 +110,8 @@ let myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 const App = {
     State: {
-        relatedData: {} // init value
+        relatedData: {}, // init val
+        relDataSyncStatus : {} // objects holds relatedData sync status flag for each feature, TRUE if synced , False  
     },
 
     whenGeoFeatureClicked: function() {
@@ -337,7 +342,7 @@ const App = {
         L.Control.myControl = L.Control.extend({
             onAdd: e => {
                 const myControl_div = L.DomUtil.create("div", "custom-control");
-                myControl_div.onclick = function() {
+                myControl_div.onclick = ()=> {
                     console.log("custom control clicked!");
                     App.sidebar.setContent(
                         document.getElementById("settings-template").innerHTML
@@ -419,6 +424,9 @@ const App = {
         //console.log("relData:", related)
         //App.State.relatedData = related
         const relDataObject = {}; // to be replaced with State etc
+        const relDataSyncObject = {} // just to make sure it's initially empty
+        App.State.relDataSyncStatus = {} // make sure start with empty obj
+        App.State.relatedData = {}
         const getLastRelDataItem = RelDataSet => {
             const sortedKeys = Object.keys(RelDataSet).sort();
             const lastDataItem = RelDataSet[sortedKeys[sortedKeys.length - 1]];
@@ -433,9 +441,11 @@ const App = {
             const lastItem = getLastRelDataItem(related[relKey])
             itemOb[relKey] = lastItem
             relDataObject[relKey] = lastItem
+            relDataSyncObject[relKey] = true // ie the feature's rela data is now synced 
             return itemOb
         });
         App.State.relatedData = relDataObject
+        App.State.relDataSyncStatus = relDataSyncObject
         /*
         const attachRelatedToRecord = (relKey, index, relDataOb, tempOb) => {
             // creates an ob with set of keys with related properties as their values
@@ -546,15 +556,16 @@ const RelatedData = {
 
     submit: () => {
         // calculate key from OBJECTID + geometrytype
-        this.featureKey = String(
+        
+        RelatedData.featureKey = String(
             App.selectedFeature.properties.OBJECTID + App.selectedFeature.geometry.type
         );
         App.selectedFeature.geometry.type + "/";
-        console.log("key: " + this.featureKey);
-        this.nodePath = String(
-            "App/Maps/" + App.firebaseHash + "/Related/" + this.featureKey + "/"
+        console.log("key: " + RelatedData.featureKey);
+        RelatedData.nodePath = String(
+            "App/Maps/" + App.firebaseHash + "/Related/" + RelatedData.featureKey + "/"
         );
-        console.log("nodePath: " + this.nodePath);
+        console.log("nodePath: " + RelatedData.nodePath);
         const relatedRecord = {};
         relatedRecord.timestamp = Date();
         relatedRecord.user = firebase.auth().currentUser.uid;
@@ -571,9 +582,14 @@ const RelatedData = {
                 "related-data-photo"
             ).value;
         }
+        App.State.relDataSyncStatus[RelatedData.featureKey] = false // while push promise is unresolved
         fbDatabase
-            .ref(this.nodePath)
+            .ref(RelatedData.nodePath)
             .push(relatedRecord)
+            .then((snap)=>{
+                // if successfully synced
+                App.State.relDataSyncStatus[RelatedData.featureKey] = true
+            })
             .catch(error => {
                 console.log("My Error: " + error.message);
                 alert("Sorry - you need to be logged in to do this ");

@@ -2,6 +2,8 @@
     height: 800px;
 }
 
+
+
 .custom-control,
 .custom-control2 {
     width: 150px;
@@ -17,6 +19,8 @@
 .custom-control2::before {
     content: 'Settings';
 }
+
+
 
 .custom-control:hover,
 .custom-control2:hover {
