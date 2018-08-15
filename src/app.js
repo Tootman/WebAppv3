@@ -71,7 +71,7 @@ let myMap = {
             attribution: myMap.settings.mbAttr,
             maxZoom: 24
         });
-        
+
 
         const myLayerGroup = L.layerGroup();
         this.myLayerGroup = myLayerGroup;
@@ -93,7 +93,7 @@ let myMap = {
         this.basemaps = baseMaps;
 
         // create group of overlay layers
-        
+
         let overlayMaps = {
             myLayers: myLayerGroup
         };
@@ -111,10 +111,26 @@ let myMap = {
 const App = {
     State: {
         relatedData: {}, // init val
-        relDataSyncStatus : {} // objects holds relatedData sync status flag for each feature, TRUE if synced , False  
+        relDataSyncStatus: {} // objects holds relatedData sync status flag for each feature, TRUE if synced , False  
+    },
+
+    updateRelDataSyncMsg: (featureID) => {
+        const relSyncDiv = document.getElementById("rel-data-sync-message")
+        let msg = ""
+        const s = App.State.relDataSyncStatus[featureID]
+        if (s == null) {
+            msg = "not related data"
+        } else if (s == true) { msg = "successful sync" } else if (s == false) {
+            msg = "Data not yet synced - please connect to network before closing this App"
+        }
+        relSyncDiv.innerHTML = msg
+        relSyncDiv.style = "color:'CornflowerBlue' "
     },
 
     whenGeoFeatureClicked: function() {
+        const fId = App.selectedFeature.properties.OBJECTID + App.selectedFeature.geometry.type
+        console.log("fID:", fId)
+
         function renderSideBar() {
             App.sidebar.setContent(
                 document.getElementById("form-template").innerHTML
@@ -124,16 +140,13 @@ const App = {
         let p = App.selectedFeature.properties;
         renderSideBar();
         this.generateFormElements(p);
-
         if (p.photo !== null && p.photo !== undefined) {
             this.getPhoto(p.photo);
         }
         console.log(" read task completed: " + p.taskCompleted);
         const reldiv = document.getElementById("latest-related")
+        App.updateRelDataSyncMsg(fId)
         reldiv.innerHTML = ""
-        const fId = App.selectedFeature.properties.OBJECTID + App.selectedFeature.geometry.type
-        console.log("fID:", fId)
-
         const relSet = App.State.relatedData[fId]
 
         if (relSet) {
@@ -342,7 +355,7 @@ const App = {
         L.Control.myControl = L.Control.extend({
             onAdd: e => {
                 const myControl_div = L.DomUtil.create("div", "custom-control");
-                myControl_div.onclick = ()=> {
+                myControl_div.onclick = () => {
                     console.log("custom control clicked!");
                     App.sidebar.setContent(
                         document.getElementById("settings-template").innerHTML
@@ -556,7 +569,7 @@ const RelatedData = {
 
     submit: () => {
         // calculate key from OBJECTID + geometrytype
-        
+
         RelatedData.featureKey = String(
             App.selectedFeature.properties.OBJECTID + App.selectedFeature.geometry.type
         );
@@ -583,12 +596,16 @@ const RelatedData = {
             ).value;
         }
         App.State.relDataSyncStatus[RelatedData.featureKey] = false // while push promise is unresolved
+        App.updateRelDataSyncMsg(RelatedData.featureKey)
         fbDatabase
             .ref(RelatedData.nodePath)
             .push(relatedRecord)
-            .then((snap)=>{
+            .then((snap) => {
                 // if successfully synced
-                App.State.relDataSyncStatus[RelatedData.featureKey] = true
+                const f_id = snap.path.pieces_[4]  // fudege to retrieve feature id (parent piece) from the snapshot
+                App.State.relDataSyncStatus[f_id] = true
+                //console.log("resolved RelData for feature:", RelatedData.featureKey, f_id)
+                App.updateRelDataSyncMsg(f_id)
             })
             .catch(error => {
                 console.log("My Error: " + error.message);
