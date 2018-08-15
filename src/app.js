@@ -144,18 +144,10 @@ const App = {
             this.getPhoto(p.photo);
         }
         console.log(" read task completed: " + p.taskCompleted);
-        const reldiv = document.getElementById("latest-related")
+
         App.updateRelDataSyncMsg(fId)
-        reldiv.innerHTML = ""
-        const relSet = App.State.relatedData[fId]
-
-        if (relSet) {
-            Object.keys(relSet).map((key) => {
-                reldiv.innerHTML += key + ": " + relSet[key] + "<br>"
-            })
-        } else
-            reldiv.innerHTML = "(no related data)"
-
+        App.updateSidebarRelatedFromState(fId)
+        
         App.sidebar.show();
     },
 
@@ -173,7 +165,6 @@ const App = {
             window.alert("Sorry - failed - You need to get a GPS location first")
         }
     },
-
 
     createFormItem: function(parentTag, el, type, prop, value) {
         const wrapperDiv = createWrapperDiv(parentTag);
@@ -469,6 +460,24 @@ const App = {
 
     },
 
+    updateFeatureRelatedState: (featureKey, relatedData) => {
+        // update a single feature's RelatedRecord State
+        App.State.relatedData[featureKey] = relatedData
+    },
+
+    updateSidebarRelatedFromState: (featureKey) => {
+        // update a feature's RelatedRecord State
+        const reldiv = document.getElementById("latest-related")
+        reldiv.innerHTML = ""
+        const relSet = App.State.relatedData[featureKey]
+        if (relSet) {
+            Object.keys(relSet).map((key) => {
+                reldiv.innerHTML += key + ": " + relSet[key] + "<br>"
+            })
+        } else
+            reldiv.innerHTML = ""
+    },
+
     /*
     appendRelatedDataToFeatureState(featureSet, related) {
         if (related === null || related === undefined) {
@@ -595,17 +604,24 @@ const RelatedData = {
                 "related-data-photo"
             ).value;
         }
-        App.State.relDataSyncStatus[RelatedData.featureKey] = false // while push promise is unresolved
-        App.updateRelDataSyncMsg(RelatedData.featureKey)
+        const key= RelatedData.featureKey
+        App.State.relDataSyncStatus[key] = false // while push promise is unresolved
+        App.updateRelDataSyncMsg(key)
+        App.updateFeatureRelatedState(key, relatedRecord)
+        App.updateSidebarRelatedFromState(key)
         fbDatabase
             .ref(RelatedData.nodePath)
             .push(relatedRecord)
             .then((snap) => {
                 // if successfully synced
-                const f_id = snap.path.pieces_[4]  // fudege to retrieve feature id (parent piece) from the snapshot
+                //const f_id = snap.path.pieces_[4]  // fudege to retrieve feature key (parent piece) from the snapshot
+                const f_id = snap.parent.key // fudege to retrieve feature key
                 App.State.relDataSyncStatus[f_id] = true
                 //console.log("resolved RelData for feature:", RelatedData.featureKey, f_id)
                 App.updateRelDataSyncMsg(f_id)
+                //console.log("snapVal:", snap.val())
+                //App.populateRelated(relatedRecord);
+
             })
             .catch(error => {
                 console.log("My Error: " + error.message);
