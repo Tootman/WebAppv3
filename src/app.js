@@ -16,6 +16,7 @@ require('./L.Control.Locate.min.css');
 
 // the myMap object holds all the map and global settings, and sets up and manages the basemaps
 
+//let RelatdData = {} // will be reasigned below
 let myMap = {
     settings: {
         symbology: {
@@ -116,6 +117,7 @@ const App = {
 
     updateRelDataSyncMsg: (featureID) => {
         const relSyncDiv = document.getElementById("rel-data-sync-message")
+        if (relSyncDiv == null) return; //exit if element doesn yet exist ie of form is'nt open
         let msg = ""
         const s = App.State.relDataSyncStatus[featureID]
         if (s == null) {
@@ -147,7 +149,7 @@ const App = {
 
         App.updateRelDataSyncMsg(fId)
         App.updateSidebarRelatedFromState(fId)
-        
+
         App.sidebar.show();
     },
 
@@ -450,6 +452,7 @@ const App = {
         });
         App.State.relatedData = relDataObject
         App.State.relDataSyncStatus = relDataSyncObject
+        App.getRelDataFromLocalStorage(App.firebaseHash)
         /*
         const attachRelatedToRecord = (relKey, index, relDataOb, tempOb) => {
             // creates an ob with set of keys with related properties as their values
@@ -457,8 +460,32 @@ const App = {
 
         };
         */
-
     },
+
+    getRelDataFromLocalStorage: (mapHash) => {
+
+        const regex = "backup\.relatedData\." + mapHash + "\."
+
+        const relDataKeys = Object.keys(localStorage).filter((item) => item.match(regex));
+        if (relDataKeys.length == 0) return;
+        relDataKeys.map(key => {
+            const item = JSON.parse(localStorage.getItem(key))
+            const itemFeatureKey = key.split(regex)[1] //  element 1 is str after split point 
+            const relDataFeaturePath = "App/Maps/" + mapHash + "/Related/" + itemFeatureKey;
+            const localStorageTime = new Date(item.timestamp)
+            const stateTime = new Date(App.State.relatedData[itemFeatureKey].timestamp)
+            console.log(localStorageTime.getTime(), stateTime.getTime())
+            if (localStorageTime.getTime() > stateTime.getTime()) {
+                console.log("New item to upload! : ", itemFeatureKey, item.timestamp, "State Timestamp:", App.State.relatedData[itemFeatureKey].timestamp)
+                App.updateFeatureRelatedState(itemFeatureKey, item)
+                App.State.relDataSyncStatus[key] = false // while item is sucessfully pushed to db
+                RelatedData.pushRelatedDataRecord(relDataFeaturePath, itemFeatureKey, item)
+                // Trigger push of item (does this update sync status and message automatically ? )  
+
+            }
+        })
+    },
+
 
     updateFeatureRelatedState: (featureKey, relatedData) => {
         // update a single feature's RelatedRecord State
@@ -576,12 +603,40 @@ const loadHatheropShp = () => {
 
 const RelatedData = {
 
+    saveRelDataRecordToLocalStorage: (mapHash, featureKey, relatedData) => {
+        localStorage.setItem('backup.relatedData.' + mapHash + "." + featureKey, JSON.stringify(relatedData));
+    },
+
+    pushRelatedDataRecord: (relDataPath, featureKey, relatedRecord) => {
+        fbDatabase
+            .ref(relDataPath) // meed to move this constant into App.State
+            .push(relatedRecord)
+            .then((snap) => {
+                // if successfully synced
+                //const f_id = snap.path.pieces_[4]  // fudege to retrieve feature key (parent piece) from the snapshot
+                const f_id = snap.parent.key // fudege to retrieve feature key
+                App.State.relDataSyncStatus[f_id] = true
+                //console.log("resolved RelData for feature:", RelatedData.featureKey, f_id)
+                App.updateRelDataSyncMsg(f_id)
+                console.log("Pushed new Related Record :",f_id)
+                // Remove record from local storage
+                const localStorageKey = "backup.relatedData." + App.firebaseHash + "." + featureKey
+                localStorage.removeItem(localStorageKey)
+
+            })
+            .catch(error => {
+                console.log("My Error: " + error.message);
+                alert("Sorry - something went wrong - have you logged in etc?");
+                //document.getElementById("message-area").innerHTML="Sorry - "+ error.message
+            });
+    },
+
     submit: () => {
         // calculate key from OBJECTID + geometrytype
-
         RelatedData.featureKey = String(
             App.selectedFeature.properties.OBJECTID + App.selectedFeature.geometry.type
         );
+
         App.selectedFeature.geometry.type + "/";
         console.log("key: " + RelatedData.featureKey);
         RelatedData.nodePath = String(
@@ -604,30 +659,13 @@ const RelatedData = {
                 "related-data-photo"
             ).value;
         }
-        const key= RelatedData.featureKey
+        const key = RelatedData.featureKey
         App.State.relDataSyncStatus[key] = false // while push promise is unresolved
         App.updateRelDataSyncMsg(key)
         App.updateFeatureRelatedState(key, relatedRecord)
         App.updateSidebarRelatedFromState(key)
-        fbDatabase
-            .ref(RelatedData.nodePath)
-            .push(relatedRecord)
-            .then((snap) => {
-                // if successfully synced
-                //const f_id = snap.path.pieces_[4]  // fudege to retrieve feature key (parent piece) from the snapshot
-                const f_id = snap.parent.key // fudege to retrieve feature key
-                App.State.relDataSyncStatus[f_id] = true
-                //console.log("resolved RelData for feature:", RelatedData.featureKey, f_id)
-                App.updateRelDataSyncMsg(f_id)
-                //console.log("snapVal:", snap.val())
-                //App.populateRelated(relatedRecord);
-
-            })
-            .catch(error => {
-                console.log("My Error: " + error.message);
-                alert("Sorry - you need to be logged in to do this ");
-                //document.getElementById("message-area").innerHTML="Sorry - "+ error.message
-            });
+        RelatedData.saveRelDataRecordToLocalStorage(App.firebaseHash, key, relatedRecord)
+        RelatedData.pushRelatedDataRecord(RelatedData.nodePath, key, relatedRecord)
         document.getElementById("related-data-info").innerHTML = "Submitted!";
     },
 
@@ -637,9 +675,20 @@ const RelatedData = {
         console.log(el.files[0].name);
         document.getElementById("related-data-photo").value = el.files[0].name;
     }
+
+
+
+
 };
 
 window.RelatedData = RelatedData
+
+/*
+saveRelDataRecordToLocalStorage: (mapHash, featureKey, relatedData) => {
+        localStorage.setItem('backup.relatedData.' + mapHash + "." + featureKey, JSON.stringify(relateData);
+        }
+
+        */
 
 function uploadMapToFirebase() {
     // grab the blobal Mapindex, then send gson layer up to node
