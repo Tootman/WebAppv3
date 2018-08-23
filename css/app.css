@@ -3,7 +3,7 @@
 }
 
 
-
+/*
 .custom-control,
 .custom-control2 {
     width: 150px;
@@ -20,13 +20,22 @@
     content: 'Settings';
 }
 
+*/
 
 
+
+/*
 .custom-control:hover,
-.custom-control2:hover {
-    background-color: #ea3737;
-    /* dark red */
+.custom-control2:hover
+ {
+    background-color: #ea3737;   
 }
+
+*/
+
+
+
+
 
 #submit-form {
     /* float: right; */
@@ -84,4 +93,26 @@ h2.sidebar-sub-heading {
 .leaflet-bar a.save-tiles-button,
 .leaflet-bar a.remove-tiles-button {
     width: 9em;
+}
+
+.leaflet-bar a.save-tiles-button {
+    background-color : #17a2b8 /* bootstrap info blue */
+    color:white;
+    width: 9em;
+}
+
+.leaflet-bar a.remove-tiles-button{
+    color:darkred;
+    width: 9em;
+}
+
+
+
+.watermark{
+    background-color:none;
+    width:10em;
+}
+
+.main-button-control {
+
 }

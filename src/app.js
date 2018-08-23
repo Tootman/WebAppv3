@@ -410,7 +410,9 @@ const App = {
     initSettingsControl: function() {
         L.Control.myControl = L.Control.extend({
             onAdd: e => {
-                const myControl_div = L.DomUtil.create("div", "custom-control");
+                const myControl_div = L.DomUtil.create("button", "main-button-control btn btn-lg btn-danger icon-cog");
+                myControl_div.innerHTML = ""
+                myControl_div.title = "Settings"
                 myControl_div.onclick = () => {
                     console.log("custom control clicked!");
                     App.sidebar.setContent(
@@ -450,7 +452,7 @@ const App = {
         };
         L.control
             .myControl({
-                position: "bottomright"
+                position: "bottomleft"
             })
             .addTo(Map);
     },
@@ -853,7 +855,7 @@ window.User = User
 
 function loadMyLayer(layerName) {
     // just for testing
-    clearMyLayers();
+    //clearMyLayers();
     document.getElementById("open-new-project-button").style.display = "none";
     loadFromPresetButtons(layerName);
     // console.log("LoadmyLayer!")
@@ -904,6 +906,7 @@ function loadMyLayer(layerName) {
         }
     }
 
+    /*
     function loadFromPresetButtons(layerName) {
         if (layerName === "Ham") {
             myMap.settings.demoJSONmapdata = "ham-green-demo.json";
@@ -916,6 +919,7 @@ function loadMyLayer(layerName) {
             loadOverlayLayer(myMap.settings.demoJSONmapdata);
         }
     }
+    */
 }
 
 /*
@@ -927,10 +931,9 @@ function clearMyLayers() {
 function initLogoWatermark() {
     L.Control.watermark = L.Control.extend({
         onAdd: e => {
-            const watermark = L.DomUtil.create("IMG", "custom-control");
+            const watermark = L.DomUtil.create("IMG", 'watermark');
             watermark.src = "ORCL-logo-cropped.png";
             watermark.style.opacity = 0.3;
-            watermark.style.background = "none";
             return watermark;
         }
     });
@@ -996,12 +999,12 @@ const setupOfflineBaseLayerControls = () => {
                     saveButtonHtml: `<i id="${layer.object}" title="Save ${layer.label} layer to use offline" class="${layer.class} layer icon-download">${layer.label} </i>`,
                     removeButtonHtml: '<i class="icon-trash " aria-hidden="true">Delete</i>',
                     confirmSavingCallback: function(nTilesToSave, continueSaveTiles) {
-                        if (window.confirm('Save ' + nTilesToSave + '?')) {
+                        if (window.confirm('Save ' + nTilesToSave + ' background tiles?')) {
                             continueSaveTiles();
                         }
                     },
                     confirmRemovalCallback: function(continueRemoveTiles) {
-                        if (window.confirm('Remove all the tiles?')) {
+                        if (window.confirm('Delete All offline tiles?')) {
                             continueRemoveTiles();
                         }
                     },
@@ -1018,7 +1021,7 @@ const setupOfflineBaseLayerControls = () => {
 
 L.Control.OfflineBaselayersControl = L.Control.extend({
     onAdd: function(map) {
-        const OfflineBaselayersControl_div = L.DomUtil.create('button', "custom-control");
+        const OfflineBaselayersControl_div = L.DomUtil.create('button', "btn btn-sm icon-download btn-info");
         OfflineBaselayersControl_div.innerHTML = "Offline <br>Baselayers"
         OfflineBaselayersControl_div.title = "Save Background layers (tiles) for Offline use"
         OfflineBaselayersControl_div.onclick = () => {
@@ -1059,9 +1062,11 @@ const fbDatabase = firebase.database();
 
 let Map = myMap.setupBaseLayer();
 // initDebugControl()
-App.initSettingsControl();
-L.control.scale().addTo(Map);
 initLogoWatermark();
+
+L.control.scale({position:"bottomleft"}).addTo(Map);
+App.initSettingsControl();
+
 setupSideBar();
 initLocationControl();
 Map.doubleClickZoom.disable();
