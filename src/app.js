@@ -3,6 +3,9 @@
 import L from 'leaflet';
 import firebase from 'firebase';
 import './style.scss';
+import 'leaflet-offline';
+import localforage from 'localforage'
+
 
 require('./L.Control.Sidebar');
 require('./L.Control.Locate.min');
@@ -17,6 +20,66 @@ require('./L.Control.Locate.min.css');
 // the myMap object holds all the map and global settings, and sets up and manages the basemaps
 
 //let RelatdData = {} // will be reasigned below
+
+
+// ------------------
+
+const tilesDb = {
+    getItem: function(key) {
+        return localforage.getItem(key);
+    },
+
+    saveTiles: function(tileUrls) {
+        var self = this;
+
+        var promises = [];
+
+        for (var i = 0; i < tileUrls.length; i++) {
+            var tileUrl = tileUrls[i];
+
+            (function(i, tileUrl) {
+                promises[i] = new Promise(function(resolve, reject) {
+                    var request = new XMLHttpRequest();
+                    request.open('GET', tileUrl.url, true);
+                    request.responseType = 'blob';
+                    request.onreadystatechange = function() {
+                        if (request.readyState === XMLHttpRequest.DONE) {
+                            if (request.status === 200) {
+                                resolve(self._saveTile(tileUrl.key, request.response));
+                            } else {
+                                reject({
+                                    status: request.status,
+                                    statusText: request.statusText
+                                });
+                            }
+                        }
+                    };
+                    request.send();
+                });
+            })(i, tileUrl);
+        }
+
+        return Promise.all(promises);
+    },
+
+    clear: function() {
+        return localforage.clear();
+    },
+
+    _saveTile: function(key, value) {
+        return this._removeItem(key).then(function() {
+            return localforage.setItem(key, value);
+        });
+    },
+
+    _removeItem: function(key) {
+        return localforage.removeItem(key);
+    }
+};
+
+//--------------
+
+
 let myMap = {
     settings: {
         symbology: {
@@ -41,7 +104,7 @@ let myMap = {
 
 
         //mbAttr: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-        mbAttr: 'Map&copy; <a href="http://openstreetmap.org">OSMap</a>Imagery©<a href="http://mapbox.com">Mapbox</a>',
+        mbAttr: '<a href="http://openstreetmap.org">OSMap</a> ©<a href="http://mapbox.com">Mapbox</a>',
         mbUrl: "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w",
         //demoJSONmapdata: 'ham-green-demo.json',
         // demoJSONmapdata: 'richmondriverside.json',
@@ -62,18 +125,16 @@ let myMap = {
             attribution: myMap.settings.mbAttr,
             maxZoom: 24
         });
-        const streetsLayer = L.tileLayer(this.settings.mbUrl, {
+        const streetsLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
             id: "mapbox.streets",
             attribution: myMap.settings.mbAttr,
             maxZoom: 24
         });
-        const satLayer = L.tileLayer(this.settings.mbUrl, {
+        const satLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
             id: "mapbox.satellite",
             attribution: myMap.settings.mbAttr,
             maxZoom: 24
         });
-
-
         const myLayerGroup = L.layerGroup();
         this.myLayerGroup = myLayerGroup;
 
@@ -92,15 +153,18 @@ let myMap = {
             Satellite: satLayer
         };
         this.basemaps = baseMaps;
+        myMap.streetsLayer = streetsLayer
+        myMap.satLayer = satLayer
 
         // create group of overlay layers
-
         let overlayMaps = {
             myLayers: myLayerGroup
         };
         this.overlayMap = overlayMaps;
 
-        this.LayersControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+
+        this.LayersControl = L.control.layers(baseMaps).addTo(map);
         return map;
     }
 };
@@ -108,10 +172,11 @@ let myMap = {
 
 
 
+
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 const App = {
     State: {
-        relatedData: {}, // init val
+        relatedData: {}, // init va3l
         relDataSyncStatus: {} // objects holds relatedData sync status flag for each feature, TRUE if synced , False  
     },
 
@@ -618,7 +683,7 @@ const RelatedData = {
                 App.State.relDataSyncStatus[f_id] = true
                 //console.log("resolved RelData for feature:", RelatedData.featureKey, f_id)
                 App.updateRelDataSyncMsg(f_id)
-                console.log("Pushed new Related Record :",f_id)
+                console.log("Pushed new Related Record :", f_id)
                 // Remove record from local storage
                 const localStorageKey = "backup.relatedData." + App.firebaseHash + "." + featureKey
                 localStorage.removeItem(localStorageKey)
@@ -935,6 +1000,28 @@ L.control.scale().addTo(Map);
 initLogoWatermark();
 setupSideBar();
 initLocationControl();
+Map.doubleClickZoom.disable(); 
+
+var offlineControl = L.control.offline(myMap.streetsLayer, tilesDb, {
+    saveButtonHtml: '<i class="icon-download" ></i>',
+    removeButtonHtml: '<i class="fa fa-trash" ></i>',
+    confirmSavingCallback: function(nTilesToSave, continueSaveTiles) {
+        if (window.confirm('Save ' + nTilesToSave + '?')) {
+            continueSaveTiles();
+        }
+    },
+    confirmRemovalCallback: function(continueRemoveTiles) {
+        if (window.confirm('Remove all the tiles?')) {
+            continueRemoveTiles();
+        }
+    },
+    minZoom: 13,
+    maxZoom: 19
+});
+
+
+
+offlineControl.addTo(Map);
 //loadOverlayLayer("myMap.settings.demoJSONmapdata") // loads GeoJSON Browser's local storage if available otherwise loads local (initial) file
 
 function loadOverlayLayer(fileRef) {
