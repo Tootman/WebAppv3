@@ -22,21 +22,18 @@ require('./L.Control.Locate.min.css');
 //let RelatdData = {} // will be reasigned below
 
 
-// ------------------
+// ------------------   Offline background tile caching ----
 
 const tilesDb = {
     getItem: function(key) {
         return localforage.getItem(key);
     },
-
     saveTiles: function(tileUrls) {
         var self = this;
-
+        this._hideControls()
         var promises = [];
-
         for (var i = 0; i < tileUrls.length; i++) {
             var tileUrl = tileUrls[i];
-
             (function(i, tileUrl) {
                 promises[i] = new Promise(function(resolve, reject) {
                     var request = new XMLHttpRequest();
@@ -58,26 +55,26 @@ const tilesDb = {
                 });
             })(i, tileUrl);
         }
-
         return Promise.all(promises);
     },
-
     clear: function() {
+        this._hideControls()
         return localforage.clear();
     },
-
     _saveTile: function(key, value) {
         return this._removeItem(key).then(function() {
             return localforage.setItem(key, value);
         });
     },
-
     _removeItem: function(key) {
         return localforage.removeItem(key);
+    },
+    _hideControls: () => {
+        document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.display = "none" });
     }
 };
 
-//--------------
+//----------------------------------------------
 
 
 let myMap = {
@@ -120,7 +117,7 @@ let myMap = {
     },
 
     setupBaseLayer: function() {
-        const greyscaleLayer = L.tileLayer(this.settings.mbUrl, {
+        const greyscaleLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
             id: "mapbox.light",
             attribution: myMap.settings.mbAttr,
             maxZoom: 24
@@ -155,6 +152,7 @@ let myMap = {
         this.basemaps = baseMaps;
         myMap.streetsLayer = streetsLayer
         myMap.satLayer = satLayer
+        myMap.greyscaleLayer = greyscaleLayer
 
         // create group of overlay layers
         let overlayMaps = {
@@ -658,13 +656,15 @@ const App = {
 window.App = App
 
 
-var HOUNDLOWLAYER = {};
+//var HOUNDLOWLAYER = {};
 
+/*
 const loadHatheropShp = () => {
     HOUNDLOWLAYER = new L.Shapefile("hounslow-photos-almost-complete.zip");
     console.log("my shp: ", HOUNDLOWLAYER);
     HOUNDLOWLAYER.addTo(Map);
 };
+*/
 
 const RelatedData = {
 
@@ -918,9 +918,11 @@ function loadMyLayer(layerName) {
     }
 }
 
+/*
 function clearMyLayers() {
     // just for testing
 }
+*/
 
 function initLogoWatermark() {
     L.Control.watermark = L.Control.extend({
@@ -979,6 +981,69 @@ function initDebugControl() {
         })
         .addTo(Map);
 }
+// --------------------------------- Offline Basemap Caching ------
+const setupOfflineBaseLayerControls = () => {
+    const myBaseLayerControls = [
+        { object: myMap.streetsLayer, label: "Streets", class: 'streets-offline-control' },
+        { object: myMap.greyscaleLayer, label: "Greyscale", class: 'greyscale-offline-control' },
+        { object: myMap.satLayer, label: "Satellite", class: 'satellite-offline-control' }
+
+    ]
+    return (
+        myBaseLayerControls.map(layer => {
+            return (
+                L.control.offline(layer.object, tilesDb, {
+                    saveButtonHtml: `<i id="${layer.object}" title="Save ${layer.label} layer to use offline" class="${layer.class} layer icon-download">${layer.label} </i>`,
+                    removeButtonHtml: '<i class="icon-trash " aria-hidden="true">Delete</i>',
+                    confirmSavingCallback: function(nTilesToSave, continueSaveTiles) {
+                        if (window.confirm('Save ' + nTilesToSave + '?')) {
+                            continueSaveTiles();
+                        }
+                    },
+                    confirmRemovalCallback: function(continueRemoveTiles) {
+                        if (window.confirm('Remove all the tiles?')) {
+                            continueRemoveTiles();
+                        }
+                    },
+                    minZoom: 13,
+                    maxZoom: 19,
+                    position: "topright"
+
+                })
+            )
+        })
+    )
+};
+
+
+L.Control.OfflineBaselayersControl = L.Control.extend({
+    onAdd: function(map) {
+        const OfflineBaselayersControl_div = L.DomUtil.create('button', "custom-control");
+        OfflineBaselayersControl_div.innerHTML = "Offline <br>Baselayers"
+        OfflineBaselayersControl_div.title = "Save Background layers (tiles) for Offline use"
+        OfflineBaselayersControl_div.onclick = () => {
+            const offlineLayerCtrls = document.querySelectorAll(".leaflet-control-offline");
+            if (offlineLayerCtrls[0].style.display == "none") {
+                offlineLayerCtrls.forEach(el => el.style.display = "block")
+
+            } else {
+                offlineLayerCtrls.forEach(el => el.style.display = "none")
+            }
+        }
+
+        return OfflineBaselayersControl_div
+    },
+
+    onRemove: function(map) {
+        // Nothing to do here
+    }
+});
+L.control.OfflineBaselayersControl = opts => {
+    return new L.Control.OfflineBaselayersControl(opts);
+};
+
+// ------------------------------------------------------------------
+
 // firebase
 const fireBaseconfig = {
     apiKey: "AIzaSyB977vJdWTGA-JJ03xotQkeu8X4_Ds_BLQ",
@@ -989,9 +1054,8 @@ const fireBaseconfig = {
     messagingSenderId: "546067641349"
 };
 firebase.initializeApp(fireBaseconfig);
-
-// --------------------------------------- Main ---------------------
 const fbDatabase = firebase.database();
+// --------------------------------------- Main ---------------------
 
 let Map = myMap.setupBaseLayer();
 // initDebugControl()
@@ -1000,28 +1064,13 @@ L.control.scale().addTo(Map);
 initLogoWatermark();
 setupSideBar();
 initLocationControl();
-Map.doubleClickZoom.disable(); 
+Map.doubleClickZoom.disable();
 
-var offlineControl = L.control.offline(myMap.streetsLayer, tilesDb, {
-    saveButtonHtml: '<i class="icon-download" ></i>',
-    removeButtonHtml: '<i class="fa fa-trash" ></i>',
-    confirmSavingCallback: function(nTilesToSave, continueSaveTiles) {
-        if (window.confirm('Save ' + nTilesToSave + '?')) {
-            continueSaveTiles();
-        }
-    },
-    confirmRemovalCallback: function(continueRemoveTiles) {
-        if (window.confirm('Remove all the tiles?')) {
-            continueRemoveTiles();
-        }
-    },
-    minZoom: 13,
-    maxZoom: 19
-});
+L.control.OfflineBaselayersControl({ position: "topright" }).addTo(Map);
+const offlineLayerControls = setupOfflineBaseLayerControls()
+offlineLayerControls.map(layer => { layer.addTo(Map) })
+document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.display = "none" });
 
-
-
-offlineControl.addTo(Map);
 //loadOverlayLayer("myMap.settings.demoJSONmapdata") // loads GeoJSON Browser's local storage if available otherwise loads local (initial) file
 
 function loadOverlayLayer(fileRef) {
@@ -1035,7 +1084,7 @@ function loadOverlayLayer(fileRef) {
     }
 }
 
-//  ------------------------  leaflet controls
+//  ------------------------  leaflet controls -------------
 
 // ------sidebar controll plugin
 function setupSideBar() {
@@ -1066,20 +1115,18 @@ function initLocationControl() {
                 //watch: true
             },
             icon: 'icon-direction'
-
-            //setView: 'Once'
-            // layer: App.myLayerGroup
         })
         .addTo(Map);
 }
 
-Map.on("click", onMapClick);
+// Map.on("click", onMapClick);
 
+/*
 function onMapClick(e) {
     //App.sidebar.hide();
     console.log(e);
-
 }
+*/
 
 Map.on("locationfound", updateLatestLocation)
 
@@ -1087,18 +1134,21 @@ Map.on("locationfound", updateLatestLocation)
 
 
 function updateLatestLocation(e) {
-    console.log("locates location:", e)
+    //console.log("locates location:", e)
 
     myMap.state.latestLocation = e.latlng
 }
+
 
 Map.on("popupclose", function(e) {
     App.sidebar.hide();
     App.selectedFeature = null;
 });
 
+/*
 const loadFromShp = () => {
     var shpLayer = new L.Shapefile("test-park.zip");
     console.log("shpLayer: ", shpLayer);
     shpLayer.addTo(Map);
 };
+*/

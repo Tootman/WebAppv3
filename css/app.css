@@ -64,13 +64,14 @@ h1.sidebar-heading {
 
     text-align: center;
     margin-bottom: 2em;
-    font-size:1.2em;
-
+    font-size: 1.2em;
 }
 
-.open-project-button{
-    margin-top:0.8em;
-    display:block;
+
+
+button.btn.btn-primary.open-project-button {
+    margin:0.5em;
+   
 }
 
 h2.sidebar-sub-heading {
@@ -78,4 +79,9 @@ h2.sidebar-sub-heading {
     background-color: #ababab;
     color: white;
     padding: 0.3em;
+}
+
+.leaflet-bar a.save-tiles-button,
+.leaflet-bar a.remove-tiles-button {
+    width: 9em;
 }
