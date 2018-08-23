@@ -857,7 +857,7 @@ function loadMyLayer(layerName) {
     // just for testing
     //clearMyLayers();
     document.getElementById("open-new-project-button").style.display = "none";
-    loadFromPresetButtons(layerName);
+    //loadFromPresetButtons(layerName);
     // console.log("LoadmyLayer!")
     loadProjectFromFirebase();
 
