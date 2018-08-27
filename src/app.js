@@ -1064,7 +1064,7 @@ let Map = myMap.setupBaseLayer();
 // initDebugControl()
 initLogoWatermark();
 
-L.control.scale({position:"bottomleft"}).addTo(Map);
+L.control.scale({ position: "bottomleft" }).addTo(Map);
 App.initSettingsControl();
 
 setupSideBar();
@@ -1075,6 +1075,23 @@ L.control.OfflineBaselayersControl({ position: "topright" }).addTo(Map);
 const offlineLayerControls = setupOfflineBaseLayerControls()
 offlineLayerControls.map(layer => { layer.addTo(Map) })
 document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.display = "none" });
+
+// ----- offline service worker -----------
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/build/sw.js').then(registration => {
+            console.log('SW registered: ', registration);
+        }).catch(registrationError => {
+            console.log('SW registration failed: ', registrationError);
+        });
+    });
+}
+
+// ---------------------------
+
+
+
 
 //loadOverlayLayer("myMap.settings.demoJSONmapdata") // loads GeoJSON Browser's local storage if available otherwise loads local (initial) file
 

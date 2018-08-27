@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const precss = require('precss');
 const autoprefixer = require('autoprefixer');
+const workboxPlugin = require('workbox-webpack-plugin');
 
 
 module.exports = {
@@ -65,6 +66,11 @@ module.exports = {
                 removeStyleLinkTypeAttributes: true,
                 minifyCSS: true
             }
+        }),
+        new workboxPlugin.GenerateSW({
+            swDest: 'sw.js',
+            clientsClaim: true,
+            skipWaiting: true,
         })
     ]
 }
