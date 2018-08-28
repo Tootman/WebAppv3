@@ -1080,8 +1080,8 @@ document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.d
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        // navigator.serviceWorker.register('/build/sw.js').then(registration => {  // works for dev
-         navigator.serviceWorker.register('build/sw.js').then(registration => {  // works for dev
+         navigator.serviceWorker.register('build/sw.js').then(registration => {  //  for dev
+        
             console.log('SW registered: ', registration);
         }).catch(registrationError => {
             console.log('SW registration failed: ', registrationError);
@@ -1090,7 +1090,6 @@ if ('serviceWorker' in navigator) {
 }
 
 // ---------------------------
-
 
 
 
