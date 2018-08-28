@@ -120,17 +120,22 @@ let myMap = {
         const greyscaleLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
             id: "mapbox.light",
             attribution: myMap.settings.mbAttr,
-            maxZoom: 24
+            maxZoom: 26,
+            maxNativeZoom: 18
         });
         const streetsLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
             id: "mapbox.streets",
             attribution: myMap.settings.mbAttr,
-            maxZoom: 24
+            maxZoom: 26,
+            //minNativeZoom: 22,
+            maxNativeZoom: 18  // was 20
         });
         const satLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
             id: "mapbox.satellite",
             attribution: myMap.settings.mbAttr,
-            maxZoom: 24
+            maxZoom: 26,
+            minZoom: 18
+            
         });
         const myLayerGroup = L.layerGroup();
         this.myLayerGroup = myLayerGroup;
@@ -139,7 +144,9 @@ let myMap = {
         const map = L.map("map", {
             center: [51.4384332, -0.3147865],
             zoom: 18,
-            maxZoom: 24,
+            maxZoom: 26,
+            minZoom:12,
+            zoomDelta: 2,
             layers: [streetsLayer, myLayerGroup] // loads with this layer initially
         });
 
@@ -1008,8 +1015,8 @@ const setupOfflineBaseLayerControls = () => {
                             continueRemoveTiles();
                         }
                     },
-                    minZoom: 13,
-                    maxZoom: 19,
+                    minZoom: 14,
+                    maxZoom: 18,
                     position: "topright"
 
                 })
