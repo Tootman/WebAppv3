@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const precss = require('precss');
 const autoprefixer = require('autoprefixer');
 const workboxPlugin = require('workbox-webpack-plugin');
+const { InjectManifest } = require('workbox-webpack-plugin');
 
 
 module.exports = {
@@ -67,10 +68,17 @@ module.exports = {
                 minifyCSS: true
             }
         }),
+        // following https://developers.google.com/web/tools/workbox/modules/workbox-webpack-plugin
         new workboxPlugin.GenerateSW({
             swDest: 'sw.js',
             clientsClaim: true,
             skipWaiting: true,
-        })
+            include: [/\.html$/, /\.js$/, /\.css$/],
+            // globPatterns: ['dist/*.{js,png,jpg,gif,svg,html,css}'],
+            // globDirectory: '.'
+        }),
+       // new InjectManifest({
+       //     swSrc: './src/sw.js',
+       //  })
     ]
 }
