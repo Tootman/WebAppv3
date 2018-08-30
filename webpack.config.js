@@ -12,7 +12,8 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'build'),
-        filename: 'app.bundle.js'
+        filename: 'app.bundle.js',
+        publicPath: '/build/'
     },
     module: {
         rules: [{
@@ -58,6 +59,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             hash: true,
             template: './index.html',
+            title: 'ORCL Mapping WebApp',
             minify: {
                 collapseWhitespace: true,
                 removeComments: true,
@@ -69,6 +71,8 @@ module.exports = {
         }),
         new workboxPlugin.GenerateSW({
             swDest: 'sw.js',
+           // globDirectory: './build/',
+           // globPatterns: ['**/*.{html,js,png,css}'],
             clientsClaim: true,
             skipWaiting: true,
         })
