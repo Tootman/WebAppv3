@@ -2,12 +2,11 @@
   "name": "babel_starter",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
+   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
-    "start": "webpack-dev-server --output-public-path=/build/",
-    "deploy": "gh-pages -d build"
+    "start": "webpack-dev-server --output-public-path=/dist/",
+    "deploy": "gh-pages -d dist"
   },
   "author": "",
   "license": "ISC",

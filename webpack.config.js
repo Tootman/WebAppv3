@@ -2,19 +2,19 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const precss = require('precss');
 const autoprefixer = require('autoprefixer');
-const workboxPlugin = require('workbox-webpack-plugin');
-const { InjectManifest } = require('workbox-webpack-plugin');
+const { workboxPlugin, InjectManifest } = require('workbox-webpack-plugin');
+// const { InjectManifest } = require('workbox-webpack-plugin');
 
 
 module.exports = {
     devtool: '_source-map',
-    entry: {
-        app: './src/app.js'
-    },
+    entry: './src/app.js',
     output: {
-        path: path.resolve(__dirname, 'build'),
-        filename: 'app.bundle.js'
+        path: path.join(__dirname, 'dist'),
+        filename: 'bundle.js',
+        publicPath: '/dist/'
     },
+
     module: {
         rules: [{
                 test: /\.js?$/,
@@ -23,12 +23,11 @@ module.exports = {
                 query: {
                     presets: ['env']
                 }
-            } //,
-            //  {
-            //      test: /\.css$/,
-            //      use: ['style-loader', 'css-loader']
-            //  }
-            ,
+            },
+            {
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader']
+            },
             {
                 test: /\.scss$/,
                 use: [
@@ -55,10 +54,11 @@ module.exports = {
             }
         ]
     },
+
     plugins: [
         new HtmlWebpackPlugin({
-            hash: true,
-            template: './index.html',
+            // hash: true,
+            template: './src/index.html',
             minify: {
                 collapseWhitespace: true,
                 removeComments: true,
@@ -73,12 +73,12 @@ module.exports = {
             swDest: 'sw.js',
             clientsClaim: true,
             skipWaiting: true,
-            include: [/\.html$/, /\.js$/, /\.css$/],
+            //include: [/\.html$/, /\.js$/, /\.css$/],
             // globPatterns: ['dist/*.{js,png,jpg,gif,svg,html,css}'],
             // globDirectory: '.'
         }),
-       // new InjectManifest({
-       //     swSrc: './src/sw.js',
-       //  })
+        // new InjectManifest({
+        //     swSrc: './src/sw.js',
+        //  })
     ]
 }
