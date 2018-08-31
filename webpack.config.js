@@ -2,8 +2,8 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const precss = require('precss');
 const autoprefixer = require('autoprefixer');
-const workboxPlugin = require('workbox-webpack-plugin');
-const { InjectManifest } = require('workbox-webpack-plugin');
+const { workboxPlugin, InjectManifest } = require('workbox-webpack-plugin');
+// const { InjectManifest } = require('workbox-webpack-plugin');
 
 
 module.exports = {
@@ -12,8 +12,9 @@ module.exports = {
         app: './src/app.js'
     },
     output: {
-        path: path.resolve(__dirname, 'build'),
-        filename: 'app.bundle.js'
+        path: path.join(__dirname, 'build'),
+        filename: 'bundle.js',
+        publicPath: '/dist/'
     },
     module: {
         rules: [{
@@ -57,7 +58,7 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            hash: true,
+            //hash: true,
             template: './index.html',
             minify: {
                 collapseWhitespace: true,
@@ -73,12 +74,12 @@ module.exports = {
             swDest: 'sw.js',
             clientsClaim: true,
             skipWaiting: true,
-            include: [/\.html$/, /\.js$/, /\.css$/],
+            // include: [/\.html$/, /\.js$/, /\.css$/],
             // globPatterns: ['dist/*.{js,png,jpg,gif,svg,html,css}'],
             // globDirectory: '.'
         }),
-       // new InjectManifest({
-       //     swSrc: './src/sw.js',
-       //  })
+        // new InjectManifest({
+        //     swSrc: './src/sw.js',
+        //  })
     ]
 }
