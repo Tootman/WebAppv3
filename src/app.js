@@ -10,8 +10,8 @@ import localforage from 'localforage'
 require('./L.Control.Sidebar');
 require('./L.Control.Locate.min');
 
-require('./L.Control.Sidebar.css');
-require('./L.Control.Locate.min.css');
+// require('./L.Control.Sidebar.css');
+// require('./L.Control.Locate.min.css');
 //import Sidebar from 'L.Control.Sidebar.js';
 // import { myUrl } from './djs_module';
 

@@ -2,7 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const precss = require('precss');
 const autoprefixer = require('autoprefixer');
-const { workboxPlugin, InjectManifest } = require('workbox-webpack-plugin');
+const workboxPlugin = require('workbox-webpack-plugin');
 // const { InjectManifest } = require('workbox-webpack-plugin');
 
 
@@ -24,12 +24,11 @@ module.exports = {
                 query: {
                     presets: ['env']
                 }
-            } //,
-            //  {
-            //      test: /\.css$/,
-            //      use: ['style-loader', 'css-loader']
-            //  }
-            ,
+            },
+            {
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader']
+            },
             {
                 test: /\.scss$/,
                 use: [
