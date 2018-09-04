@@ -2,9 +2,12 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const precss = require('precss');
 const autoprefixer = require('autoprefixer');
-const workboxPlugin = require('workbox-webpack-plugin');
-// const { InjectManifest } = require('workbox-webpack-plugin');
+// const FontelloPlugin = require("fontello-webpack-plugin")
 
+//const workboxPlugin = require('workbox-webpack-plugin');
+
+// const { InjectManifest } = require('workbox-webpack-plugin');
+const { GenerateSW, InjectManifest } = require('workbox-webpack-plugin');
 
 module.exports = {
     devtool: '_source-map',
@@ -49,9 +52,19 @@ module.exports = {
 
                 ],
             },
+            //{
+            //    test: /\.css$/,
+            //    loaders: ['style-loader', 'css-loader']
+            //},
             {
-                test: /\.css$/,
-                loaders: ['style-loader', 'css-loader']
+                test: /\.(png|jpg|gif|ttf|woff|svg|eot|woff2)$/,
+                use: [{
+                    loader: 'file-loader',
+                    options: {
+                        name: "[path]/[name].[ext]",
+                        context: "/src/"
+                    }
+                }]
             }
         ]
     },
@@ -69,16 +82,20 @@ module.exports = {
             }
         }),
         // following https://developers.google.com/web/tools/workbox/modules/workbox-webpack-plugin
-        new workboxPlugin.GenerateSW({
+        new GenerateSW({
             swDest: 'sw.js',
             clientsClaim: true,
             skipWaiting: true,
             // include: [/\.html$/, /\.js$/, /\.css$/],
-            // globPatterns: ['dist/*.{js,png,jpg,gif,svg,html,css}'],
-            // globDirectory: '.'
-        }),
-        // new InjectManifest({
-        //     swSrc: './src/sw.js',
-        //  })
+            globPatterns: ['/*.{png,jpg,gif,svg,css}'],
+            globDirectory: '.'
+        })
+
+        //,
+        //new FontelloPlugin({
+        //    config: require("./src/fontello/config.json")
+        //    /* ...options */
+        //})
+
     ]
 }

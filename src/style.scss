@@ -1,4 +1,8 @@
 @import "~bootstrap/scss/bootstrap";
+@import './leaflet';
+@import './L.Control.Sidebar';
+@import './L.Control.Locate';
+@import './fontello/css/fontello';
 
 #mapid {
     height: 800px;
