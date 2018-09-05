@@ -56,16 +56,28 @@ module.exports = {
             //    test: /\.css$/,
             //    loaders: ['style-loader', 'css-loader']
             //},
+            //{
+            // test: /\.(ttf|woff|svg|eot|woff2)$/,
+            // use: [{
+            //     loader: 'file-loader',
+            //options: {
+            //   name: "[path][name].[ext]",
+            //   context: "src"
+            //}
+            //    }]
+            //}
+            // ,
             {
-                test: /\.(png|jpg|gif|ttf|woff|svg|eot|woff2)$/,
+                test: /\.(ttf|woff|svg|eot|woff2|png|jpg|gif)$/,
                 use: [{
                     loader: 'file-loader',
                     options: {
-                        name: "[path]/[name].[ext]",
-                        context: "/src/"
+                        name: "[path][name].[ext]",
+                        context: "src"
                     }
                 }]
             }
+
         ]
     },
     plugins: [

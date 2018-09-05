@@ -9,7 +9,7 @@ import logoImg from './ORCL-logo-cropped.png';
 import leafletKnn from 'leaflet-knn';
 //import leafletCss from './leaflet.css';
 import fontello_ttf from './fontello/font/fontello.ttf';
-import fontello_css from './fontello/css/fontello.css';
+//import fontello_css from './fontello/css/fontello.css';
 
 
 require('./L.Control.Sidebar');
