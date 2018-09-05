@@ -17,7 +17,8 @@ module.exports = {
     output: {
         path: path.join(__dirname, 'build'),
         filename: 'bundle.js',
-        // publicPath: '/dist/'  // changed for testing in prod
+        //publicPath: '/dist/'  // changed for testing in prod
+        publicPath: 'build'
     },
     module: {
         rules: [{
