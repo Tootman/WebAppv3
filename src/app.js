@@ -423,14 +423,14 @@ const App = {
             .then(response => console.log("Success:", response));
     },
 
-    initSettingsControl: function() {
+    initSettingsControl: () => {
         L.Control.myControl = L.Control.extend({
             onAdd: e => {
                 const myControl_div = L.DomUtil.create("button", "main-button-control btn btn-lg btn-danger icon-cog");
                 myControl_div.innerHTML = ""
                 myControl_div.title = "Settings"
                 myControl_div.onclick = () => {
-                    console.log("custom control clicked!");
+                    //console.log("custom control clicked!");
                     App.sidebar.setContent(
                         document.getElementById("settings-template").innerHTML
                     );
@@ -444,10 +444,10 @@ const App = {
                     );
                     if (App.geoLayer === undefined || App.geoLayer === null) {
                         savefb.style.display = "none";
-                        console.log(" save display none");
+                        //console.log(" save display none");
                     } else {
                         savefb.style.display = "block";
-                        console.log(" save display block");
+                        //console.log(" save display block");
                         App.populateMapMeta();
                     }
 
@@ -886,24 +886,69 @@ window.User = User
 
 function loadMyLayer(layerName) {
     // just for testing
-    //clearMyLayers();
+
     document.getElementById("open-new-project-button").style.display = "none";
     //loadFromPresetButtons(layerName);
     // console.log("LoadmyLayer!")
-    loadProjectFromFirebase();
+    loadProject();
 
-    function loadProjectFromFirebase() {
-        retriveMapIndex();
+    function loadProject() {
 
-        function retriveMapIndex() {
+        console.log("trying to load from local storage ...")
+        const mapIndexList = getLocalStorageMapIndexList()
+        if (mapIndexList) {
+            displayMapIndeces(mapIndexList)
+        } else {
+            console.log("local mapIndex list not found so try from Firebase")
+            retriveMapIndexFromFirebase()
+        }
+
+
+        //const el = document.getElementById("opennewproject");
+        // el.insertAdjacentHTML("afterBegin", "Open project");
+        // displayMapIndeces(myMapIndeces);
+
+        function getLocalStorageMapIndexList() {
+            const mapIndexList = JSON.parse(localStorage.getItem('mapIndexList'))
+            return mapIndexList
+        }
+
+        function setLocalStorageMapIndexList(mapIndexList) {
+            localStorage.setItem(
+                'mapIndexList', JSON.stringify(mapIndexList)
+            )
+        };
+
+        function retriveMapIndexFromFirebase() {
+            fbDatabase
+                .ref("/App/Mapindex")
+                .once("value")
+                .then(snapshot => {
+                    document.getElementById("message-area").innerHTML = null;
+                    console.log("fetched ok: ");
+                    //const el = document.getElementById("opennewproject");
+                    //el.insertAdjacentHTML("afterBegin", "Open project");
+                    setLocalStorageMapIndexList(snapshot)
+                    displayMapIndeces(snapshot);
+                })
+                .catch(error => {
+                    console.log("My Error: " + error.message);
+                    document.getElementById("message-area").innerHTML =
+                        "Sorry - " + error.message;
+                });
+        };
+
+
+        /*
+        function retriveMapIndexFromFirebase() {
             document.getElementById("message-area").innerHTML =
                 "<p>waiting for network connection ...</p>";
             fbDatabase
                 .ref("/App/Mapindex")
                 .once("value")
-                .then(function(snapshot) {
+                .then(snapshot => {
                     document.getElementById("message-area").innerHTML = null;
-                    console.log("fetched ok: ");
+                    // console.log("fetched ok: ");
                     const el = document.getElementById("opennewproject");
                     el.insertAdjacentHTML("afterBegin", "Open project");
                     displayMapIndeces(snapshot);
@@ -913,11 +958,18 @@ function loadMyLayer(layerName) {
                     document.getElementById("message-area").innerHTML =
                         "Sorry - " + error.message;
                 });
-        }
+        };
+        */
 
-        function displayMapIndeces(snapshot) {
+
+        function displayMapIndeces(mapIndexList) {
+            //const el = document.getElementById("opennewproject");
+            //el.insertAdjacentHTML("afterBegin", "Open project");
+
             const el = document.getElementById("opennewproject");
-            Object.values(snapshot.val()).map(item => {
+            el.insertAdjacentHTML("afterBegin", "Open project");
+            // Object.values(snapshot.val()).map(item => {
+                Object.values(mapIndexList).map(item => {
                 const btn = document.createElement("button");
                 console.log(item.description);
                 btn.setAttribute("value", item.mapID);
