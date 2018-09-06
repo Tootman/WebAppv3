@@ -486,40 +486,36 @@ const App = {
         //containter.innerHTML = content
     },
 
-    retrieveMapFromFireBase: function(index) {
+    retrieveMapFromFireBase: index => {
         let nodePath = String("/App/Maps/" + index);
-
         fbDatabase
             .ref(nodePath)
             .once("value")
-            .then(function(snapshot) {
+            .then(snapshot => {
                 // loadOverlayLayer(snapshot.val())  // checks storage then tries downloading file
                 const mapData = snapshot.val();
-                console.log("Node: " + mapData);
-                // myMap.myLayerGroup.clearLayers(App.geoLayer);
+                // console.log("Node: " + mapData);
                 App.setupGeoLayer(index, mapData);
-                // Map.fitBounds(App.geoLayer.getBounds());
-                // App.mapHash = snapshot.key;
-                document.getElementById("opennewproject").style.display =
-                    "none";
+                document.getElementById("opennewproject").style.display = "none";
                 App.sidebar.hide();
-                //App.saveMapToLocalStorage(snapshot.key, layerData)
-                App.populateRelated(mapData.Related);
-                
-            });
+            })
+            .catch(
+                err => {
+                    console.log("error! cannot get from firebase!", err)
+                }
+            );
+
     },
 
     //loadMap (myKey, mapData)=>{
     //    myMap.myLayerGroup.clearLayers(App.geoLayer);
-   // }
+    // }
 
     saveMapToLocalStorage: (myKey, mapData) => {
         localStorage.setItem(
             myKey, JSON.stringify(mapData)
         );
     },
-
-
 
     populateRelated: related => {
         //console.log("relData:", related)
@@ -649,7 +645,7 @@ const App = {
             onEachFeature: (feature, layer) => {
                 // console.log("clicked: " + feature.properties.Asset);
                 App.assignTaskCompletedStyle(layer, feature.properties);
-                layer.on("click", function(e) {
+                layer.on("click", e => {
                     App.selectedFeature = feature; // expose selected feature and layer
                     App.selectedLayer = layer;
                     App.whenGeoFeatureClicked();
@@ -684,6 +680,8 @@ const App = {
         // App.map.addLayer(App.geoLayer);
         myMap.myLayerGroup.addLayer(App.geoLayer);
         Map.fitBounds(App.geoLayer.getBounds());
+        App.saveMapToLocalStorage(key, mapData)
+        App.populateRelated(mapData.Related); // need to catch when no related available
         //mapOb.myLayerGroup.addLayer(App.geoLayer);
     }
 };
