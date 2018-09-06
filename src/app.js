@@ -134,14 +134,14 @@ let myMap = {
             attribution: myMap.settings.mbAttr,
             maxZoom: 26,
             //minNativeZoom: 22,
-            maxNativeZoom: 18  // was 20
+            maxNativeZoom: 18 // was 20
         });
         const satLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
             id: "mapbox.satellite",
             attribution: myMap.settings.mbAttr,
             maxZoom: 26,
             minZoom: 18
-            
+
         });
         const myLayerGroup = L.layerGroup();
         this.myLayerGroup = myLayerGroup;
@@ -151,7 +151,7 @@ let myMap = {
             center: [51.4384332, -0.3147865],
             zoom: 18,
             maxZoom: 26,
-            minZoom:12,
+            minZoom: 12,
             zoomDelta: 2,
             layers: [streetsLayer, myLayerGroup] // loads with this layer initially
         });
@@ -490,7 +490,7 @@ const App = {
             .ref(nodePath)
             .once("value")
             .then(function(snapshot) {
-                // loadOverlayLayer(snapshot.val())  // checks storage then tries downliading file
+                // loadOverlayLayer(snapshot.val())  // checks storage then tries downloading file
                 const layerData = snapshot.val();
                 console.log("Node: " + layerData);
                 myMap.myLayerGroup.clearLayers(App.geoLayer);
@@ -500,9 +500,19 @@ const App = {
                 document.getElementById("opennewproject").style.display =
                     "none";
                 App.sidebar.hide();
+                //App.saveMapToLocalStorage(snapshot.key, layerData)
                 App.populateRelated(layerData.Related);
+                
             });
     },
+
+    saveMapToLocalStorage: (myKey, mapData) => {
+        localStorage.setItem(
+            myKey, JSON.stringify(mapData)
+        );
+    },
+
+
 
     populateRelated: related => {
         //console.log("relData:", related)
@@ -1093,8 +1103,8 @@ document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.d
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-         navigator.serviceWorker.register('sw.js').then(registration => {  //  for dev
-        
+        navigator.serviceWorker.register('sw.js').then(registration => { //  for dev
+
             console.log('SW registered: ', registration);
         }).catch(registrationError => {
             console.log('SW registration failed: ', registrationError);
@@ -1108,6 +1118,7 @@ if ('serviceWorker' in navigator) {
 
 //loadOverlayLayer("myMap.settings.demoJSONmapdata") // loads GeoJSON Browser's local storage if available otherwise loads local (initial) file
 
+/*
 function loadOverlayLayer(fileRef) {
     myMap.myLayerGroup.clearLayers(App.geoLayer);
     if (localStorage.getItem("geoJSON") == null) {
@@ -1119,6 +1130,7 @@ function loadOverlayLayer(fileRef) {
     }
 }
 
+*/
 //  ------------------------  leaflet controls -------------
 
 // ------sidebar controll plugin
