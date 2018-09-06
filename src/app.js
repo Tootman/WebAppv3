@@ -335,7 +335,7 @@ const App = {
                 Object.keys(App.geoLayer._layers)[0] -
                 1;
             const nodePath = String(
-                "App/Maps/" + App.firebaseHash + "/Geo/features"
+                "App/Maps/" + App.mapHash + "/Geo/features"
             );
             const Ob = {};
             const myKey = featureIndex;
@@ -367,6 +367,7 @@ const App = {
             }
         }
     },
+    /*
     loadGeoJSONLayer: function(myFile) {
         fetch(myFile)
             .then(function(response) {
@@ -386,10 +387,12 @@ const App = {
                 console.log("Fetch Error :-S", err);
             });
     },
+    
+    */
     resetMap: function() {
         localStorage.removeItem("geoJSON");
         App.geoLayer = {};
-        App.loadGeoJSONLayer(demoJSONmapdata);
+        // App.loadGeoJSONLayer(demoJSONmapdata);
     },
     getPhoto: function(photoURL) {
         fetch(photoURL)
@@ -491,20 +494,24 @@ const App = {
             .once("value")
             .then(function(snapshot) {
                 // loadOverlayLayer(snapshot.val())  // checks storage then tries downloading file
-                const layerData = snapshot.val();
-                console.log("Node: " + layerData);
-                myMap.myLayerGroup.clearLayers(App.geoLayer);
-                App.setupGeoLayer(layerData.Geo, layerData.Meta);
-                Map.fitBounds(App.geoLayer.getBounds());
-                App.firebaseHash = snapshot.key;
+                const mapData = snapshot.val();
+                console.log("Node: " + mapData);
+                // myMap.myLayerGroup.clearLayers(App.geoLayer);
+                App.setupGeoLayer(index, mapData);
+                // Map.fitBounds(App.geoLayer.getBounds());
+                // App.mapHash = snapshot.key;
                 document.getElementById("opennewproject").style.display =
                     "none";
                 App.sidebar.hide();
                 //App.saveMapToLocalStorage(snapshot.key, layerData)
-                App.populateRelated(layerData.Related);
+                App.populateRelated(mapData.Related);
                 
             });
     },
+
+    //loadMap (myKey, mapData)=>{
+    //    myMap.myLayerGroup.clearLayers(App.geoLayer);
+   // }
 
     saveMapToLocalStorage: (myKey, mapData) => {
         localStorage.setItem(
@@ -540,7 +547,7 @@ const App = {
         });
         App.State.relatedData = relDataObject
         App.State.relDataSyncStatus = relDataSyncObject
-        App.getRelDataFromLocalStorage(App.firebaseHash)
+        App.getRelDataFromLocalStorage(App.mapHash)
         /*
         const attachRelatedToRecord = (relKey, index, relDataOb, tempOb) => {
             // creates an ob with set of keys with related properties as their values
@@ -631,14 +638,16 @@ const App = {
     },
     */
 
-    setupGeoLayer: function(myJSONdata, meta) {
+    setupGeoLayer: (key, mapData) => {
         //
-        console.log("meta: ", meta);
-        App.mapMeta = meta;
+        // console.log("meta: ", meta);
+        App.mapMeta = mapData.meta;
+        App.mapHash = key;
+        myMap.myLayerGroup.clearLayers(App.geoLayer);
         //App.mapMeta = myJSONdata.Meta
-        App.geoLayer = L.geoJson(myJSONdata, {
-            onEachFeature: function(feature, layer) {
-                console.log("clicked: " + feature.properties.Asset);
+        App.geoLayer = L.geoJson(mapData.Geo, {
+            onEachFeature: (feature, layer) => {
+                // console.log("clicked: " + feature.properties.Asset);
                 App.assignTaskCompletedStyle(layer, feature.properties);
                 layer.on("click", function(e) {
                     App.selectedFeature = feature; // expose selected feature and layer
@@ -655,12 +664,12 @@ const App = {
                     console.log("failed to find prop", err);
                 }
             },
-            style: function(feature) {
+            style: feature => {
                 return {
                     fillOpacity: 0.6
                 };
             },
-            pointToLayer: function(feature, latlng) {
+            pointToLayer: (feature, latlng) => {
                 return L.circleMarker(latlng, {
                     radius: 8,
                     stroke: true,
@@ -674,6 +683,7 @@ const App = {
         });
         // App.map.addLayer(App.geoLayer);
         myMap.myLayerGroup.addLayer(App.geoLayer);
+        Map.fitBounds(App.geoLayer.getBounds());
         //mapOb.myLayerGroup.addLayer(App.geoLayer);
     }
 };
@@ -710,7 +720,7 @@ const RelatedData = {
                 App.updateRelDataSyncMsg(f_id)
                 console.log("Pushed new Related Record :", f_id)
                 // Remove record from local storage
-                const localStorageKey = "backup.relatedData." + App.firebaseHash + "." + featureKey
+                const localStorageKey = "backup.relatedData." + App.mapHash + "." + featureKey
                 localStorage.removeItem(localStorageKey)
 
             })
@@ -730,7 +740,7 @@ const RelatedData = {
         App.selectedFeature.geometry.type + "/";
         console.log("key: " + RelatedData.featureKey);
         RelatedData.nodePath = String(
-            "App/Maps/" + App.firebaseHash + "/Related/" + RelatedData.featureKey + "/"
+            "App/Maps/" + App.mapHash + "/Related/" + RelatedData.featureKey + "/"
         );
         console.log("nodePath: " + RelatedData.nodePath);
         const relatedRecord = {};
@@ -754,7 +764,7 @@ const RelatedData = {
         App.updateRelDataSyncMsg(key)
         App.updateFeatureRelatedState(key, relatedRecord)
         App.updateSidebarRelatedFromState(key)
-        RelatedData.saveRelDataRecordToLocalStorage(App.firebaseHash, key, relatedRecord)
+        RelatedData.saveRelDataRecordToLocalStorage(App.mapHash, key, relatedRecord)
         RelatedData.pushRelatedDataRecord(RelatedData.nodePath, key, relatedRecord)
         document.getElementById("related-data-info").innerHTML = "Submitted!";
     },
@@ -783,7 +793,7 @@ saveRelDataRecordToLocalStorage: (mapHash, featureKey, relatedData) => {
 function uploadMapToFirebase() {
     // grab the blobal Mapindex, then send gson layer up to node
     //const nodePath = String("'/App/Maps/" + myMap.settings.mapIndex)
-    const nodePath = String("App/Maps/" + App.firebaseHash + "/Geo");
+    const nodePath = String("App/Maps/" + App.mapHash + "/Geo");
 
     fbDatabase
         .ref(nodePath)
