@@ -926,14 +926,13 @@ function loadMyLayer(layerName) {
     function loadProject() {
 
         console.log("trying to load from local storage ...")
-        const mapIndexList = App.getLocalStorageMapIndexList()
+        const mapIndexList = getLocalStorageMapIndexList()
         if (mapIndexList) {
             displayMapIndeces(mapIndexList)
         } else {
             console.log("local mapIndex list not found so try from Firebase")
             retriveMapIndexFromFirebase()
         }
-
 
         //const el = document.getElementById("opennewproject");
         // el.insertAdjacentHTML("afterBegin", "Open project");
