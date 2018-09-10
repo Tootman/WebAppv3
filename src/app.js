@@ -368,27 +368,27 @@ const App = {
         }
     },
     /*
-    loadGeoJSONLayer: function(myFile) {
-        fetch(myFile)
-            .then(function(response) {
-                if (response.status !== 200) {
-                    console.log(
-                        "Looks like there was a problem. Status Code: " +
-                        response.status
-                    );
-                    return;
-                }
-                response.json().then(function(data) {
-                    App.setupGeoLayer(data);
-                    console.log("fetch called!");
+        loadGeoJSONLayer: function(myFile) {
+            fetch(myFile)
+                .then(function(response) {
+                    if (response.status !== 200) {
+                        console.log(
+                            "Looks like there was a problem. Status Code: " +
+                            response.status
+                        );
+                        return;
+                    }
+                    response.json().then(function(data) {
+                        App.setupGeoLayer(data);
+                        console.log("fetch called!");
+                    });
+                })
+                .catch(function(err) {
+                    console.log("Fetch Error :-S", err);
                 });
-            })
-            .catch(function(err) {
-                console.log("Fetch Error :-S", err);
-            });
-    },
+        },
     
-    */
+        */
     resetMap: function() {
         localStorage.removeItem("geoJSON");
         App.geoLayer = {};
@@ -495,6 +495,7 @@ const App = {
                 // loadOverlayLayer(snapshot.val())  // checks storage then tries downloading file
                 const mapData = snapshot.val();
                 // console.log("Node: " + mapData);
+                App.clearLocalStorateMaps()
                 App.setupGeoLayer(index, mapData);
                 document.getElementById("opennewproject").style.display = "none";
                 App.sidebar.hide();
@@ -512,10 +513,17 @@ const App = {
     // }
 
     saveMapToLocalStorage: (myKey, mapData) => {
+        
         localStorage.setItem(
-            myKey, JSON.stringify(mapData)
+            "mapData." + myKey, JSON.stringify(mapData)
         );
     },
+
+    clearLocalStorateMaps: () => {
+         const keys  = App.getLocalStorageMapDataKey()
+        keys.map(item=>{localStorage.removeItem(item)})
+    },
+
 
     populateRelated: related => {
         //console.log("relData:", related)
@@ -680,10 +688,33 @@ const App = {
         // App.map.addLayer(App.geoLayer);
         myMap.myLayerGroup.addLayer(App.geoLayer);
         Map.fitBounds(App.geoLayer.getBounds());
+        
         App.saveMapToLocalStorage(key, mapData)
         App.populateRelated(mapData.Related); // need to catch when no related available
         //mapOb.myLayerGroup.addLayer(App.geoLayer);
+    },
+
+    getLocalStorageMapDataKey: () => {
+        // return keys that start with maoData
+
+        // const myRegex = new RegExp("^mapData.*");
+        // for (let item in localStorage) { if (myRegex.test(item)) { return item } }
+
+        return Object.keys(localStorage).filter(item => { return new RegExp('^mapData.*').test(item) })
+    },
+
+    
+
+    loadMapDataFromLocalStorage: () => {
+        // attempt to retrieve map from local
+        const storageKey = App.getLocalStorageMapDataKey()
+        if (storageKey.length == 0) { return }
+        const mapData = JSON.parse(localStorage.getItem(storageKey))
+        const mapKey = storageKey[0].split("mapData.")[1]
+        App.setupGeoLayer(mapKey, mapData)
     }
+
+
 };
 
 window.App = App
@@ -895,7 +926,7 @@ function loadMyLayer(layerName) {
     function loadProject() {
 
         console.log("trying to load from local storage ...")
-        const mapIndexList = getLocalStorageMapIndexList()
+        const mapIndexList = App.getLocalStorageMapIndexList()
         if (mapIndexList) {
             displayMapIndeces(mapIndexList)
         } else {
@@ -969,7 +1000,7 @@ function loadMyLayer(layerName) {
             const el = document.getElementById("opennewproject");
             el.insertAdjacentHTML("afterBegin", "Open project");
             // Object.values(snapshot.val()).map(item => {
-                Object.values(mapIndexList).map(item => {
+            Object.values(mapIndexList).map(item => {
                 const btn = document.createElement("button");
                 console.log(item.description);
                 btn.setAttribute("value", item.mapID);
@@ -1139,38 +1170,53 @@ const fireBaseconfig = {
     storageBucket: "fir-realtime-db-24299.appspot.com",
     messagingSenderId: "546067641349"
 };
-firebase.initializeApp(fireBaseconfig);
-const fbDatabase = firebase.database();
-// --------------------------------------- Main ---------------------
 
-let Map = myMap.setupBaseLayer();
-// initDebugControl()
-initLogoWatermark();
+var Map = {}
+var fbDatabase = {}
+var offlineLayerControls = {}
 
-L.control.scale({ position: "bottomleft" }).addTo(Map);
-App.initSettingsControl();
+const initApp = () => {
+    firebase.initializeApp(fireBaseconfig);
+    fbDatabase = firebase.database();
 
-setupSideBar();
-initLocationControl();
-Map.doubleClickZoom.disable();
+    // --------------------------------------- Main ---------------------
 
-L.control.OfflineBaselayersControl({ position: "topright" }).addTo(Map);
-const offlineLayerControls = setupOfflineBaseLayerControls()
-offlineLayerControls.map(layer => { layer.addTo(Map) })
-document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.display = "none" });
+    Map = myMap.setupBaseLayer();
+    // initDebugControl()
+    initLogoWatermark();
 
-// ----- offline service worker -----------
+    L.control.scale({ position: "bottomleft" }).addTo(Map);
+    App.initSettingsControl();
 
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then(registration => { //  for dev
+    setupSideBar();
+    initLocationControl();
+    Map.doubleClickZoom.disable();
 
-            console.log('SW registered: ', registration);
-        }).catch(registrationError => {
-            console.log('SW registration failed: ', registrationError);
+    L.control.OfflineBaselayersControl({ position: "topright" }).addTo(Map);
+    offlineLayerControls = setupOfflineBaseLayerControls()
+    offlineLayerControls.map(layer => { layer.addTo(Map) })
+    document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.display = "none" });
+    App.loadMapDataFromLocalStorage()
+
+
+
+    // ----- offline service worker -----------
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(registration => { //  for dev
+
+                console.log('SW registered: ', registration);
+            }).catch(registrationError => {
+                console.log('SW registration failed: ', registrationError);
+            });
         });
-    });
+    }
+
 }
+
+initApp();
+
 
 // ---------------------------
 
@@ -1236,9 +1282,6 @@ function onMapClick(e) {
 */
 
 Map.on("locationfound", updateLatestLocation)
-
-
-
 
 function updateLatestLocation(e) {
     //console.log("locates location:", e)
