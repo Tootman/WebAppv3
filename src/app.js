@@ -7,81 +7,11 @@ import 'leaflet-offline';
 import localforage from 'localforage';
 import logoImg from './ORCL-logo-cropped.png';
 import leafletKnn from 'leaflet-knn';
-//import leafletCss from './leaflet.css';
 import fontello_ttf from './fontello/font/fontello.ttf';
-//import fontello_css from './fontello/css/fontello.css';
-
-
 require('./L.Control.Sidebar');
 require('./L.Control.Locate.min');
-// import './leaflet.shpfile';
-
-// require('./L.Control.Sidebar.css');
-// require('./L.Control.Locate.min.css');
-//import Sidebar from 'L.Control.Sidebar.js';
-// import { myUrl } from './djs_module';
-
-// Overview: when a feature on the geo layer is clicked it is assigned to  App.selectedFeature for interaction
-
-// the myMap object holds all the map and global settings, and sets up and manages the basemaps
-
-//let RelatdData = {} // will be reasigned below
-
-
-// ------------------   Offline background tile caching ----
-
-const tilesDb = {
-    getItem: function(key) {
-        return localforage.getItem(key);
-    },
-    saveTiles: function(tileUrls) {
-        var self = this;
-        this._hideControls()
-        var promises = [];
-        for (var i = 0; i < tileUrls.length; i++) {
-            var tileUrl = tileUrls[i];
-            (function(i, tileUrl) {
-                promises[i] = new Promise(function(resolve, reject) {
-                    var request = new XMLHttpRequest();
-                    request.open('GET', tileUrl.url, true);
-                    request.responseType = 'blob';
-                    request.onreadystatechange = function() {
-                        if (request.readyState === XMLHttpRequest.DONE) {
-                            if (request.status === 200) {
-                                resolve(self._saveTile(tileUrl.key, request.response));
-                            } else {
-                                reject({
-                                    status: request.status,
-                                    statusText: request.statusText
-                                });
-                            }
-                        }
-                    };
-                    request.send();
-                });
-            })(i, tileUrl);
-        }
-        return Promise.all(promises);
-    },
-    clear: function() {
-        this._hideControls()
-        return localforage.clear();
-    },
-    _saveTile: function(key, value) {
-        return this._removeItem(key).then(function() {
-            return localforage.setItem(key, value);
-        });
-    },
-    _removeItem: function(key) {
-        return localforage.removeItem(key);
-    },
-    _hideControls: () => {
-        document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.display = "none" });
-    }
-};
-
-//----------------------------------------------
-
+import { tilesDb } from './offline-tiles-module.js';
+import { User } from './User.js';
 
 let myMap = {
     settings: {
@@ -104,20 +34,13 @@ let myMap = {
                 weight: 1
             }
         },
-
-
-        //mbAttr: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
         mbAttr: '<a href="http://openstreetmap.org">OSMap</a> ©<a href="http://mapbox.com">Mapbox</a>',
         mbUrl: "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w",
-        //demoJSONmapdata: 'ham-green-demo.json',
-        // demoJSONmapdata: 'richmondriverside.json',
         uploadjsonURL: "https://geo.danieljsimmons.uk/dan1/upload/uploadjson.php",
         editform: {
             assetConditionOptions: [6, 5, 4, 3, 2, 1, "n/a"]
         }
-
     },
-
     state: { // Hopefully this is where all data will live, after the app is refactored to be more like React
         latestLocation: null // lat Lng
     },
@@ -141,11 +64,9 @@ let myMap = {
             attribution: myMap.settings.mbAttr,
             maxZoom: 26,
             minZoom: 18
-
         });
         const myLayerGroup = L.layerGroup();
         this.myLayerGroup = myLayerGroup;
-
         // create map with 3 layers
         const map = L.map("map", {
             center: [51.4384332, -0.3147865],
@@ -155,7 +76,6 @@ let myMap = {
             zoomDelta: 2,
             layers: [streetsLayer, myLayerGroup] // loads with this layer initially
         });
-
         // create group of basemap layers
         let baseMaps = {
             Greyscale: greyscaleLayer,
@@ -172,17 +92,10 @@ let myMap = {
             myLayers: myLayerGroup
         };
         this.overlayMap = overlayMaps;
-
-
-
         this.LayersControl = L.control.layers(baseMaps).addTo(map);
         return map;
     }
 };
-
-
-
-
 
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 const App = {
@@ -213,7 +126,6 @@ const App = {
             App.sidebar.setContent(
                 document.getElementById("form-template").innerHTML
             );
-            //document.getElementById("take-photo-btn").addEventListener('click', RelatedData.addPhoto());
         }
         let p = App.selectedFeature.properties;
         renderSideBar();
@@ -221,21 +133,13 @@ const App = {
         if (p.photo !== null && p.photo !== undefined) {
             this.getPhoto(p.photo);
         }
-        console.log(" read task completed: " + p.taskCompleted);
-
         App.updateRelDataSyncMsg(fId)
         App.updateSidebarRelatedFromState(fId)
-
         App.sidebar.show();
     },
 
     findNearestFeatures: function() {
-
-
-
-        if (myMap.state.latestLocation)
-
-        {
+        if (myMap.state.latestLocation) {
             const nearest = leafletKnn(App.geoLayer).nearest(L.latLng(myMap.state.latestLocation), 1) // example usage for Ham Green
             nearest[0].layer.fire('click')
 
@@ -276,14 +180,11 @@ const App = {
             parent.appendChild(x);
         }
     },
+
     generateFormElements: function(props) {
-        // console.log(sampleGeoData.features[featureID].properties.Asset)
         const fs = document.getElementById("fields-section");
         fs.innerHTML = null;
-        // const props = sampleGeoData.features[featureID].properties
         const myFunc = Object.keys(props).forEach(function(key) {
-            //console.log("generateElements: " + typeof(key)+ " " + key + ": " + props[key])
-            // fs.innerHTML += "<br>"
             const propType = typeof props[key];
             if (propType === "string" || propType === "number") {
                 App.createFormItem(fs, "Input", "text", key, props[key]);
@@ -292,19 +193,16 @@ const App = {
             } else {
                 console.log("NOT OK: " + typeof key);
             }
-            //fs.insertAdjacentHTML('beforeEnd', '<br>');
         });
     },
 
     submitForm: function() {
         let p = App.selectedFeature.properties;
         readSidebarFormProperties(p);
-        // saveFeatureToFirebase()
         App.selectedLayer.setTooltipContent(p.Asset);
         App.sidebar.hide();
         this.assignTaskCompletedStyle(this.selectedLayer, p);
         Map.closePopup();
-
         this.selectedFeature = null;
         console.log("toGeo: " + JSON.stringify(this.geoLayer.toGeoJSON()));
         localStorage.setItem(
@@ -367,28 +265,7 @@ const App = {
             }
         }
     },
-    /*
-        loadGeoJSONLayer: function(myFile) {
-            fetch(myFile)
-                .then(function(response) {
-                    if (response.status !== 200) {
-                        console.log(
-                            "Looks like there was a problem. Status Code: " +
-                            response.status
-                        );
-                        return;
-                    }
-                    response.json().then(function(data) {
-                        App.setupGeoLayer(data);
-                        console.log("fetch called!");
-                    });
-                })
-                .catch(function(err) {
-                    console.log("Fetch Error :-S", err);
-                });
-        },
-    
-        */
+
     resetMap: function() {
         localStorage.removeItem("geoJSON");
         App.geoLayer = {};
@@ -430,35 +307,27 @@ const App = {
                 myControl_div.innerHTML = ""
                 myControl_div.title = "Settings"
                 myControl_div.onclick = () => {
-                    //console.log("custom control clicked!");
                     App.sidebar.setContent(
                         document.getElementById("settings-template").innerHTML
                     );
-                    //document.getElementById("upload-map-to-firebase").style.display = 'none';
-                    //document.getElementById("upload-map-to-firebase").style.visibility = 'hidden';
-                    // temp fudge - for if no map loaded into geoLayer yet
-                    User().initLoginForm();
 
+                    User().initLoginForm();
                     const savefb = document.getElementById(
                         "upload-map-to-firebase"
                     );
                     if (App.geoLayer === undefined || App.geoLayer === null) {
                         savefb.style.display = "none";
-                        //console.log(" save display none");
                     } else {
                         savefb.style.display = "block";
-                        //console.log(" save display block");
                         App.populateMapMeta();
                     }
-
                     document
                         .getElementById("open-new-project-button")
                         .addEventListener("click", function() {
                             loadMyLayer("dummy");
                         });
-                    //loadMyLayer("dummy")
                     App.sidebar.show();
-                    //alert("Load Shapefile or do something else");
+
                 };
                 return myControl_div;
             }
@@ -483,7 +352,6 @@ const App = {
             }
         }
         container.innerHTML = content;
-        //containter.innerHTML = content
     },
 
     retrieveMapFromFireBase: index => {
@@ -492,9 +360,7 @@ const App = {
             .ref(nodePath)
             .once("value")
             .then(snapshot => {
-                // loadOverlayLayer(snapshot.val())  // checks storage then tries downloading file
                 const mapData = snapshot.val();
-                // console.log("Node: " + mapData);
                 App.clearLocalStorateMaps()
                 App.setupGeoLayer(index, mapData);
                 document.getElementById("opennewproject").style.display = "none";
@@ -508,26 +374,19 @@ const App = {
 
     },
 
-    //loadMap (myKey, mapData)=>{
-    //    myMap.myLayerGroup.clearLayers(App.geoLayer);
-    // }
-
     saveMapToLocalStorage: (myKey, mapData) => {
-        
+
         localStorage.setItem(
             "mapData." + myKey, JSON.stringify(mapData)
         );
     },
 
     clearLocalStorateMaps: () => {
-         const keys  = App.getLocalStorageMapDataKey()
-        keys.map(item=>{localStorage.removeItem(item)})
+        const keys = App.getLocalStorageMapDataKey()
+        keys.map(item => { localStorage.removeItem(item) })
     },
 
-
     populateRelated: related => {
-        //console.log("relData:", related)
-        //App.State.relatedData = related
         const relDataObject = {}; // to be replaced with State etc
         const relDataSyncObject = {} // just to make sure it's initially empty
         App.State.relDataSyncStatus = {} // make sure start with empty obj
@@ -552,13 +411,6 @@ const App = {
         App.State.relatedData = relDataObject
         App.State.relDataSyncStatus = relDataSyncObject
         App.getRelDataFromLocalStorage(App.mapHash)
-        /*
-        const attachRelatedToRecord = (relKey, index, relDataOb, tempOb) => {
-            // creates an ob with set of keys with related properties as their values
-            relDataOb[relKey] = this.getLastRelDataItem(related[relKey]);
-
-        };
-        */
     },
 
     getRelDataFromLocalStorage: (mapHash) => {
@@ -580,11 +432,9 @@ const App = {
                 App.State.relDataSyncStatus[key] = false // while item is sucessfully pushed to db
                 RelatedData.pushRelatedDataRecord(relDataFeaturePath, itemFeatureKey, item)
                 // Trigger push of item (does this update sync status and message automatically ? )  
-
             }
         })
     },
-
 
     updateFeatureRelatedState: (featureKey, relatedData) => {
         // update a single feature's RelatedRecord State
@@ -643,23 +493,17 @@ const App = {
     */
 
     setupGeoLayer: (key, mapData) => {
-        //
-        // console.log("meta: ", meta);
         App.mapMeta = mapData.meta;
         App.mapHash = key;
         myMap.myLayerGroup.clearLayers(App.geoLayer);
-        //App.mapMeta = myJSONdata.Meta
         App.geoLayer = L.geoJson(mapData.Geo, {
             onEachFeature: (feature, layer) => {
-                // console.log("clicked: " + feature.properties.Asset);
                 App.assignTaskCompletedStyle(layer, feature.properties);
                 layer.on("click", e => {
                     App.selectedFeature = feature; // expose selected feature and layer
                     App.selectedLayer = layer;
                     App.whenGeoFeatureClicked();
                 });
-                //layer.bindPopup("<button> Edit</button>");
-                //layer.bindTooltip(feature.properties.Asset, { className: 'tool-tip-class' });
                 try {
                     layer.bindTooltip(feature.properties[meta.LabelProperty], {
                         className: "tool-tip-class"
@@ -685,10 +529,9 @@ const App = {
             },
             interactive: true
         });
-        // App.map.addLayer(App.geoLayer);
+
         myMap.myLayerGroup.addLayer(App.geoLayer);
         Map.fitBounds(App.geoLayer.getBounds());
-        
         App.saveMapToLocalStorage(key, mapData)
         App.populateRelated(mapData.Related); // need to catch when no related available
         //mapOb.myLayerGroup.addLayer(App.geoLayer);
@@ -696,14 +539,8 @@ const App = {
 
     getLocalStorageMapDataKey: () => {
         // return keys that start with maoData
-
-        // const myRegex = new RegExp("^mapData.*");
-        // for (let item in localStorage) { if (myRegex.test(item)) { return item } }
-
         return Object.keys(localStorage).filter(item => { return new RegExp('^mapData.*').test(item) })
     },
-
-    
 
     loadMapDataFromLocalStorage: () => {
         // attempt to retrieve map from local
@@ -713,22 +550,9 @@ const App = {
         const mapKey = storageKey[0].split("mapData.")[1]
         App.setupGeoLayer(mapKey, mapData)
     }
-
-
 };
 
 window.App = App
-
-
-//var HOUNDLOWLAYER = {};
-
-/*
-const loadHatheropShp = () => {
-    HOUNDLOWLAYER = new L.Shapefile("hounslow-photos-almost-complete.zip");
-    console.log("my shp: ", HOUNDLOWLAYER);
-    HOUNDLOWLAYER.addTo(Map);
-};
-*/
 
 const RelatedData = {
 
@@ -751,12 +575,11 @@ const RelatedData = {
                 // Remove record from local storage
                 const localStorageKey = "backup.relatedData." + App.mapHash + "." + featureKey
                 localStorage.removeItem(localStorageKey)
-
             })
             .catch(error => {
                 console.log("My Error: " + error.message);
                 alert("Sorry - something went wrong - have you logged in etc?");
-                //document.getElementById("message-area").innerHTML="Sorry - "+ error.message
+
             });
     },
 
@@ -800,24 +623,12 @@ const RelatedData = {
 
     addPhoto: function() {
         const el = document.getElementById("photo-capture");
-        // console.log("photo file: " + this.files[0].name)
         console.log(el.files[0].name);
         document.getElementById("related-data-photo").value = el.files[0].name;
     }
-
-
-
-
 };
 
 window.RelatedData = RelatedData
-
-/*
-saveRelDataRecordToLocalStorage: (mapHash, featureKey, relatedData) => {
-        localStorage.setItem('backup.relatedData.' + mapHash + "." + featureKey, JSON.stringify(relateData);
-        }
-
-        */
 
 function uploadMapToFirebase() {
     // grab the blobal Mapindex, then send gson layer up to node
@@ -832,88 +643,7 @@ function uploadMapToFirebase() {
         });
 }
 
-const User = function() {
-    const email = document.getElementById("emailInput");
-    const pw = document.getElementById("passwordInput");
-    const msg = document.getElementById("Login-status-message");
-    const loginBtn = document.getElementById("login-btn");
-    const logoutBtn = document.getElementById("logout-btn");
-    const loginForm = document.getElementById("login-form");
-    const auth = firebase.auth;
-
-    function signIn() {
-        auth()
-            .signInWithEmailAndPassword(email.value, pw.value)
-            .then(function(user) {
-                console.log(user, "signed in!");
-                userSignedIn();
-            })
-            .catch(function(error) {
-                console.log("sorry couldn't sign in -  Error: " + error);
-                alert("sorry couldn't sign in -  Error: " + error);
-            });
-    }
-
-    function signOut() {
-        firebase
-            .auth()
-            .signOut()
-            .then(
-                function() {
-                    // Sign-out successful.
-                    console.log("successfully signed out");
-                    userSignedOut();
-                },
-                function(error) {
-                    // An error happened.
-                    console.log("problem signing out - error: ", error);
-                }
-            );
-    }
-
-    function userSignedIn() {
-        msg.innerHTML = "you are now signed in!";
-        pw.innerHTML = null;
-        loginBtn.style.display = "none";
-        logoutBtn.style.display = "block";
-        loginForm.style.display = "none";
-    }
-
-    function userSignedOut() {
-        msg.innerHTML = "Bye  - you have now signed out";
-        loginBtn.style.display = "block";
-        logoutBtn.style.display = "none";
-        loginForm.style.display = "block";
-    }
-
-    function testFunc() {
-        console.log("testing only!");
-    }
-
-    function testFunc2() {
-        console.log("testing only - func2!");
-    }
-
-    function initLoginForm() {
-        console.log("initLoginForm");
-        if (firebase.auth().currentUser) {
-            userSignedIn();
-            console.log("user is logged in");
-        } else {
-            console.log("user is logged out");
-            userSignedOut();
-        }
-    }
-
-    return {
-        btnLogin: signIn,
-        btnLogout: signOut,
-        btntest: testFunc,
-        initLoginForm: initLoginForm
-    };
-};
 window.User = User
-
 
 function loadMyLayer(layerName) {
     // just for testing
@@ -924,8 +654,7 @@ function loadMyLayer(layerName) {
     loadProject();
 
     function loadProject() {
-
-        console.log("trying to load from local storage ...")
+        /*
         const mapIndexList = getLocalStorageMapIndexList()
         if (mapIndexList) {
             displayMapIndeces(mapIndexList)
@@ -933,11 +662,15 @@ function loadMyLayer(layerName) {
             console.log("local mapIndex list not found so try from Firebase")
             retriveMapIndexFromFirebase()
         }
+        */
+
+        retriveMapIndexFromFirebase()
 
         //const el = document.getElementById("opennewproject");
         // el.insertAdjacentHTML("afterBegin", "Open project");
         // displayMapIndeces(myMapIndeces);
 
+        /*
         function getLocalStorageMapIndexList() {
             const mapIndexList = JSON.parse(localStorage.getItem('mapIndexList'))
             return mapIndexList
@@ -949,6 +682,9 @@ function loadMyLayer(layerName) {
             )
         };
 
+         */
+        /*
+
         function retriveMapIndexFromFirebase() {
             fbDatabase
                 .ref("/App/Mapindex")
@@ -958,7 +694,7 @@ function loadMyLayer(layerName) {
                     console.log("fetched ok: ");
                     //const el = document.getElementById("opennewproject");
                     //el.insertAdjacentHTML("afterBegin", "Open project");
-                    setLocalStorageMapIndexList(snapshot)
+                    // setLocalStorageMapIndexList(snapshot)
                     displayMapIndeces(snapshot);
                 })
                 .catch(error => {
@@ -968,8 +704,8 @@ function loadMyLayer(layerName) {
                 });
         };
 
+        */
 
-        /*
         function retriveMapIndexFromFirebase() {
             document.getElementById("message-area").innerHTML =
                 "<p>waiting for network connection ...</p>";
@@ -978,7 +714,7 @@ function loadMyLayer(layerName) {
                 .once("value")
                 .then(snapshot => {
                     document.getElementById("message-area").innerHTML = null;
-                    // console.log("fetched ok: ");
+                    console.log("map index fetched ok: ");
                     const el = document.getElementById("opennewproject");
                     el.insertAdjacentHTML("afterBegin", "Open project");
                     displayMapIndeces(snapshot);
@@ -989,7 +725,7 @@ function loadMyLayer(layerName) {
                         "Sorry - " + error.message;
                 });
         };
-        */
+
 
 
         function displayMapIndeces(mapIndexList) {
@@ -1018,21 +754,6 @@ function loadMyLayer(layerName) {
             });
         }
     }
-
-    /*
-    function loadFromPresetButtons(layerName) {
-        if (layerName === "Ham") {
-            myMap.settings.demoJSONmapdata = "ham-green-demo.json";
-            loadOverlayLayer(myMap.settings.demoJSONmapdata);
-        } else if (layerName === "Richmond") {
-            myMap.settings.demoJSONmapdata = "richmondriverside.json";
-            loadOverlayLayer(myMap.settings.demoJSONmapdata);
-        } else if (layerName === "Richmond-all") {
-            myMap.settings.demoJSONmapdata = "richmond-terr-all.json";
-            loadOverlayLayer(myMap.settings.demoJSONmapdata);
-        }
-    }
-    */
 }
 
 /*
@@ -1097,6 +818,7 @@ function initDebugControl() {
         })
         .addTo(Map);
 }
+
 // --------------------------------- Offline Basemap Caching ------
 const setupOfflineBaseLayerControls = () => {
     const myBaseLayerControls = [
@@ -1146,7 +868,6 @@ L.Control.OfflineBaselayersControl = L.Control.extend({
                 offlineLayerCtrls.forEach(el => el.style.display = "none")
             }
         }
-
         return OfflineBaselayersControl_div
     },
 
@@ -1173,7 +894,6 @@ const fireBaseconfig = {
 var Map = {}
 var fbDatabase = {}
 var offlineLayerControls = {}
-
 const initApp = () => {
     firebase.initializeApp(fireBaseconfig);
     fbDatabase = firebase.database();
@@ -1183,28 +903,21 @@ const initApp = () => {
     Map = myMap.setupBaseLayer();
     // initDebugControl()
     initLogoWatermark();
-
     L.control.scale({ position: "bottomleft" }).addTo(Map);
     App.initSettingsControl();
-
     setupSideBar();
     initLocationControl();
     Map.doubleClickZoom.disable();
-
     L.control.OfflineBaselayersControl({ position: "topright" }).addTo(Map);
     offlineLayerControls = setupOfflineBaseLayerControls()
     offlineLayerControls.map(layer => { layer.addTo(Map) })
     document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.display = "none" });
     App.loadMapDataFromLocalStorage()
 
-
-
     // ----- offline service worker -----------
-
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js').then(registration => { //  for dev
-
                 console.log('SW registered: ', registration);
             }).catch(registrationError => {
                 console.log('SW registration failed: ', registrationError);
@@ -1217,25 +930,6 @@ const initApp = () => {
 initApp();
 
 
-// ---------------------------
-
-
-
-//loadOverlayLayer("myMap.settings.demoJSONmapdata") // loads GeoJSON Browser's local storage if available otherwise loads local (initial) file
-
-/*
-function loadOverlayLayer(fileRef) {
-    myMap.myLayerGroup.clearLayers(App.geoLayer);
-    if (localStorage.getItem("geoJSON") == null) {
-        App.loadGeoJSONLayer(fileRef);
-        console.log("no localstoge so retrieving fresh file");
-    } else {
-        console.log("reading json from Local storage");
-        App.setupGeoLayer(JSON.parse(localStorage.getItem("geoJSON")));
-    }
-}
-
-*/
 //  ------------------------  leaflet controls -------------
 
 // ------sidebar controll plugin
@@ -1271,14 +965,6 @@ function initLocationControl() {
         .addTo(Map);
 }
 
-// Map.on("click", onMapClick);
-
-/*
-function onMapClick(e) {
-    //App.sidebar.hide();
-    console.log(e);
-}
-*/
 
 Map.on("locationfound", updateLatestLocation)
 
@@ -1288,16 +974,7 @@ function updateLatestLocation(e) {
     myMap.state.latestLocation = e.latlng
 }
 
-
 Map.on("popupclose", function(e) {
     App.sidebar.hide();
     App.selectedFeature = null;
 });
-
-/*
-const loadFromShp = () => {
-    var shpLayer = new L.Shapefile("test-park.zip");
-    console.log("shpLayer: ", shpLayer);
-    shpLayer.addTo(Map);
-};
-*/
