@@ -120,7 +120,6 @@ const App = {
 
     whenGeoFeatureClicked: function() {
         const fId = App.selectedFeature.properties.OBJECTID + App.selectedFeature.geometry.type
-        console.log("fID:", fId)
 
         function renderSideBar() {
             App.sidebar.setContent(
@@ -142,7 +141,6 @@ const App = {
         if (myMap.state.latestLocation) {
             const nearest = leafletKnn(App.geoLayer).nearest(L.latLng(myMap.state.latestLocation), 1) // example usage for Ham Green
             nearest[0].layer.fire('click')
-
         } else {
             window.alert("Sorry - failed - You need to get a GPS location first")
         }
@@ -204,7 +202,6 @@ const App = {
         this.assignTaskCompletedStyle(this.selectedLayer, p);
         Map.closePopup();
         this.selectedFeature = null;
-        console.log("toGeo: " + JSON.stringify(this.geoLayer.toGeoJSON()));
         localStorage.setItem(
             "geoJSON",
             JSON.stringify(this.geoLayer.toGeoJSON())
@@ -251,7 +248,6 @@ const App = {
     },
 
     assignTaskCompletedStyle: function(layer, featureProperty) {
-
         const s = myMap.settings.symbology;
         if (featureProperty.taskCompleted == true) {
             layer.setStyle(s.taskCompleteStyle);
@@ -269,7 +265,6 @@ const App = {
     resetMap: function() {
         localStorage.removeItem("geoJSON");
         App.geoLayer = {};
-        // App.loadGeoJSONLayer(demoJSONmapdata);
     },
     getPhoto: function(photoURL) {
         fetch(photoURL)
@@ -354,7 +349,7 @@ const App = {
         container.innerHTML = content;
     },
 
-    retrieveMapFromFireBase: index => {
+    retrieveMapFromFireBase: function(index) {
         let nodePath = String("/App/Maps/" + index);
         fbDatabase
             .ref(nodePath)
@@ -371,11 +366,9 @@ const App = {
                     console.log("error! cannot get from firebase!", err)
                 }
             );
-
     },
 
     saveMapToLocalStorage: (myKey, mapData) => {
-
         localStorage.setItem(
             "mapData." + myKey, JSON.stringify(mapData)
         );
@@ -529,12 +522,10 @@ const App = {
             },
             interactive: true
         });
-
         myMap.myLayerGroup.addLayer(App.geoLayer);
         Map.fitBounds(App.geoLayer.getBounds());
         App.saveMapToLocalStorage(key, mapData)
         App.populateRelated(mapData.Related); // need to catch when no related available
-        //mapOb.myLayerGroup.addLayer(App.geoLayer);
     },
 
     getLocalStorageMapDataKey: () => {
@@ -566,10 +557,9 @@ const RelatedData = {
             .push(relatedRecord)
             .then((snap) => {
                 // if successfully synced
-                //const f_id = snap.path.pieces_[4]  // fudege to retrieve feature key (parent piece) from the snapshot
+
                 const f_id = snap.parent.key // fudege to retrieve feature key
                 App.State.relDataSyncStatus[f_id] = true
-                //console.log("resolved RelData for feature:", RelatedData.featureKey, f_id)
                 App.updateRelDataSyncMsg(f_id)
                 console.log("Pushed new Related Record :", f_id)
                 // Remove record from local storage
@@ -712,12 +702,12 @@ function loadMyLayer(layerName) {
             fbDatabase
                 .ref("/App/Mapindex")
                 .once("value")
-                .then(snapshot => {
+                .then(function(snapshot) {
                     document.getElementById("message-area").innerHTML = null;
                     console.log("map index fetched ok: ");
                     const el = document.getElementById("opennewproject");
                     el.insertAdjacentHTML("afterBegin", "Open project");
-                    displayMapIndeces(snapshot);
+                    displayMapIndeces(snapshot.val());
                 })
                 .catch(error => {
                     console.log("My Error: " + error.message);
@@ -741,7 +731,6 @@ function loadMyLayer(layerName) {
                 btn.setAttribute("value", item.mapID);
                 btn.setAttribute("title", item.description);
                 btn.className = "btn btn-primary open-project-button";
-                //btn.setAttribute("onClick", String("this.loadJSONFromFB" + "()"))
                 const id = item.mapID;
                 btn.addEventListener("click", function(e) {
                     App.retrieveMapFromFireBase(e.target.value);
@@ -749,18 +738,12 @@ function loadMyLayer(layerName) {
                 });
                 btn.innerHTML = item.name;
                 maplist.appendChild(btn);
-                //const str = String("<p>" + item.description + "</p><br>")
-                //el.insertAdjacentHTML('beforeEnd', str);
             });
         }
     }
 }
 
-/*
-function clearMyLayers() {
-    // just for testing
-}
-*/
+
 
 function initLogoWatermark() {
     L.Control.watermark = L.Control.extend({
