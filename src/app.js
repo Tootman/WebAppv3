@@ -716,8 +716,6 @@ function loadMyLayer(layerName) {
                 });
         };
 
-
-
         function displayMapIndeces(mapIndexList) {
             //const el = document.getElementById("opennewproject");
             //el.insertAdjacentHTML("afterBegin", "Open project");
@@ -742,8 +740,6 @@ function loadMyLayer(layerName) {
         }
     }
 }
-
-
 
 function initLogoWatermark() {
     L.Control.watermark = L.Control.extend({
@@ -835,7 +831,6 @@ const setupOfflineBaseLayerControls = () => {
         })
     )
 };
-
 
 L.Control.OfflineBaselayersControl = L.Control.extend({
     onAdd: function(map) {
