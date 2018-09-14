@@ -608,7 +608,6 @@ const RelatedData = {
         App.updateSidebarRelatedFromState(key)
         RelatedData.saveRelDataRecordToLocalStorage(App.mapHash, key, relatedRecord)
         RelatedData.pushRelatedDataRecord(RelatedData.nodePath, key, relatedRecord)
-        App.saveMapToLocalStorage (App.mapHash, App.geoLayer.toGeoJSON())
         document.getElementById("related-data-info").innerHTML = "Submitted!";
     },
 
