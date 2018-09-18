@@ -356,7 +356,7 @@ const App = {
             .once("value")
             .then(snapshot => {
                 const mapData = snapshot.val();
-                App.clearLocalStorateMaps()
+                App.clearLocalStorageMaps()
                 App.setupGeoLayer(index, mapData);
                 document.getElementById("opennewproject").style.display = "none";
                 App.sidebar.hide();
@@ -374,9 +374,13 @@ const App = {
         );
     },
 
-    clearLocalStorateMaps: () => {
+    clearLocalStorageMaps: () => {
         const keys = App.getLocalStorageMapDataKey()
         keys.map(item => { localStorage.removeItem(item) })
+    },
+
+    clearLocalStorageLatestRelDataBackup: () => {
+        localStorage.removeItem('latestRelDataBackup')
     },
 
     populateRelated: related => {
@@ -606,10 +610,21 @@ const RelatedData = {
         App.updateRelDataSyncMsg(key)
         App.updateFeatureRelatedState(key, relatedRecord)
         App.updateSidebarRelatedFromState(key)
+        RelatedData.backupUpRelStateToLocalStorage()
         RelatedData.saveRelDataRecordToLocalStorage(App.mapHash, key, relatedRecord)
+        RelatedData.backupUpRelStateToLocalStorage();
         RelatedData.pushRelatedDataRecord(RelatedData.nodePath, key, relatedRecord)
         document.getElementById("related-data-info").innerHTML = "Submitted!";
     },
+
+    backupUpRelStateToLocalStorage: () => {
+        localStorage.setItem('latestRelDataBackup', JSON.stringify(App.State.relatedData))
+    },
+
+    restoreRelStateFromLocalStorage: () => {
+        App.State.relatedData = JSON.parse(localStorage.getItem('latestRelDataBackup'))
+    },
+
 
     addPhoto: function() {
         const el = document.getElementById("photo-capture");
@@ -890,6 +905,7 @@ const initApp = () => {
     offlineLayerControls = setupOfflineBaseLayerControls()
     offlineLayerControls.map(layer => { layer.addTo(Map) })
     document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.display = "none" });
+    RelatedData.restoreRelStateFromLocalStorage()
     App.loadMapDataFromLocalStorage()
 
     // ----- offline service worker -----------
