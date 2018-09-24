@@ -1,4 +1,4 @@
-## WebApp Mapping App
+##  Description
 WebApp intended for GIS Geo-spatial data collection (eg asset condition survey), using mobile device in the field.
 
 version: 0.1 - not yet ready - not working reliably
@@ -6,23 +6,34 @@ version: 0.1 - not yet ready - not working reliably
  - Offline capability using ServiceWorker file Caching
  - Separate control for manual Caching of Basemap tiles
  - Caching Feature relatedData using localStorage, attempts to upload until successful upload to Firebase database (only works if logged in)
+
+ # To-do
+  - print map control (WebApp, MapAdmin console or both ??)
+  - help control - reveals help related content , maybe with search  
+  - Show map name on map  
+  - PWA home-screen manifest
+  - handling transfer of photos to cloud
+ -  visual feedback indicateting selected feature, before opening the flyout panel so suggest onClick opens the popup with asset name and desription and edit button. Clicking the edit button Opens the Flyout window
+  - Each map to have a 'map_reset_date' date (in Map Meta data object), the value of which can be edited by a user (a manager using MapAdmin console). If the most recent submitted relatedRecord for an Asset, has a timestamp dated after  map_reset_date, and has a condition other than 'not yet surveyed', then the Asset is marked as COMPLETED. Otherwise it is marked NOT_COMPLETED. (Not completed assets are coloured Red etc). So in other words,  the start date for the new survey is entered for map_reset_date, thereby resetting all Assets back to NOT_COMPLETED.  
+  - Animated icon popup/label/control for indicating  'Working/processing/loading' to user (or progress bar)
+  - ensure poly layer is drawn underneath points and lines  
  
-# Bugs / fixes to do
- - Lines difficult to select by touching - make thicker
- - Refactor into es6 patterns
- - Major Refactor - Seperate objects and namespaces into separate modules
- - Move 'Task completed' Boolean from Geodata object to separate object somewhere in State)
- - Show map name on map
- - help control - reveals help related content
- - How to debug in Android Chrome - use of resources / memory / cache storage limit
- - If possible, implement exponential Back-off for uploading to firebase in event of poor network connection.
- - Offline Caching of tiles sometimes crashes Browser in Android Chrome - how to debug in Android or simulate
-  - logic for handling transfer of photos to cloud
-   - PWA home-screen manifest
-    - Ensure all locally stored RelatedData is uploaded before new map is loaded
+ 
+# Bugs / issues
+ - Lines difficult to select by touching - make line/outline thicker - resolved 24/9/2018
+    - Offline Caching of tiles sometimes crashes Browser in Android Chrome - how to debug in Android or simulate
+  - Ensure all locally stored RelatedData is uploaded before new map is loaded
+  - Find nearest feature stopped working (and throwing wrong error)
+   - Need to set 
+
+# dev notes
+- How to debug in Android Chrome - use of resources / memory / cache storage limit
+- If possible, implement exponential Back-off for uploading to firebase in event of poor network connection.
+- Move 'Task completed' Boolean from Geodata object to separate object somewhere in State)
 
 
-# Notes
+
+# User Notes
 Demo : <https://tootman.github.io/WebAppv3/>
 NOte that many features will only be available if logged in
 runs from /build/ only

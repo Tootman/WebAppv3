@@ -18,7 +18,8 @@ let myMap = {
         symbology: {
             taskCompleteStyle: {
                 fillColor: "grey",
-                color: "black"
+                color: "black",
+                weight: 1
             },
             pointTaskNotCompleteStyle: {
                 fillColor: "red",
@@ -26,11 +27,12 @@ let myMap = {
             },
             lineTaskNotCompleteStyle: {
                 fillColor: "red",
-                color: "red"
+                color: "red",
+                weight: 7
             },
             polyTaskNotCompleteStyle: {
                 fillColor: "yellow",
-                color: "black",
+                color: "red",
                 weight: 1
             }
         },
@@ -59,6 +61,10 @@ let myMap = {
             //minNativeZoom: 22,
             maxNativeZoom: 18 // was 20
         });
+        streetsLayer.on('offline:save-end', function() {
+            alert('All the tiles were saved.');
+        });
+
         const satLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
             id: "mapbox.satellite",
             attribution: myMap.settings.mbAttr,
@@ -101,7 +107,8 @@ let myMap = {
 const App = {
     State: {
         relatedData: {}, // init va3l
-        relDataSyncStatus: {} // objects holds relatedData sync status flag for each feature, TRUE if synced , False  
+        relDataSyncStatus: {}, // objects holds relatedData sync status flag for each feature, TRUE if synced , False  
+        surveyed: {} // true when inspected ie completed , false when not-yet-instected  
     },
 
     updateRelDataSyncMsg: (featureID) => {
