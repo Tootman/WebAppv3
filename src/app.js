@@ -505,6 +505,8 @@ const App = {
             onEachFeature: (feature, layer) => {
                 let featureLabel  = feature.properties[featureLabelField]
                 App.assignTaskCompletedStyle(layer, feature.properties);
+                //if (feature.geometry.type=="Polygon"){console.log("sent to back!"); layer.bringToBack()}
+                //console.log("feature type:", feature.geometry.type)
                 
                 layer.bindPopup ('<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();">' + "<br>" + featureLabel + " " + '</div')
                 //layer.bindPopup (featureLabel)
@@ -551,10 +553,16 @@ const App = {
         });
         myMap.myLayerGroup.addLayer(App.geoLayer);
         Map.fitBounds(App.geoLayer.getBounds());
+        App.movePolygonsToBack();
         App.saveMapToLocalStorage(key, mapData)
         App.populateRelated(mapData.Related); // need to catch when no related available
     },
 
+    movePolygonsToBack(){
+       //move polygons to back
+        App.geoLayer.eachLayer (layer=>{if (layer.feature.geometry.type=="Polygon"){layer.bringToBack()}})
+    },
+    
     getLocalStorageMapDataKey: () => {
         // return keys that start with maoData
         return Object.keys(localStorage).filter(item => { return new RegExp('^mapData.*').test(item) })
