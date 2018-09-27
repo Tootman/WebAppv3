@@ -207,7 +207,7 @@ const App = {
         App.selectedLayer.setTooltipContent(p.Asset);
         App.sidebar.hide();
         this.assignTaskCompletedStyle(this.selectedLayer, p);
-        Map.closePopup();
+        //Map.closePopup();
         this.selectedFeature = null;
         localStorage.setItem(
             "geoJSON",
@@ -500,21 +500,37 @@ const App = {
         App.mapMeta = mapData.meta;
         App.mapHash = key;
         myMap.myLayerGroup.clearLayers(App.geoLayer);
+        const featureLabelField = mapData.Meta ? mapData.Meta.LabelProperty : "Asset"
         App.geoLayer = L.geoJson(mapData.Geo, {
             onEachFeature: (feature, layer) => {
+                let featureLabel  = feature.properties[featureLabelField]
                 App.assignTaskCompletedStyle(layer, feature.properties);
+                
+                layer.bindPopup ('<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();">' + "<br>" + featureLabel + " " + '</div')
+                //layer.bindPopup (featureLabel)
                 layer.on("click", e => {
-                    App.selectedFeature = feature; // expose selected feature and layer
-                    App.selectedLayer = layer;
-                    App.whenGeoFeatureClicked();
+                   // reestore previouslly selected colours
+                   if (App.selectedLayer){ App.selectedLayer.setStyle({color:'red', fillColor:'yellow'})}
+                   App.selectedFeature = feature; // expose selected feature and layer
+                   App.selectedLayer = layer;
+                   App.selectedLayer.setStyle({color:'blue',fillColor:'blue'})
+                   
+                   // App.whenGeoFeatureClicked();
+                   //let myButton = L.DomUtil.create('button');
+                   //myButton.innerHTML = "Hello"
+                   //this.bindPopup = myButton
                 });
+                /*
                 try {
-                    layer.bindTooltip(feature.properties[meta.LabelProperty], {
-                        className: "tool-tip-class"
-                    });
+                    layer.bindTooltip(featureLabel, {
+                        className: "tool-tip-class",
+                        permanent: false,
+                        interactive: true
+                    }).openTooltip();
                 } catch (err) {
                     console.log("failed to find prop", err);
                 }
+                */
             },
             style: feature => {
                 return {
@@ -968,6 +984,11 @@ function initLocationControl() {
 
 
 Map.on("locationfound", updateLatestLocation)
+Map.on('moveend', function(e) {
+   let bounds = Map.getBounds();
+   console.log("new bounds", bounds)
+});
+
 
 function updateLatestLocation(e) {
     //console.log("locates location:", e)

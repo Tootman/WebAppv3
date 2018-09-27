@@ -17,6 +17,7 @@ version: 0.1 - not yet ready - not working reliably
   - Each map to have a 'map_reset_date' date (in Map Meta data object), the value of which can be edited by a user (a manager using MapAdmin console). If the most recent submitted relatedRecord for an Asset, has a timestamp dated after  map_reset_date, and has a condition other than 'not yet surveyed', then the Asset is marked as COMPLETED. Otherwise it is marked NOT_COMPLETED. (Not completed assets are coloured Red etc). So in other words,  the start date for the new survey is entered for map_reset_date, thereby resetting all Assets back to NOT_COMPLETED.  
   - Animated icon popup/label/control for indicating  'Working/processing/loading' to user (or progress bar)
   - ensure poly layer is drawn underneath points and lines  
+   - short 
  
  
 # Bugs / issues
@@ -24,7 +25,8 @@ version: 0.1 - not yet ready - not working reliably
     - Offline Caching of tiles sometimes crashes Browser in Android Chrome - how to debug in Android or simulate
   - Ensure all locally stored RelatedData is uploaded before new map is loaded
   - Find nearest feature stopped working (and throwing wrong error)
-   - Need to set 
+   - Flyout panel does not auto close after opening large dataset
+    - LocalStorage.set exceeds quote for Houndlow condition survey (ie v large) dataset
 
 # dev notes
 - How to debug in Android Chrome - use of resources / memory / cache storage limit
