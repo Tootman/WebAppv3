@@ -16,23 +16,24 @@ version: 0.1 - not yet ready - not working reliably
  -  visual feedback indicateting selected feature, before opening the flyout panel so suggest onClick opens the popup with asset name and desription and edit button. Clicking the edit button Opens the Flyout window
   - Each map to have a 'map_reset_date' date (in Map Meta data object), the value of which can be edited by a user (a manager using MapAdmin console). If the most recent submitted relatedRecord for an Asset, has a timestamp dated after  map_reset_date, and has a condition other than 'not yet surveyed', then the Asset is marked as COMPLETED. Otherwise it is marked NOT_COMPLETED. (Not completed assets are coloured Red etc). So in other words,  the start date for the new survey is entered for map_reset_date, thereby resetting all Assets back to NOT_COMPLETED.  
   - Animated icon popup/label/control for indicating  'Working/processing/loading' to user (or progress bar)
-  - ensure poly layer is drawn underneath points and lines  
-   - short 
- 
+   - bookmarks (for large maps maps with multiple sites)
+      
  
 # Bugs / issues
  - Lines difficult to select by touching - make line/outline thicker - resolved 24/9/2018
     - Offline Caching of tiles sometimes crashes Browser in Android Chrome - how to debug in Android or simulate
   - Ensure all locally stored RelatedData is uploaded before new map is loaded
   - Find nearest feature stopped working (and throwing wrong error)
-   - Flyout panel does not auto close after opening large dataset
+   - Flyout panel does not aloways auto close (especially after opening large dataset)
     - LocalStorage.set exceeds quote for Houndlow condition survey (ie v large) dataset
+  - Edit panel somoetimes not opening on latest version  
+   - how to get browser to reload new version of files ie how to propertly implement version control
 
 # dev notes
 - How to debug in Android Chrome - use of resources / memory / cache storage limit
 - If possible, implement exponential Back-off for uploading to firebase in event of poor network connection.
 - Move 'Task completed' Boolean from Geodata object to separate object somewhere in State)
-
+ - Issue of how to handle multiple point features at exact same location
 
 
 # User Notes

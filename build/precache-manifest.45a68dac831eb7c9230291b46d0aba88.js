@@ -24,7 +24,7 @@ self.__precacheManifest = [
     "url": "fontello/font/fontello.ttf"
   },
   {
-    "revision": "f66055ff9ee65cb33ebe",
+    "revision": "753169b5ea366112ddc9",
     "url": "bundle.js"
   },
   {

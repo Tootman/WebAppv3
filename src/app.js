@@ -919,6 +919,7 @@ var Map = {}
 var fbDatabase = {}
 var offlineLayerControls = {}
 const initApp = () => {
+    App.State.relatedData = {};
     firebase.initializeApp(fireBaseconfig);
     fbDatabase = firebase.database();
 
