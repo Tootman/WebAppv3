@@ -653,8 +653,13 @@ const RelatedData = {
     },
 
     restoreRelStateFromLocalStorage: () => {
+        if (localStorage.getItem('latestRelDataBackup')!== null) {
         App.State.relatedData = JSON.parse(localStorage.getItem('latestRelDataBackup'))
-    },
+    }
+    else {
+      App.State.relatedData = {}
+    }
+   },
 
 
     addPhoto: function() {
