@@ -26,7 +26,6 @@ version: 0.1 - not yet ready - not working reliably
   - Find nearest feature stopped working (and throwing wrong error)
    - Flyout panel does not aloways auto close (especially after opening large dataset)
     - LocalStorage.set exceeds quote for Houndlow condition survey (ie v large) dataset
-  - Edit panel somoetimes not opening on latest version  
    - how to get browser to reload new version of files ie how to propertly implement version control
 
 # dev notes

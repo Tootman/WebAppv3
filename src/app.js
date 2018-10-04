@@ -356,8 +356,19 @@ const App = {
         container.innerHTML = content;
     },
 
+    busyWorkingIndicator: (busyWorking) => {
+        const cogIcon = document.getElementsByClassName('icon-cog')[0]
+        if (busyWorking) {
+            cogIcon.classList.add('icon-cog-spin')
+        } else {
+            cogIcon.classList.remove('icon-cog-spin')
+        }
+    },
+
     retrieveMapFromFireBase: function(index) {
         let nodePath = String("/App/Maps/" + index);
+        App.sidebar.hide();
+        App.busyWorkingIndicator(true)
         fbDatabase
             .ref(nodePath)
             .once("value")
@@ -366,11 +377,13 @@ const App = {
                 App.clearLocalStorageMaps()
                 App.setupGeoLayer(index, mapData);
                 document.getElementById("opennewproject").style.display = "none";
-                App.sidebar.hide();
+                App.busyWorkingIndicator(false)
+
             })
             .catch(
                 err => {
                     console.log("error! cannot get from firebase!", err)
+                    App.busyWorkingIndicator(false)
                 }
             );
     },
@@ -503,24 +516,24 @@ const App = {
         const featureLabelField = mapData.Meta ? mapData.Meta.LabelProperty : "Asset"
         App.geoLayer = L.geoJson(mapData.Geo, {
             onEachFeature: (feature, layer) => {
-                let featureLabel  = feature.properties[featureLabelField]
+                let featureLabel = feature.properties[featureLabelField]
                 App.assignTaskCompletedStyle(layer, feature.properties);
                 //if (feature.geometry.type=="Polygon"){console.log("sent to back!"); layer.bringToBack()}
                 //console.log("feature type:", feature.geometry.type)
-                
-                layer.bindPopup ('<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();">' + "<br>" + featureLabel + " " + '</div')
+
+                layer.bindPopup('<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();">' + "<br>" + featureLabel + " " + '</div')
                 //layer.bindPopup (featureLabel)
                 layer.on("click", e => {
-                   // reestore previouslly selected colours
-                   if (App.selectedLayer){ App.selectedLayer.setStyle({color:'red', fillColor:'yellow'})}
-                   App.selectedFeature = feature; // expose selected feature and layer
-                   App.selectedLayer = layer;
-                   App.selectedLayer.setStyle({color:'blue',fillColor:'blue'})
-                   
-                   // App.whenGeoFeatureClicked();
-                   //let myButton = L.DomUtil.create('button');
-                   //myButton.innerHTML = "Hello"
-                   //this.bindPopup = myButton
+                    // reestore previouslly selected colours
+                    if (App.selectedLayer) { App.selectedLayer.setStyle({ color: 'red', fillColor: 'yellow' }) }
+                    App.selectedFeature = feature; // expose selected feature and layer
+                    App.selectedLayer = layer;
+                    App.selectedLayer.setStyle({ color: 'blue', fillColor: 'blue' })
+
+                    // App.whenGeoFeatureClicked();
+                    //let myButton = L.DomUtil.create('button');
+                    //myButton.innerHTML = "Hello"
+                    //this.bindPopup = myButton
                 });
                 /*
                 try {
@@ -558,11 +571,11 @@ const App = {
         App.populateRelated(mapData.Related); // need to catch when no related available
     },
 
-    movePolygonsToBack(){
-       //move polygons to back
-        App.geoLayer.eachLayer (layer=>{if (layer.feature.geometry.type=="Polygon"){layer.bringToBack()}})
+    movePolygonsToBack() {
+        //move polygons to back
+        App.geoLayer.eachLayer(layer => { if (layer.feature.geometry.type == "Polygon") { layer.bringToBack() } })
     },
-    
+
     getLocalStorageMapDataKey: () => {
         // return keys that start with maoData
         return Object.keys(localStorage).filter(item => { return new RegExp('^mapData.*').test(item) })
@@ -653,13 +666,12 @@ const RelatedData = {
     },
 
     restoreRelStateFromLocalStorage: () => {
-        if (localStorage.getItem('latestRelDataBackup')!== null) {
-        App.State.relatedData = JSON.parse(localStorage.getItem('latestRelDataBackup'))
-    }
-    else {
-      App.State.relatedData = {}
-    }
-   },
+        if (localStorage.getItem('latestRelDataBackup') !== null) {
+            App.State.relatedData = JSON.parse(localStorage.getItem('latestRelDataBackup'))
+        } else {
+            App.State.relatedData = {}
+        }
+    },
 
 
     addPhoto: function() {
@@ -999,8 +1011,8 @@ function initLocationControl() {
 
 Map.on("locationfound", updateLatestLocation)
 Map.on('moveend', function(e) {
-   let bounds = Map.getBounds();
-   console.log("new bounds", bounds)
+    let bounds = Map.getBounds();
+    console.log("new bounds", bounds)
 });
 
 
