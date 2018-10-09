@@ -13,6 +13,9 @@ require('./L.Control.Locate.min');
 import { tilesDb } from './offline-tiles-module.js';
 import { User } from './User.js';
 
+
+
+
 let myMap = {
     settings: {
         symbology: {
@@ -153,6 +156,7 @@ const App = {
         }
     },
 
+    /*
     createFormItem: function(parentTag, el, type, prop, value) {
         const wrapperDiv = createWrapperDiv(parentTag);
         createLabel(wrapperDiv, el, type, prop, value);
@@ -184,6 +188,50 @@ const App = {
             x.innerHTML = prop;
             parent.appendChild(x);
         }
+    },
+
+    */
+
+    createFormItem: function(parentTag, el, type, prop, value) {
+        const wrapperDiv = createWrapperDiv(parentTag);
+        createLabel(wrapperDiv, el, type, prop, value);
+        //createInputBox(wrapperDiv, el, type, prop, value);
+        createValueLabel(wrapperDiv, el, type, prop, value);
+        //createRow(wrapperDiv, el, type, prop, value);
+
+        function createWrapperDiv() {
+            let x = document.createElement("tr");
+            // x.classList.add("");
+            parentTag.appendChild(x);
+            return x;
+        }
+
+        function createValueLabel(parent) {
+            let x = document.createElement("td");
+            //x.classList.add("col-sm-9")
+            x.innerHTML = value;
+            parent.appendChild(x);
+            if (type === "Checkbox") {
+                console.log("checkboxValue: " + value);
+                x.checked = value;
+            }
+            parent.appendChild(x);
+        }
+
+        function createLabel(parent) {
+            let x = document.createElement("td");
+            //x.classList.add("col-sm-3")
+            x.innerHTML = prop;
+            parent.appendChild(x);
+        }
+
+        function createRow(parent) {
+            let x = document.createElement("div");
+            x.innerHTML = prop + " " + value + "<br>";
+            parent.appendChild(x);
+        }
+
+
     },
 
     generateFormElements: function(props) {

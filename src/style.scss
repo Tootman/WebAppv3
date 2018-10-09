@@ -39,7 +39,14 @@
 
 */
 
+#fields-section tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
 
+
+#fields-section tr {
+    line-height: 0.2em;
+}
 
 
 
