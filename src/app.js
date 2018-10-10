@@ -13,9 +13,6 @@ require('./L.Control.Locate.min');
 import { tilesDb } from './offline-tiles-module.js';
 import { User } from './User.js';
 
-
-
-
 let myMap = {
     settings: {
         symbology: {
@@ -212,7 +209,6 @@ const App = {
             x.innerHTML = value;
             parent.appendChild(x);
             if (type === "Checkbox") {
-                console.log("checkboxValue: " + value);
                 x.checked = value;
             }
             parent.appendChild(x);
@@ -362,13 +358,16 @@ const App = {
                     );
 
                     User().initLoginForm();
+                    
+                    /*
                     const savefb = document.getElementById(
                         "upload-map-to-firebase"
                     );
+                    */
                     if (App.geoLayer === undefined || App.geoLayer === null) {
-                        savefb.style.display = "none";
+                        //savefb.style.display = "none";
                     } else {
-                        savefb.style.display = "block";
+                        //savefb.style.display = "block";
                         App.populateMapMeta();
                     }
                     document
