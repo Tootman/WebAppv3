@@ -149,7 +149,7 @@ const App = {
             const nearest = leafletKnn(App.geoLayer).nearest(L.latLng(myMap.state.latestLocation), 1) // example usage for Ham Green
             nearest[0].layer.fire('click')
         } else {
-            window.alert("Sorry - failed - You need to get a GPS location first")
+            window.alert("Sorry failed - You need to get a GPS location first")
         }
     },
 
@@ -983,6 +983,7 @@ var Map = {}
 var fbDatabase = {}
 var offlineLayerControls = {}
 const initApp = () => {
+    window.alert("ver 1.1")
     App.State.relatedData = {};
     firebase.initializeApp(fireBaseconfig);
     fbDatabase = firebase.database();

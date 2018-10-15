@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const precss = require('precss');
 const autoprefixer = require('autoprefixer');
+const cleanPlugin = require('clean-webpack-plugin')
 // const FontelloPlugin = require("fontello-webpack-plugin")
 
 //const workboxPlugin = require('workbox-webpack-plugin');
@@ -82,6 +83,7 @@ module.exports = {
         ]
     },
     plugins: [
+        // new cleanPlugin(['build']),
         new HtmlWebpackPlugin({
             //hash: true,
             template: './index.html',
