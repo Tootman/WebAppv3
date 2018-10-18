@@ -645,7 +645,7 @@ const App = {
             },
             style: feature => {
                 return {
-                    fillOpacity: 0.6,
+                    fillOpacity: 0.4,
                     color: App.State.symbology.uncompletedColor, 
                     fillColor: App.State.symbology.uncompletedFillColor,
                     //fillColor: App.State.symbology.uncompletedRadius,
@@ -772,6 +772,8 @@ const RelatedData = {
         // RelatedData.backupUpRelStateToLocalStorage();
         RelatedData.pushRelatedDataRecord(RelatedData.nodePath, key, relatedRecord)
         document.getElementById("related-data-info").innerHTML = "Submitted!";
+        App.State.symbology.beforeSelectedColor = App.State.symbology.completedColor;
+        App.State.symbology.beforeSelectedFillColor = App.State.symbology.completedFillColor;
     },
 
     backupUpRelStateToLocalStorage: () => {
