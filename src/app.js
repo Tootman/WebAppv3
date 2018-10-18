@@ -22,11 +22,11 @@ let myMap = {
                 weight: 1
             },
             pointTaskNotCompleteStyle: {
-                fillColor: "red",
+                fillColor: "yellow",
                 color: "red"
             },
             lineTaskNotCompleteStyle: {
-                fillColor: "red",
+                fillColor: "yellow",
                 color: "red",
                 weight: 7
             },
@@ -44,7 +44,8 @@ let myMap = {
         }
     },
     state: { // Hopefully this is where all data will live, after the app is refactored to be more like React
-        latestLocation: null // lat Lng
+        latestLocation: null, // lat Lng
+        completedResetDate: new Date(2018, 0, 1, 0, 0, 0, 0) // placeholder  - start of year
     },
 
     setupBaseLayer: function() {
@@ -250,7 +251,7 @@ const App = {
         readSidebarFormProperties(p);
         App.selectedLayer.setTooltipContent(p.Asset);
         App.sidebar.hide();
-        this.assignTaskCompletedStyle(this.selectedLayer, p);
+        //this.assignTaskCompletedStyle(this.selectedLayer, p);
         //Map.closePopup();
         this.selectedFeature = null;
         localStorage.setItem(
@@ -358,7 +359,7 @@ const App = {
                     );
 
                     User().initLoginForm();
-                    
+
                     /*
                     const savefb = document.getElementById(
                         "upload-map-to-firebase"
@@ -503,6 +504,17 @@ const App = {
     updateFeatureRelatedState: (featureKey, relatedData) => {
         // update a single feature's RelatedRecord State
         App.State.relatedData[featureKey] = relatedData
+        //App.setCompleted(featureKey, true)
+    },
+
+    setCompletedStyle: (featureOb, layerOb, objectID, ObjectType, isCompleted) => {
+        console.log(featureOb, objectID, ObjectType, isCompleted)
+        const featureKey = objectID + ObjectType // strings
+
+        if (App.State.relatedData[featureKey]) {
+            console.log("related for " + featureKey + "exists!")
+            layerOb.setStyle({ color: 'green' })
+        }
     },
 
     updateSidebarRelatedFromState: (featureKey) => {
@@ -561,18 +573,30 @@ const App = {
         App.mapHash = key;
         myMap.myLayerGroup.clearLayers(App.geoLayer);
         const featureLabelField = mapData.Meta ? mapData.Meta.LabelProperty : "Asset"
+        App.populateRelated(mapData.Related); // need to catch when no related available
         App.geoLayer = L.geoJson(mapData.Geo, {
             onEachFeature: (feature, layer) => {
                 let featureLabel = feature.properties[featureLabelField]
-                App.assignTaskCompletedStyle(layer, feature.properties);
+                //App.assignTaskCompletedStyle(layer, feature.properties);
+                App.setCompletedStyle(feature, layer, feature.properties['OBJECTID'], feature.geometry.type, true)
                 //if (feature.geometry.type=="Polygon"){console.log("sent to back!"); layer.bringToBack()}
                 //console.log("feature type:", feature.geometry.type)
 
                 layer.bindPopup('<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();">' + "<br>" + featureLabel + " " + '</div')
                 //layer.bindPopup (featureLabel)
                 layer.on("click", e => {
-                    // reestore previouslly selected colours
-                    if (App.selectedLayer) { App.selectedLayer.setStyle({ color: 'red', fillColor: 'yellow' }) }
+                    // restore previouslly selected colours
+                    //console.log("layer:", layer, "selectedLayer: ", App.selectedLayer, "same:", (layer !== App.selectedLayer))
+                    if (App.selectedLayer !== layer) {
+                        console.log("selected Layer NOT same as Layer")
+                         if (App.selectedLayer) { App.unsetSelectedStyle() }
+                        App.State.symbology.beforeSelectedColor = layer.options.color
+                        App.State.symbology.beforeSelectedFillColor = layer.options.fillColor
+
+                        // now reset the style of the old layer
+                       
+                    } else { console.log("selected Layer IS same as Layer") }
+
                     App.selectedFeature = feature; // expose selected feature and layer
                     App.selectedLayer = layer;
                     App.selectedLayer.setStyle({ color: 'blue', fillColor: 'blue' })
@@ -615,7 +639,18 @@ const App = {
         Map.fitBounds(App.geoLayer.getBounds());
         App.movePolygonsToBack();
         App.saveMapToLocalStorage(key, mapData)
-        App.populateRelated(mapData.Related); // need to catch when no related available
+
+    },
+
+    unsetSelectedStyle: () => {
+        console.log("unselected", App.selectedLayer)  
+        App.selectedLayer.setStyle({
+          
+            //color: App.State.symbology.beforeSelectedColor,
+            color: App.State.symbology.beforeSelectedColor,
+            fillColor: App.State.symbology.beforeSelectedFillColor
+            //fillColor: App.State.symbology.beforeSelectedFillColor
+        })
     },
 
     movePolygonsToBack() {
@@ -700,10 +735,11 @@ const RelatedData = {
         App.State.relDataSyncStatus[key] = false // while push promise is unresolved
         App.updateRelDataSyncMsg(key)
         App.updateFeatureRelatedState(key, relatedRecord)
+
         App.updateSidebarRelatedFromState(key)
-        RelatedData.backupUpRelStateToLocalStorage()
+        //RelatedData.backupUpRelStateToLocalStorage()
         RelatedData.saveRelDataRecordToLocalStorage(App.mapHash, key, relatedRecord)
-        RelatedData.backupUpRelStateToLocalStorage();
+        // RelatedData.backupUpRelStateToLocalStorage();
         RelatedData.pushRelatedDataRecord(RelatedData.nodePath, key, relatedRecord)
         document.getElementById("related-data-info").innerHTML = "Submitted!";
     },
@@ -866,6 +902,7 @@ function initLogoWatermark() {
     L.control.watermark({ position: "bottomright" }).addTo(Map);
 }
 
+/*
 function initDebugControl() {
     let debugControl_div;
     Map.on("locationfound", onLocationFound);
@@ -907,6 +944,8 @@ function initDebugControl() {
         })
         .addTo(Map);
 }
+
+*/
 
 // --------------------------------- Offline Basemap Caching ------
 const setupOfflineBaseLayerControls = () => {
@@ -983,8 +1022,12 @@ var Map = {}
 var fbDatabase = {}
 var offlineLayerControls = {}
 const initApp = () => {
-    window.alert("ver 1.1")
     App.State.relatedData = {};
+    App.State.symbology = {}
+    App.State.symbology.originalColor = "red"
+    App.State.symbology.originalfillColor = "red"
+    App.State.symbology.beforeSelectedColor = {}
+    App.State.symbology.beforeSelectedFillColor = {}
     firebase.initializeApp(fireBaseconfig);
     fbDatabase = firebase.database();
 
@@ -1002,8 +1045,9 @@ const initApp = () => {
     offlineLayerControls = setupOfflineBaseLayerControls()
     offlineLayerControls.map(layer => { layer.addTo(Map) })
     document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.display = "none" });
-    RelatedData.restoreRelStateFromLocalStorage()
+    //RelatedData.restoreRelStateFromLocalStorage()
     App.loadMapDataFromLocalStorage()
+    console.log("v0.9.1");
 
     // ----- offline service worker -----------
     if ('serviceWorker' in navigator) {
@@ -1019,7 +1063,6 @@ const initApp = () => {
 }
 
 initApp();
-
 
 //  ------------------------  leaflet controls -------------
 
@@ -1058,6 +1101,24 @@ function initLocationControl() {
 
 
 Map.on("locationfound", updateLatestLocation)
+
+Map.on("click", e => {
+    console.log("map clicked!")
+    /*
+    App.selectedLayer.setStyle({
+        //color: App.State.symbology.beforeSelectedColor,
+        //color: 'red',
+        //fillColor: App.State.symbology.beforeSelectedFillColor
+        //fillColor: 'red'
+    })
+    */
+    App.unsetSelectedStyle()
+    App.selectedLayer = null
+    App.selectedFeature = null
+
+})
+
+
 Map.on('moveend', function(e) {
     let bounds = Map.getBounds();
     console.log("new bounds", bounds)
@@ -1070,7 +1131,10 @@ function updateLatestLocation(e) {
     myMap.state.latestLocation = e.latlng
 }
 
+/*
 Map.on("popupclose", function(e) {
     App.sidebar.hide();
     App.selectedFeature = null;
+    console.log("popupClosed!")
 });
+*/
