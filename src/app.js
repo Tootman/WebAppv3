@@ -108,9 +108,18 @@ let myMap = {
 const App = {
     State: {
         relatedData: {}, // init va3l
+
         relDataSyncStatus: {}, // objects holds relatedData sync status flag for each feature, TRUE if synced , False  
         surveyed: {}, // true when inspected ie completed , false when not-yet-instected  
-        completedResetDate: new Date(2018, 9, 1, 0, 0, 0, 0) // placeholder  - start of year
+        completedResetDate: new Date(2018, 9, 1, 0, 0, 0, 0),
+        symbology: {
+            uncompletedColor : "red",
+            uncompletedfillColor : "red",
+            uncompletedRadius : 8,
+            completedColor: 'grey',
+            completedFillColor: 'grey',
+            completedRadius: 2 // placeholder  - start of year
+        }
     },
 
     updateRelDataSyncMsg: (featureID) => {
@@ -453,6 +462,8 @@ const App = {
     },
 
     populateRelated: related => {
+        if ((related == null) || related == undefined) { return }
+
         const relDataObject = {}; // to be replaced with State etc
         const relDataSyncObject = {} // just to make sure it's initially empty
         App.State.relDataSyncStatus = {} // make sure start with empty obj
@@ -512,15 +523,21 @@ const App = {
         console.log(featureOb, objectID, ObjectType, isCompleted)
         const featureKey = objectID + ObjectType // strings
 
-        if (App.State.relatedData[featureKey]) {
-            const relDataDate = new Date(Date.parse(App.State.relatedData[featureKey].timestamp))
+        if (App.State.relatedData[featureKey] !== undefined ) {
+            var relDataDate = new Date(Date.parse(App.State.relatedData[featureKey].timestamp))
+            console.log("relDataDate: ", relDataDate)
             const refDate = App.State.completedResetDate.getTime()
+            var relDate = relDataDate.getTime()
             console.log("related for " + featureKey + "exists!")
-            if (relDataDate.getTime() > refDate) {
+            if (relDataDate > App.State.completedResetDate) {
                 layerOb.setStyle({
-                    color: 'green',
-                    fillColor: 'green'
+                    color: App.State.symbology.completedColor, // why not working??
+                    fillColor: App.State.symbology.completedFillColor,
+                    weight: 1,
+                    radius: 1
+                    //radius: App.State.symbology.completedRadius
                 })
+                // if (ObjectType == 'Point'){layerOb.setStyle({radius: App.State.symbology.completedRadius})}
             }
         }
     },
@@ -629,13 +646,14 @@ const App = {
             style: feature => {
                 return {
                     fillOpacity: 0.6,
-                    color:'red',
-                    fillColor:'red',
+                    color: App.State.symbology.uncompletedColor, 
+                    fillColor: App.State.symbology.uncompletedFillColor,
+                    //fillColor: App.State.symbology.uncompletedRadius,
                 };
             },
             pointToLayer: (feature, latlng) => {
                 return L.circleMarker(latlng, {
-                    radius: 8,
+                    radius: App.State.symbology.uncompletedRadius,
                     stroke: true,
                     weight: 3,
                     opacity: 1,
@@ -653,6 +671,7 @@ const App = {
     },
 
     unsetSelectedStyle: () => {
+
         console.log("unselected", App.selectedLayer)
         App.selectedLayer.setStyle({
 
@@ -661,6 +680,7 @@ const App = {
             fillColor: App.State.symbology.beforeSelectedFillColor
             //fillColor: App.State.symbology.beforeSelectedFillColor
         })
+
     },
 
     movePolygonsToBack() {
@@ -1033,9 +1053,8 @@ var fbDatabase = {}
 var offlineLayerControls = {}
 const initApp = () => {
     App.State.relatedData = {};
-    App.State.symbology = {}
-    App.State.symbology.originalColor = "red"
-    App.State.symbology.originalfillColor = "red"
+
+
     App.State.symbology.beforeSelectedColor = {}
     App.State.symbology.beforeSelectedFillColor = {}
     firebase.initializeApp(fireBaseconfig);
