@@ -44,8 +44,8 @@ let myMap = {
         }
     },
     state: { // Hopefully this is where all data will live, after the app is refactored to be more like React
-        latestLocation: null, // lat Lng
-        completedResetDate: new Date(2018, 0, 1, 0, 0, 0, 0) // placeholder  - start of year
+        latestLocation: null // lat Lng
+
     },
 
     setupBaseLayer: function() {
@@ -109,7 +109,8 @@ const App = {
     State: {
         relatedData: {}, // init va3l
         relDataSyncStatus: {}, // objects holds relatedData sync status flag for each feature, TRUE if synced , False  
-        surveyed: {} // true when inspected ie completed , false when not-yet-instected  
+        surveyed: {}, // true when inspected ie completed , false when not-yet-instected  
+        completedResetDate: new Date(2018, 9, 1, 0, 0, 0, 0) // placeholder  - start of year
     },
 
     updateRelDataSyncMsg: (featureID) => {
@@ -512,8 +513,15 @@ const App = {
         const featureKey = objectID + ObjectType // strings
 
         if (App.State.relatedData[featureKey]) {
+            const relDataDate = new Date(Date.parse(App.State.relatedData[featureKey].timestamp))
+            const refDate = App.State.completedResetDate.getTime()
             console.log("related for " + featureKey + "exists!")
-            layerOb.setStyle({ color: 'green' })
+            if (relDataDate.getTime() > refDate) {
+                layerOb.setStyle({
+                    color: 'green',
+                    fillColor: 'green'
+                })
+            }
         }
     },
 
@@ -589,12 +597,12 @@ const App = {
                     //console.log("layer:", layer, "selectedLayer: ", App.selectedLayer, "same:", (layer !== App.selectedLayer))
                     if (App.selectedLayer !== layer) {
                         console.log("selected Layer NOT same as Layer")
-                         if (App.selectedLayer) { App.unsetSelectedStyle() }
+                        if (App.selectedLayer) { App.unsetSelectedStyle() }
                         App.State.symbology.beforeSelectedColor = layer.options.color
                         App.State.symbology.beforeSelectedFillColor = layer.options.fillColor
 
                         // now reset the style of the old layer
-                       
+
                     } else { console.log("selected Layer IS same as Layer") }
 
                     App.selectedFeature = feature; // expose selected feature and layer
@@ -620,7 +628,9 @@ const App = {
             },
             style: feature => {
                 return {
-                    fillOpacity: 0.6
+                    fillOpacity: 0.6,
+                    color:'red',
+                    fillColor:'red',
                 };
             },
             pointToLayer: (feature, latlng) => {
@@ -643,9 +653,9 @@ const App = {
     },
 
     unsetSelectedStyle: () => {
-        console.log("unselected", App.selectedLayer)  
+        console.log("unselected", App.selectedLayer)
         App.selectedLayer.setStyle({
-          
+
             //color: App.State.symbology.beforeSelectedColor,
             color: App.State.symbology.beforeSelectedColor,
             fillColor: App.State.symbology.beforeSelectedFillColor
