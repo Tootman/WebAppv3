@@ -113,15 +113,16 @@ const App = {
         surveyed: {}, // true when inspected ie completed , false when not-yet-instected  
         completedResetDate: new Date(2018, 9, 1, 0, 0, 0, 0),
         symbology: {
-            uncompletedColor : "red",
-            uncompletedfillColor : "red",
-            uncompletedLineWeight : 8,
-            completedLineWeight : 4,
-            uncompletedRadius : 8,
+            uncompletedColor: "red",
+            uncompletedfillColor: "red",
+            uncompletedLineWeight: 8,
+            completedLineWeight: 4,
+            uncompletedRadius: 8,
             completedColor: 'grey',
             completedFillColor: 'grey',
             completedRadius: 2 // placeholder  - start of year
-        }
+        },
+        visableFeatures: []
     },
 
     updateRelDataSyncMsg: (featureID) => {
@@ -525,7 +526,7 @@ const App = {
         console.log(featureOb, objectID, ObjectType, isCompleted)
         const featureKey = objectID + ObjectType // strings
 
-        if (App.State.relatedData[featureKey] !== undefined ) {
+        if (App.State.relatedData[featureKey] !== undefined) {
             var relDataDate = new Date(Date.parse(App.State.relatedData[featureKey].timestamp))
             console.log("relDataDate: ", relDataDate)
             const refDate = App.State.completedResetDate.getTime()
@@ -610,6 +611,7 @@ const App = {
                 //console.log("feature type:", feature.geometry.type)
 
                 layer.bindPopup('<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();">' + "<br>" + featureLabel + " " + '</div')
+                //layer.bindTooltip ("hello!")
                 //layer.bindPopup (featureLabel)
                 layer.on("click", e => {
                     // restore previouslly selected colours
@@ -649,7 +651,7 @@ const App = {
             style: feature => {
                 return {
                     fillOpacity: 0.4,
-                    color: App.State.symbology.uncompletedColor, 
+                    color: App.State.symbology.uncompletedColor,
                     fillColor: App.State.symbology.uncompletedFillColor,
                     weight: App.State.symbology.uncompletedLineWeight
                     //fillColor: App.State.symbology.uncompletedRadius,
@@ -703,6 +705,41 @@ const App = {
         const mapData = JSON.parse(localStorage.getItem(storageKey))
         const mapKey = storageKey[0].split("mapData.")[1]
         App.setupGeoLayer(mapKey, mapData)
+    },
+
+    featureLabels: () => {
+        const bounds = Map.getBounds();
+        if (App.State.visableFeatures !== null) {
+            App.State.visableFeatures.map(layer => {
+                layer.unbindTooltip()
+            })
+            App.State.visableFeatures = []
+        }
+        if (Map.getZoom() < 21) { return }
+        const redrawToolTips = () => {
+            App.geoLayer.eachLayer(
+                function(layer) {
+                    //console.log (layer)
+                    //layer.unbindTooltip()
+                    if (layer.getLatLng) {
+                        //console.log ("latlng:",layer.getLatlng)
+                        if (bounds.contains(layer.getLatLng())) {
+                            //console.log(layer)
+                            App.State.visableFeatures.push(layer)
+                        }
+                    } else if (layer.getBounds) {
+                        if (bounds.intersects(layer.getBounds()) || (bounds.contains(layer.getBounds()))) {
+                            //console.log(layer)
+                            App.State.visableFeatures.push(layer)
+                        }
+                    }
+                })
+        }
+        redrawToolTips();
+        // console.log("new bounds", bounds)
+        App.State.visableFeatures.map(layer => {
+            layer.bindTooltip(layer.feature.properties.Asset, { permanent: true, interactive: true })
+        })
     }
 };
 
@@ -1058,8 +1095,7 @@ var fbDatabase = {}
 var offlineLayerControls = {}
 const initApp = () => {
     App.State.relatedData = {};
-
-
+    App.State.visableFeatures = []
     App.State.symbology.beforeSelectedColor = {}
     App.State.symbology.beforeSelectedFillColor = {}
     firebase.initializeApp(fireBaseconfig);
@@ -1082,7 +1118,7 @@ const initApp = () => {
     //RelatedData.restoreRelStateFromLocalStorage()
     App.loadMapDataFromLocalStorage()
     console.log("v 0.9.05");
-    window.alert ("v 0.9.05")
+    window.alert("v 0.9.05")
 
     // ----- offline service worker -----------
     if ('serviceWorker' in navigator) {
@@ -1136,6 +1172,7 @@ function initLocationControl() {
 
 
 Map.on("locationfound", updateLatestLocation)
+//Map.on("viewreset", () => console.log("VIEW RESET"));
 
 Map.on("click", e => {
     console.log("map clicked!")
@@ -1154,9 +1191,23 @@ Map.on("click", e => {
 })
 
 
+
+
 Map.on('moveend', function(e) {
-    let bounds = Map.getBounds();
-    console.log("new bounds", bounds)
+    App.featureLabels()
+});
+
+Map.on('zoomend', function(e) {
+    /*
+    if (Map.getZoom <21){
+    	if (App.State.visableFeatures !== null){
+    		App.State.visableFeatures.map (layer =>{
+    			layer.unbindTooltip ()
+    		})
+    	}
+    }
+    App.featureLabels()
+*/
 });
 
 
