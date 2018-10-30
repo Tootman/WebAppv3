@@ -28,7 +28,7 @@ let myMap = {
             lineTaskNotCompleteStyle: {
                 fillColor: "yellow",
                 color: "red",
-                weight: 7
+                weight: 12
             },
             polyTaskNotCompleteStyle: {
                 fillColor: "yellow",
@@ -115,6 +115,8 @@ const App = {
         symbology: {
             uncompletedColor : "red",
             uncompletedfillColor : "red",
+            uncompletedLineWeight : 8,
+            completedLineWeight : 4,
             uncompletedRadius : 8,
             completedColor: 'grey',
             completedFillColor: 'grey',
@@ -533,7 +535,7 @@ const App = {
                 layerOb.setStyle({
                     color: App.State.symbology.completedColor, // why not working??
                     fillColor: App.State.symbology.completedFillColor,
-                    weight: 1,
+                    weight: App.State.symbology.completedLineWeight,
                     radius: 1
                     //radius: App.State.symbology.completedRadius
                 })
@@ -617,6 +619,7 @@ const App = {
                         if (App.selectedLayer) { App.unsetSelectedStyle() }
                         App.State.symbology.beforeSelectedColor = layer.options.color
                         App.State.symbology.beforeSelectedFillColor = layer.options.fillColor
+                        App.State.symbology.beforeSelectedLineWeight = layer.options.weight
 
                         // now reset the style of the old layer
 
@@ -624,7 +627,7 @@ const App = {
 
                     App.selectedFeature = feature; // expose selected feature and layer
                     App.selectedLayer = layer;
-                    App.selectedLayer.setStyle({ color: 'blue', fillColor: 'blue' })
+                    App.selectedLayer.setStyle({ color: 'blue', fillColor: 'blue', weight: 2 })
 
                     // App.whenGeoFeatureClicked();
                     //let myButton = L.DomUtil.create('button');
@@ -648,6 +651,7 @@ const App = {
                     fillOpacity: 0.4,
                     color: App.State.symbology.uncompletedColor, 
                     fillColor: App.State.symbology.uncompletedFillColor,
+                    weight: App.State.symbology.uncompletedLineWeight
                     //fillColor: App.State.symbology.uncompletedRadius,
                 };
             },
@@ -657,7 +661,6 @@ const App = {
                     stroke: true,
                     weight: 3,
                     opacity: 1,
-                    weight: 4,
                     fillOpacity: 1
                 });
             },
@@ -677,10 +680,10 @@ const App = {
 
             //color: App.State.symbology.beforeSelectedColor,
             color: App.State.symbology.beforeSelectedColor,
-            fillColor: App.State.symbology.beforeSelectedFillColor
+            fillColor: App.State.symbology.beforeSelectedFillColor,
+            weight: App.State.symbology.beforeSelectedLineWeight
             //fillColor: App.State.symbology.beforeSelectedFillColor
         })
-
     },
 
     movePolygonsToBack() {
@@ -1078,7 +1081,8 @@ const initApp = () => {
     document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.display = "none" });
     //RelatedData.restoreRelStateFromLocalStorage()
     App.loadMapDataFromLocalStorage()
-    console.log("v0.9.1");
+    console.log("v 0.9.05");
+    window.alert ("v 0.9.05")
 
     // ----- offline service worker -----------
     if ('serviceWorker' in navigator) {
