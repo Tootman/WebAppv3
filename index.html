@@ -81,16 +81,16 @@
             <div id="latest-related"></div>
         </p>
         <p>Condition:
-            <input type="text" id="related-data-condition" placeholder="enter one of: 1,2,3,4,5,6, Not found" />
+            <select class="form-control" id="related-data-condition" placeholder="enter one of: 1,2,3,4,5,6, Not found" />
         </p>
         <p>Photo:
             <input type="text" id="related-data-photo" placeholder="{photo} - use the take photo button" />
         </p>
         <label for="photo-capture" id="take-photo-btn" class="btn btn-primary">take photo</label>
-        <input id="photo-capture" onChange="RelatedData.addPhoto()" name="photo-capture" style="visibility:hidden;" capture="camera" accept="image/*" type="file">
-        <p>Comments:
-            <input type="text" id="related-data-comments" placeholder="Any comments here" />
-        </p>
+        <input id="photo-capture" onChange="RelatedData.addPhoto()" name="photo-capture" style="visibility:hidden;" capture="camera" accept="image/*" type="file"/>
+        
+        <textarea class="form-control" rows="3" id="related-data-comments" placeholder="put any comments/notes here"></textarea>
+        
         <button class="btn btn-primary" onclick="RelatedData.submit()"> Submit related Data</button>
         <div id="related-data-info">
         </div>

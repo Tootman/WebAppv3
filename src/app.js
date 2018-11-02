@@ -124,13 +124,14 @@ const App = {
         },
         visableFeatures: [],
         formFields: {
-            condition:{
-                "c1":"(1 - hazard)",
+            condition: {
+                "null": "",
+                "c1": "(1 - hazard)",
                 "c2": "2 - (unfit for purpose)",
                 "c3": "3",
-                "c4" : "4",
-                "c5" : "5",
-                "c6" : "6",
+                "c4": "4",
+                "c5": "5",
+                "c6": "6",
                 "rm": "removed / not found",
                 "nv": "not visable",
                 "pv": "partially visable"
@@ -138,13 +139,15 @@ const App = {
         }
     },
 
-    populateConditionInputField: ()=>{
-
+    populateConditionInputField: () => {
+        const conditionSelect = document.getElementById("related-data-condition")
+        Object.keys(App.State.formFields.condition).forEach(function(key) {
+            const option = document.createElement("option")
+            option.value = key
+            option.text = App.State.formFields.condition[key]
+            conditionSelect.add(option)
+        })
     },
-
-
-
-
 
     updateRelDataSyncMsg: (featureID) => {
         const relSyncDiv = document.getElementById("rel-data-sync-message")
@@ -152,7 +155,7 @@ const App = {
         let msg = ""
         const s = App.State.relDataSyncStatus[featureID]
         if (s == null) {
-            msg = "not related data"
+            msg = "no related data"
         } else if (s == true) { msg = "successful sync" } else if (s == false) {
             msg = "Data not yet synced - please connect to network before closing this App"
         }
@@ -176,6 +179,7 @@ const App = {
         }
         App.updateRelDataSyncMsg(fId)
         App.updateSidebarRelatedFromState(fId)
+        App.populateConditionInputField()
         App.sidebar.show();
     },
 
@@ -744,14 +748,14 @@ const App = {
                     //layer.unbindTooltip()
                     let relID = ""
                     let hasRelData
-                    try { relID = layer.feature.properties.OBJECTID + layer.feature.geometry.type
-                    	hasRelData = App.State.relatedData[relID]
-                    	//console.log (hasRelData)
-                     } 
-                    catch (err) { 
-                    	relID = undefined
-                    	hasRelData = false 
-                    	//console.log("undefined!", )
+                    try {
+                        relID = layer.feature.properties.OBJECTID + layer.feature.geometry.type
+                        hasRelData = App.State.relatedData[relID]
+                        //console.log (hasRelData)
+                    } catch (err) {
+                        relID = undefined
+                        hasRelData = false
+                        //console.log("undefined!", )
                     }
                     //console.log(hasRelData)
 
@@ -1234,11 +1238,11 @@ Map.on('moveend', function(e) {
 Map.on('zoomend', function(e) {
     /*
     if (Map.getZoom <21){
-    	if (App.State.visableFeatures !== null){
-    		App.State.visableFeatures.map (layer =>{
-    			layer.unbindTooltip ()
-    		})
-    	}
+        if (App.State.visableFeatures !== null){
+            App.State.visableFeatures.map (layer =>{
+                layer.unbindTooltip ()
+            })
+        }
     }
     App.featureLabels()
 */
