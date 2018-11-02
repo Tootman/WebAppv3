@@ -89,7 +89,12 @@ h1.sidebar-heading {
     font-size: 1.2em;
 }
 
+.leaflet-tooltip.leaflet-clickable {
+    padding-top:1px;
+    padding-bottom:1px;
+    border-radius:8px;
 
+}
 
 button.btn.btn-primary.open-project-button {
     margin: 0.5em;

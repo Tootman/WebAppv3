@@ -122,8 +122,29 @@ const App = {
             completedFillColor: 'grey',
             completedRadius: 2 // placeholder  - start of year
         },
-        visableFeatures: []
+        visableFeatures: [],
+        formFields: {
+            condition:{
+                "c1":"(1 - hazard)",
+                "c2": "2 - (unfit for purpose)",
+                "c3": "3",
+                "c4" : "4",
+                "c5" : "5",
+                "c6" : "6",
+                "rm": "removed / not found",
+                "nv": "not visable",
+                "pv": "partially visable"
+            }
+        }
     },
+
+    populateConditionInputField: ()=>{
+
+    },
+
+
+
+
 
     updateRelDataSyncMsg: (featureID) => {
         const relSyncDiv = document.getElementById("rel-data-sync-message")
@@ -715,19 +736,32 @@ const App = {
             })
             App.State.visableFeatures = []
         }
-        if (Map.getZoom() < 21) { return }
+        if (Map.getZoom() < 20) { return }
         const redrawToolTips = () => {
             App.geoLayer.eachLayer(
                 function(layer) {
                     //console.log (layer)
                     //layer.unbindTooltip()
-                    if (layer.getLatLng) {
+                    let relID = ""
+                    let hasRelData
+                    try { relID = layer.feature.properties.OBJECTID + layer.feature.geometry.type
+                    	hasRelData = App.State.relatedData[relID]
+                    	//console.log (hasRelData)
+                     } 
+                    catch (err) { 
+                    	relID = undefined
+                    	hasRelData = false 
+                    	//console.log("undefined!", )
+                    }
+                    //console.log(hasRelData)
+
+                    if (layer.getLatLng && !hasRelData) {
                         //console.log ("latlng:",layer.getLatlng)
                         if (bounds.contains(layer.getLatLng())) {
                             //console.log(layer)
                             App.State.visableFeatures.push(layer)
                         }
-                    } else if (layer.getBounds) {
+                    } else if (layer.getBounds && !hasRelData) {
                         if (bounds.intersects(layer.getBounds()) || (bounds.contains(layer.getBounds()))) {
                             //console.log(layer)
                             App.State.visableFeatures.push(layer)
@@ -787,7 +821,7 @@ const RelatedData = {
         console.log("nodePath: " + RelatedData.nodePath);
         const relatedRecord = {};
         relatedRecord.timestamp = Date();
-        relatedRecord.user = firebase.auth().currentUser.uid;
+        relatedRecord.user = firebase.auth().currentUser.displayName;
         relatedRecord.condition = document.getElementById(
             "related-data-condition"
         ).value;
