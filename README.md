@@ -24,7 +24,7 @@ version: 0.9.06 - beta
  - (Also suitable for small laptop or a tablet if tethered to 4G device, or has 4G dongle etc)
  - Recommend using 'mid-range' or 'high-end' smartphone since the App is CPU intensive
 
- ### feature wish-list
+### feature wish-list
    - 'help' - in-app guidance / help on App usage and troubleshooting   
   - Show map name on map  
   - impliment PWA home-screen manifest
@@ -34,7 +34,7 @@ version: 0.9.06 - beta
    - drop-down list of bookmarks (or named map extents or bounds, expecially needed for large maps maps with multiple sites )
    - Replace LocalStorage objects with localDatabase (eg Indexeddb) - to improve performace of data storage/retrieval operations
   
- ### Bugs / issues
+### Bugs / issues
  - Offline Caching of tiles sometimes crashes Browser  in Android Chrome - how to debug in Android or simulate
   - Ensure all locally stored RelatedData is uploaded before new map is loaded
    - Flyout panel does not aloways auto close (especially after opening large dataset)
@@ -75,14 +75,14 @@ version: 0.9.06 - beta
         delete_local_RelatedDataRecord
 
 
-###Behaviour:
+### Behaviour:
  - Can only open a new map from the Cloud
  - Automatically Stores a copy of the current map locally 
  - Opening the App loads in the locally stored map (if it exists)
  - The map data is immutable.
   - Related Data can be added (it cannot be removed or edited)
 
- ### Technology stack
+### Technology stack
  - Leaflet Mapping API
  - WebPack producing minified es5 js bundle with some of the CSS embedded,
  - Firebase database for Cloud storage
