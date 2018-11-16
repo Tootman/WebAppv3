@@ -64,15 +64,34 @@ version: 0.9.06 - beta
 ### Functional specification (pseudocode)
     onSubmitRelatedData:
         copy_relatedDataRecord_to_localStorage
-        attempt_to_send_RelatedDataRecord_to_cloud
-        set_corresponding_feature_symbology_to_completed
+        if user is logged in then attempt to send RelatedDataRecord to cloud
+            then set corresponding feature symbology to completed
         
     onLoadApp:
         display_mapData_held_in_local_storage_ifExists
-        try_to_send_RelatedDataRecords_in_local_storage_to_cloud
+        try to send RelatedDataRecords in local storage to cloud
     
-    on_RelatedDataRecord_Sucessfully_Sent_to_cloud:
+    onRelatedDataRecord_Sucessfully_Sent_to_cloud:
         delete_local_RelatedDataRecord
+
+    on_click_a_different_feature:
+        set previous_feature_style back to original_style
+        set current feature style to highlightStyle
+        display_popup
+
+    on_setup_features_layer:
+        clear layer
+        populaterelatedData
+        forEachFeature:
+            set style completed or not completed depending on corresponding relatedDataRecord
+
+      on_populate_relatedData:
+            forEach relatedDataRecord
+                set relatedDataItem with keyname OJBECTID to most recent record
+    
+      on_feature_popup_click:
+            Make a reference to the current feature available to the whole app
+            open the Flyout window reading in data for the current feature
 
 
 ### Behaviour:
@@ -83,10 +102,12 @@ version: 0.9.06 - beta
   - Related Data can be added (it cannot be removed or edited)
 
 ### Technology stack
- - Leaflet Mapping API
- - WebPack producing minified es5 js bundle with some of the CSS embedded,
- - Firebase database for Cloud storage
+ - Leaflet  - Mapping library API
+ - fontello - small set of svg icons)
+ - leafletKnn - measureing spatial distances between features or coordinates  
+ - WebPack -  producing minified es5 js bundle with some of the CSS embedded,
+ - Firebase database for Cloud storage of all data
  - LocalStorage backup when offline ServiceWorker (using BoxWorker) for PWA capability, 
- - LocalForage for Offline Background map Tiles
+ - LocalForage + tilesdb for Offline Background slippy map Tiles
  
 
