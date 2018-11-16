@@ -265,8 +265,6 @@ const App = {
             x.innerHTML = prop + " " + value + "<br>";
             parent.appendChild(x);
         }
-
-
     },
 
     generateFormElements: function(props) {
@@ -1155,8 +1153,7 @@ const initApp = () => {
     document.querySelectorAll(".leaflet-control-offline").forEach(el => { el.style.display = "none" });
     //RelatedData.restoreRelStateFromLocalStorage()
     App.loadMapDataFromLocalStorage()
-    console.log("v 0.9.05");
-    window.alert("v 0.9.05")
+    window.alert("ORCL WebApp version 0.9.06")
 
     // ----- offline service worker -----------
     if ('serviceWorker' in navigator) {
@@ -1213,7 +1210,7 @@ Map.on("locationfound", updateLatestLocation)
 //Map.on("viewreset", () => console.log("VIEW RESET"));
 
 Map.on("click", e => {
-    console.log("map clicked!")
+    console.log("map clicked!!")
     /*
     App.selectedLayer.setStyle({
         //color: App.State.symbology.beforeSelectedColor,
@@ -1229,13 +1226,34 @@ Map.on("click", e => {
 })
 
 
+Map.on("moveend", function() {
+     console.log("moveend!")
+    //App.featureLabels()
 
-
-Map.on('moveend', function(e) {
-    App.featureLabels()
 });
 
-Map.on('zoomend', function(e) {
+Map.on("movestart", function() {
+     console.log("movestart!")
+    //App.featureLabels()
+});
+
+
+Map.on("viewreset", function() {
+     console.log("viewreset")
+});
+
+Map.on("zoomstart", function(){
+    console.log("zoomstart!")
+})
+
+
+Map.on("viewprereset", function(){
+    console.log("viewPREreset!")
+})
+
+
+Map.on("zoomend", function() {
+    console.log('zoomend!')
     /*
     if (Map.getZoom <21){
         if (App.State.visableFeatures !== null){
