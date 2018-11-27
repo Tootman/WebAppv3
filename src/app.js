@@ -497,6 +497,7 @@ export const App = {
   clearLocalStorageLatestRelDataBackup: () => {
     localStorage.removeItem("latestRelDataBackup");
   },
+
   populateRelated: related => {
     if (related == null || related == undefined) {
       return;
