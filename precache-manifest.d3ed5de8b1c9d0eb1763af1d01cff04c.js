@@ -1,15 +1,11 @@
 self.__precacheManifest = [
   {
-    "revision": "2057be1651904955c836dffbaeeecd92",
-    "url": "_/font/fontello.woff"
+    "revision": "16a68c6d3d711c1ea13e908d0ac3d54c",
+    "url": "_/font/fontello.woff2"
   },
   {
-    "revision": "e9e26e329b4c648802b0d6c1a0b238e0",
-    "url": "index.html"
-  },
-  {
-    "revision": "2273e3d8ad9264b7daa5bdbf8e6b47f8",
-    "url": "images/marker-icon.png"
+    "revision": "f55808efd9a0f31c780512ae19bd7a87",
+    "url": "fontello/font/fontello.ttf"
   },
   {
     "revision": "a6137456ed160d7606981aa57c559898",
@@ -20,16 +16,16 @@ self.__precacheManifest = [
     "url": "images/layers-2x.png"
   },
   {
-    "revision": "f55808efd9a0f31c780512ae19bd7a87",
-    "url": "fontello/font/fontello.ttf"
+    "revision": "2273e3d8ad9264b7daa5bdbf8e6b47f8",
+    "url": "images/marker-icon.png"
   },
   {
-    "revision": "9fa33eac075a5cde5e5b",
+    "revision": "7eca896a79f1490651cb",
     "url": "bundle.js"
   },
   {
-    "revision": "16a68c6d3d711c1ea13e908d0ac3d54c",
-    "url": "_/font/fontello.woff2"
+    "revision": "2057be1651904955c836dffbaeeecd92",
+    "url": "_/font/fontello.woff"
   },
   {
     "revision": "f55808efd9a0f31c780512ae19bd7a87",
