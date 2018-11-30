@@ -1326,7 +1326,7 @@ Map.on("click", e => {
 
 Map.on("moveend", function() {
   console.log("moveend!");
-  //App.featureLabels()
+  App.featureLabels();
 });
 
 Map.on("movestart", function() {
