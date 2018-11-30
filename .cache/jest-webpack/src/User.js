@@ -98,7 +98,7 @@ module.exports =
 
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 exports.User = undefined;
 
@@ -109,75 +109,84 @@ var _firebase2 = _interopRequireDefault(_firebase);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var User = exports.User = function User() {
-    var email = document.getElementById("emailInput");
-    var pw = document.getElementById("passwordInput");
-    var msg = document.getElementById("Login-status-message");
-    var loginBtn = document.getElementById("login-btn");
-    var logoutBtn = document.getElementById("logout-btn");
-    var loginForm = document.getElementById("login-form");
-    var auth = _firebase2.default.auth;
+  var email = document.getElementById("emailInput");
+  var pw = document.getElementById("passwordInput");
+  var msg = document.getElementById("Login-status-message");
+  var loginBtn = document.getElementById("login-btn");
+  var logoutBtn = document.getElementById("logout-btn");
+  var loginForm = document.getElementById("login-form");
+  var auth = _firebase2.default.auth;
 
-    function signIn() {
-        auth().signInWithEmailAndPassword(email.value, pw.value).then(function (user) {
-            console.log(user, "signed in!");
-            userSignedIn();
-        }).catch(function (error) {
-            console.log("sorry couldn't sign in -  Error: " + error);
-            alert("sorry couldn't sign in -  Error: " + error);
-        });
+  function signIn() {
+    auth().signInWithEmailAndPassword(email.value, pw.value).then(function (user) {
+      console.log(user, "signed in!");
+      userSignedIn();
+    }).catch(function (error) {
+      console.log("sorry couldn't sign in -  Error: " + error);
+      alert("sorry couldn't sign in -  Error: " + error);
+    });
+  }
+
+  function signOut() {
+    _firebase2.default.auth().signOut().then(function () {
+      // Sign-out successful.
+      console.log("successfully signed out");
+      userSignedOut();
+    }, function (error) {
+      // An error happened.
+      console.log("problem signing out - error: ", error);
+    });
+  }
+
+  function userSignedIn() {
+    msg.innerHTML = "you are now signed in!";
+    pw.innerHTML = null;
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "block";
+    loginForm.style.display = "none";
+  }
+
+  function userSignedOut() {
+    msg.innerHTML = "Bye  - you have now signed out";
+    loginBtn.style.display = "block";
+    logoutBtn.style.display = "none";
+    loginForm.style.display = "block";
+  }
+
+  function testFunc() {
+    console.log("testing only!");
+    return "hello";
+  }
+
+  function testFunc2() {
+    console.log("testing only - func2!");
+  }
+
+  var myOb = {
+    myFunc: function myFunc() {
+      var hello = function hello() {
+        return "hello";
+      };
     }
+  };
 
-    function signOut() {
-        _firebase2.default.auth().signOut().then(function () {
-            // Sign-out successful.
-            console.log("successfully signed out");
-            userSignedOut();
-        }, function (error) {
-            // An error happened.
-            console.log("problem signing out - error: ", error);
-        });
+  function initLoginForm() {
+    console.log("initLoginForm");
+    if (_firebase2.default.auth().currentUser) {
+      userSignedIn();
+      console.log("user is logged in");
+    } else {
+      console.log("user is logged out");
+      userSignedOut();
     }
+  }
 
-    function userSignedIn() {
-        msg.innerHTML = "you are now signed in!";
-        pw.innerHTML = null;
-        loginBtn.style.display = "none";
-        logoutBtn.style.display = "block";
-        loginForm.style.display = "none";
-    }
-
-    function userSignedOut() {
-        msg.innerHTML = "Bye  - you have now signed out";
-        loginBtn.style.display = "block";
-        logoutBtn.style.display = "none";
-        loginForm.style.display = "block";
-    }
-
-    function testFunc() {
-        console.log("testing only!");
-    }
-
-    function testFunc2() {
-        console.log("testing only - func2!");
-    }
-
-    function initLoginForm() {
-        console.log("initLoginForm");
-        if (_firebase2.default.auth().currentUser) {
-            userSignedIn();
-            console.log("user is logged in");
-        } else {
-            console.log("user is logged out");
-            userSignedOut();
-        }
-    }
-
-    return {
-        btnLogin: signIn,
-        btnLogout: signOut,
-        btntest: testFunc,
-        initLoginForm: initLoginForm
-    };
+  return {
+    btnLogin: signIn,
+    btnLogout: signOut,
+    testFunc: testFunc,
+    initLoginForm: initLoginForm
+  };
 };
 
 /***/ }),

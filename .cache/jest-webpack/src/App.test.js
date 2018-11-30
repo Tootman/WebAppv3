@@ -99,6 +99,7 @@ module.exports =
 
 var _djs_module = __webpack_require__(/*! ./djs_module.js */ 1);
 
+//import { User } from "./User.js";
 //import { myOb } from "./app.js";
 
 // const myNameSet = ['Jimmy', 'Scott', 'scott', 'Courtney','Steve']
@@ -108,6 +109,14 @@ describe("hello from djsmod", function () {
     expect(_djs_module.djsModmyFunc.hello()).toBe("hello");
   });
 });
+
+/*
+describe("user functions", () => {
+  it("should output hello", () => {
+    expect(User.testFunc()).toBe("hello");
+  });
+});
+*/
 
 /*
 describe("hello from App", () => {

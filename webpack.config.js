@@ -82,20 +82,20 @@ module.exports = {
   },
   plugins: [
     // new cleanPlugin(['build']),
-    /*
-        new HtmlWebpackPlugin({
-            //hash: true,
-            template: './index.html',
-            minify: {
-                collapseWhitespace: true,
-                removeComments: true,
-                removeRedundantAttributes: true,
-                removeScriptTypeAttributes: true,
-                removeStyleLinkTypeAttributes: true,
-                minifyCSS: true
-            }
-        }),
-*/
+
+    new HtmlWebpackPlugin({
+      //hash: true,
+      template: "./index.html",
+      minify: {
+        collapseWhitespace: true,
+        removeComments: true,
+        removeRedundantAttributes: true,
+        removeScriptTypeAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        minifyCSS: true
+      }
+    }),
+
     // following https://developers.google.com/web/tools/workbox/modules/workbox-webpack-plugin
     new GenerateSW({
       swDest: "sw.js",
