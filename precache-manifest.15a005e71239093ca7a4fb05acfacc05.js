@@ -1,7 +1,7 @@
 self.__precacheManifest = [
   {
-    "revision": "2057be1651904955c836dffbaeeecd92",
-    "url": "_/font/fontello.woff"
+    "revision": "16a68c6d3d711c1ea13e908d0ac3d54c",
+    "url": "fontello/font/fontello.woff2"
   },
   {
     "revision": "bc8b0d1726f744f343b55016842c243b",
@@ -20,28 +20,24 @@ self.__precacheManifest = [
     "url": "images/layers-2x.png"
   },
   {
+    "revision": "2057be1651904955c836dffbaeeecd92",
+    "url": "fontello/font/fontello.woff"
+  },
+  {
     "revision": "f55808efd9a0f31c780512ae19bd7a87",
     "url": "fontello/font/fontello.ttf"
   },
   {
-    "revision": "49b3528ef2e335428c2c",
-    "url": "bundle.js"
-  },
-  {
-    "revision": "16a68c6d3d711c1ea13e908d0ac3d54c",
-    "url": "_/font/fontello.woff2"
-  },
-  {
-    "revision": "f55808efd9a0f31c780512ae19bd7a87",
-    "url": "_/font/fontello.ttf"
-  },
-  {
     "revision": "216f56d538fc9707b7db7f8238ec07ec",
-    "url": "_/font/fontello.svg"
+    "url": "fontello/font/fontello.svg"
   },
   {
     "revision": "07569e9cf0d9ca950ec3112de7d5a99d",
-    "url": "_/font/fontello.eot"
+    "url": "fontello/font/fontello.eot"
+  },
+  {
+    "revision": "9b1f34576eda7a5a5bfa",
+    "url": "bundle.js"
   },
   {
     "revision": "736821957a6920f241d6883baddba5a1",
