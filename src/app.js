@@ -15,75 +15,47 @@ import { User } from "./User.js";
 import { djsModmyFunc } from "./djs_module.js";
 
 const myMap = {
-  settings: {
-    symbology: {
-      taskCompleteStyle: {
-        fillColor: "grey",
-        color: "black",
-        weight: 1
-      },
-      pointTaskNotCompleteStyle: {
-        fillColor: "yellow",
-        color: "red"
-      },
-      lineTaskNotCompleteStyle: {
-        fillColor: "yellow",
-        color: "red",
-        weight: 12
-      },
-      polyTaskNotCompleteStyle: {
-        fillColor: "yellow",
-        color: "red",
-        weight: 1
-      }
-    },
-    mbAttr:
-      '<a href="http://openstreetmap.org">OSMap</a> ©<a href="http://mapbox.com">Mapbox</a>',
-    mbUrl:
-      "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w",
-    uploadjsonURL: "https://geo.danieljsimmons.uk/dan1/upload/uploadjson.php",
-    editform: {
-      assetConditionOptions: [6, 5, 4, 3, 2, 1, "n/a"]
-    }
-  },
-  //state: {
-  // Hopefully this is where all data will live, after the app is refactored to be more like React
-  //latestLocation: null // lat Lng
-  //},
-
   setupBaseLayer: function() {
-    const greyscaleLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
-      id: "mapbox.light",
-      attribution: myMap.settings.mbAttr,
-      maxZoom: 26,
-      maxNativeZoom: 18
-    });
-    const streetsLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
-      id: "mapbox.streets",
-      attribution: myMap.settings.mbAttr,
-      maxZoom: 26,
-      //minNativeZoom: 22,
-      maxNativeZoom: 18 // was 20
-    });
+    const greyscaleLayer = L.tileLayer.offline(
+      App.State.settings.mbUrl,
+      tilesDb,
+      {
+        id: "mapbox.light",
+        attribution: App.State.settings.mbAttr,
+        maxZoom: 26,
+        maxNativeZoom: 18
+      }
+    );
+    const streetsLayer = L.tileLayer.offline(
+      App.State.settings.mbUrl,
+      tilesDb,
+      {
+        id: "mapbox.streets",
+        attribution: App.State.settings.mbAttr,
+        maxZoom: 26,
+        //minNativeZoom: 22,
+        maxNativeZoom: 18 // was 20
+      }
+    );
     streetsLayer.on("offline:save-end", function() {
       alert("All the tiles were saved.");
     });
 
-    const satLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
+    const satLayer = L.tileLayer.offline(App.State.settings.mbUrl, tilesDb, {
       id: "mapbox.satellite",
-      attribution: myMap.settings.mbAttr,
+      attribution: App.State.settings.mbAttr,
       maxZoom: 26,
-      minZoom: 18
+      minZoom: 14
     });
     const myLayerGroup = L.layerGroup();
     this.myLayerGroup = myLayerGroup;
     // create map with 3 layers
     const map = L.map("map", {
-      center: [51.4384332, -0.3147865],
-      zoom: 18,
-      maxZoom: 26,
-      minZoom: 12,
-      zoomDelta: 2,
+      center: App.State.settings.map.defaultCenter,
+      zoom: App.State.settings.map.defaultZoom,
+      maxZoom: App.State.settings.map.maxZoom,
+      minZoom: App.State.settings.map.minZoom,
+      zoomDelta: App.State.settings.map.zoomDelta,
       layers: [streetsLayer, myLayerGroup] // loads with this layer initially
     });
     // create group of basemap layers
@@ -110,6 +82,44 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
+    settings: {
+      map: {
+        defaultCenter: [51.4384332, -0.3147865], // Ham
+        defaultZoom: 18,
+        maxZoom: 26,
+        minZoom: 12,
+        zoomDelta: 2
+      },
+      symbology: {
+        taskCompleteStyle: {
+          fillColor: "grey",
+          color: "black",
+          weight: 1
+        },
+        pointTaskNotCompleteStyle: {
+          fillColor: "yellow",
+          color: "red"
+        },
+        lineTaskNotCompleteStyle: {
+          fillColor: "yellow",
+          color: "red",
+          weight: 12
+        },
+        polyTaskNotCompleteStyle: {
+          fillColor: "yellow",
+          color: "red",
+          weight: 1
+        }
+      },
+      mbAttr:
+        '<a href="http://openstreetmap.org">OSMap</a> ©<a href="http://mapbox.com">Mapbox</a>',
+      mbUrl:
+        "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w",
+      uploadjsonURL: "https://geo.danieljsimmons.uk/dan1/upload/uploadjson.php",
+      editform: {
+        assetConditionOptions: [6, 5, 4, 3, 2, 1, "n/a"]
+      }
+    },
     relatedData: {}, // init va3l
     latestLocation: null, // lat Lng
     relDataSyncStatus: {}, // objects holds relatedData sync status flag for each feature, TRUE if synced , False
@@ -123,7 +133,7 @@ export const App = {
       uncompletedRadius: 8,
       completedColor: "grey",
       completedFillColor: "grey",
-      completedRadius: 2 // placeholder  - start of year
+      completedRadius: 2
     },
     visableFeatures: [],
     formFields: {
@@ -144,7 +154,7 @@ export const App = {
 
   populateConditionInputField: () => {
     const conditionSelect = document.getElementById("related-data-condition");
-    Object.keys(App.State.formFields.condition).forEach(function(key) {
+    Object.keys(App.State.formFields.condition).forEach(key => {
       const option = document.createElement("option");
       option.value = key;
       option.text = App.State.formFields.condition[key];
@@ -196,48 +206,12 @@ export const App = {
       const nearest = leafletKnn(App.geoLayer).nearest(
         L.latLng(App.State.latestLocation),
         1
-      ); // example usage for Ham Green
+      );
       nearest[0].layer.fire("click");
     } else {
-      window.alert("Sorry failed - You need to get a GPS location first");
+      window.alert("Sorry - GPS lock needed first ");
     }
   },
-
-  /*
-    createFormItem: function(parentTag, el, type, prop, value) {
-        const wrapperDiv = createWrapperDiv(parentTag);
-        createLabel(wrapperDiv, el, type, prop, value);
-        createInputBox(wrapperDiv, el, type, prop, value);
-
-        function createWrapperDiv() {
-            let x = document.createElement("div");
-            x.classList.add("form-group");
-            parentTag.appendChild(x);
-            return x;
-        }
-
-        function createInputBox(parent) {
-            let x = document.createElement(el);
-            x.setAttribute("type", type);
-            x.type = type;
-            x.classList.add("form-control");
-            x.value = value;
-            x.id = String("input_" + prop);
-            if (type === "Checkbox") {
-                console.log("checkboxValue: " + value);
-                x.checked = value;
-            }
-            parent.appendChild(x);
-        }
-
-        function createLabel(parent) {
-            let x = document.createElement("label");
-            x.innerHTML = prop;
-            parent.appendChild(x);
-        }
-    },
-
-    */
 
   createFormItem: function(parentTag, el, type, prop, value) {
     const wrapperDiv = createWrapperDiv(parentTag);
@@ -278,33 +252,29 @@ export const App = {
     }
   },
 
-  generateFormElements: function(props) {
+  generateFormElements: props => {
     const fs = document.getElementById("fields-section");
     fs.innerHTML = null;
-    const myFunc = Object.keys(props).forEach(function(key) {
+    const createFormItems = Object.keys(props).forEach(key => {
       const propType = typeof props[key];
       if (propType === "string" || propType === "number") {
         App.createFormItem(fs, "Input", "text", key, props[key]);
       } else if (propType === "boolean") {
         App.createFormItem(fs, "Input", "Checkbox", key, props[key]);
-      } else {
-        console.log("NOT OK: " + typeof key);
       }
     });
   },
 
-  submitForm: function() {
+  submitForm: () => {
     let p = App.selectedFeature.properties;
     readSidebarFormProperties(p);
     App.selectedLayer.setTooltipContent(p.Asset);
     App.sidebar.hide();
-    //this.assignTaskCompletedStyle(this.selectedLayer, p);
-    //Map.closePopup();
     this.selectedFeature = null;
     localStorage.setItem("geoJSON", JSON.stringify(this.geoLayer.toGeoJSON()));
 
     function readSidebarFormProperties(props) {
-      const myFunc = Object.keys(props).forEach(function(key) {
+      const readFormProps = Object.keys(props).forEach(key => {
         const propType = typeof props[key];
         const el = document.getElementById(String("input_" + key));
         if (propType === "string" || propType === "number") {
@@ -314,35 +284,10 @@ export const App = {
         }
       });
     }
-
-    function saveFeatureToFirebase() {
-      // current id - id of 1st element in geo Array - I guess
-      if (!window.confirm("Save feature to cloud")) {
-        console.log("save Cancelled!");
-        return;
-      }
-      const featureIndex =
-        App.selectedLayer._leaflet_id -
-        Object.keys(App.geoLayer._layers)[0] -
-        1;
-      const nodePath = String("App/Maps/" + App.mapHash + "/Geo/features");
-      const Ob = {};
-      const myKey = featureIndex;
-      Ob[myKey] = App.selectedFeature;
-      fbDatabase
-        .ref(nodePath)
-        .update(Ob)
-        .then(function() {
-          console.log("saved to firebase!");
-        })
-        .catch(function() {
-          alert("Sorry - you need to be logged in to do this");
-        });
-    }
   },
 
-  assignTaskCompletedStyle: function(layer, featureProperty) {
-    const s = myMap.settings.symbology;
+  assignTaskCompletedStyle: (layer, featureProperty) => {
+    const s = App.State.settings.symbology;
     if (featureProperty.taskCompleted == true) {
       layer.setStyle(s.taskCompleteStyle);
     } else {
@@ -356,37 +301,20 @@ export const App = {
     }
   },
 
-  resetMap: function() {
+  resetMap: () => {
     localStorage.removeItem("geoJSON");
     App.geoLayer = {};
   },
-  getPhoto: function(photoURL) {
+  getPhoto: photoURL => {
     fetch(photoURL)
       .then(res => res.blob()) // Gets the response and returns it as a blob
       .then(blob => {
-        console.log("blob!");
         const objectURL = URL.createObjectURL(blob);
         const myImage = new Image(350);
         myImage.src = objectURL;
         myImage.css = "width:500px";
         document.getElementById("photo-div").appendChild(myImage);
       });
-  },
-  uploadChanges: function() {
-    // posts to shared hosting
-    const url = App.settings.uploadjsonURL;
-    fetch(url, {
-      method: "POST", // or 'PUT'
-      body: "name=" + JSON.stringify(this.geoLayer.toGeoJSON()), // data can be `string` or {object}!
-      headers: {
-        "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
-      }
-    })
-      .then(res => {
-        console.log("json sent ok apparently!");
-      })
-      .catch(error => console.error("Error:", error))
-      .then(response => console.log("Success:", response));
   },
 
   initSettingsControl: () => {
@@ -402,14 +330,7 @@ export const App = {
           App.sidebar.setContent(
             document.getElementById("settings-template").innerHTML
           );
-
           User().initLoginForm();
-
-          /*
-                    const savefb = document.getElementById(
-                        "upload-map-to-firebase"
-                    );
-                    */
           if (App.geoLayer === undefined || App.geoLayer === null) {
             //savefb.style.display = "none";
           } else {
@@ -664,19 +585,7 @@ export const App = {
           feature.geometry.type,
           true
         );
-        //if (feature.geometry.type=="Polygon"){console.log("sent to back!"); layer.bringToBack()}
-        //console.log("feature type:", feature.geometry.type)
 
-        /*
-        layer.bindPopup(
-          '<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();">' +
-            "<br>" +
-            featureLabel +
-            " " +
-            "</div>" +
-            "<button class='btn btn-primary left-spacing'> Add note here </button>"
-        );
-        */
         let featureContentPopup = "";
         let addNoteButtonContent = "";
         featureContentPopup =
@@ -687,7 +596,7 @@ export const App = {
           "</div>";
         if (feature.geometry.type == "Polygon") {
           addNoteButtonContent =
-            "<button class='btn btn-primary left-spacing'> Add note here </button>";
+            "<button class='btn btn-primary btn-large left-spacing'>Add point </button>";
         }
 
         layer.bindPopup(featureContentPopup + addNoteButtonContent);
@@ -719,23 +628,7 @@ export const App = {
             fillColor: "blue",
             weight: 2
           });
-
-          // App.whenGeoFeatureClicked();
-          //let myButton = L.DomUtil.create('button');
-          //myButton.innerHTML = "Hello"
-          //this.bindPopup = myButton
         });
-        /*
-                try {
-                    layer.bindTooltip(featureLabel, {
-                        className: "tool-tip-class",
-                        permanent: false,
-                        interactive: true
-                    }).openTooltip();
-                } catch (err) {
-                    console.log("failed to find prop", err);
-                }
-                */
       },
       style: feature => {
         return {
@@ -743,7 +636,6 @@ export const App = {
           color: App.State.symbology.uncompletedColor,
           fillColor: App.State.symbology.uncompletedFillColor,
           weight: App.State.symbology.uncompletedLineWeight
-          //fillColor: App.State.symbology.uncompletedRadius,
         };
       },
       pointToLayer: (feature, latlng) => {
@@ -988,57 +880,7 @@ function loadMyLayer(layerName) {
   loadProject();
 
   function loadProject() {
-    /*
-        const mapIndexList = getLocalStorageMapIndexList()
-        if (mapIndexList) {
-            displayMapIndeces(mapIndexList)
-        } else {
-            console.log("local mapIndex list not found so try from Firebase")
-            retriveMapIndexFromFirebase()
-        }
-        */
-
     retriveMapIndexFromFirebase();
-
-    //const el = document.getElementById("opennewproject");
-    // el.insertAdjacentHTML("afterBegin", "Open project");
-    // displayMapIndeces(myMapIndeces);
-
-    /*
-        function getLocalStorageMapIndexList() {
-            const mapIndexList = JSON.parse(localStorage.getItem('mapIndexList'))
-            return mapIndexList
-        }
-
-        function setLocalStorageMapIndexList(mapIndexList) {
-            localStorage.setItem(
-                'mapIndexList', JSON.stringify(mapIndexList)
-            )
-        };
-
-         */
-    /*
-
-        function retriveMapIndexFromFirebase() {
-            fbDatabase
-                .ref("/App/Mapindex")
-                .once("value")
-                .then(snapshot => {
-                    document.getElementById("message-area").innerHTML = null;
-                    console.log("fetched ok: ");
-                    //const el = document.getElementById("opennewproject");
-                    //el.insertAdjacentHTML("afterBegin", "Open project");
-                    // setLocalStorageMapIndexList(snapshot)
-                    displayMapIndeces(snapshot);
-                })
-                .catch(error => {
-                    console.log("My Error: " + error.message);
-                    document.getElementById("message-area").innerHTML =
-                        "Sorry - " + error.message;
-                });
-        };
-
-        */
 
     function retriveMapIndexFromFirebase() {
       document.getElementById("message-area").innerHTML =
@@ -1046,37 +888,31 @@ function loadMyLayer(layerName) {
       fbDatabase
         .ref("/App/Mapindex")
         .once("value")
-        .then(function(snapshot) {
+        .then(snapshot => {
           document.getElementById("message-area").innerHTML = null;
-          console.log("map index fetched ok: ");
+          //console.log("map index fetched ok: ");
           const el = document.getElementById("opennewproject");
           el.insertAdjacentHTML("afterBegin", "Open project");
           displayMapIndeces(snapshot.val());
         })
         .catch(error => {
-          console.log("My Error: " + error.message);
           document.getElementById("message-area").innerHTML =
             "Sorry - " + error.message;
         });
     }
 
     function displayMapIndeces(mapIndexList) {
-      //const el = document.getElementById("opennewproject");
-      //el.insertAdjacentHTML("afterBegin", "Open project");
-
       const el = document.getElementById("opennewproject");
       el.insertAdjacentHTML("afterBegin", "Open project");
-      // Object.values(snapshot.val()).map(item => {
       Object.values(mapIndexList).map(item => {
         const btn = document.createElement("button");
-        console.log(item.description);
         btn.setAttribute("value", item.mapID);
         btn.setAttribute("title", item.description);
         btn.className = "btn btn-primary open-project-button";
         const id = item.mapID;
-        btn.addEventListener("click", function(e) {
+        btn.addEventListener("click", e => {
           App.retrieveMapFromFireBase(e.target.value);
-          myMap.settings.mapIndex = e.target.value; // store map Index
+          App.State.settings.mapIndex = e.target.value; // store map Index
         });
         btn.innerHTML = item.name;
         maplist.appendChild(btn);
@@ -1100,57 +936,12 @@ function initLogoWatermark() {
   L.control.watermark({ position: "bottomright" }).addTo(Map);
 }
 
-/*
-function initDebugControl() {
-    let debugControl_div;
-    Map.on("locationfound", onLocationFound);
-    Map.on("locationerror", onLocationError);
-
-    function onLocationFound(e) {
-        debugToMap("type: " + e.type + ", accuracy: " + e.accuracy + "<br>");
-        console.log("location success");
-        console.log("location found: ", e);
-    }
-
-    function onLocationError() {
-        debugToMap("location failed");
-    }
-
-    function debugToMap(message) {
-        let d = new Date();
-        debugControl_div.innerHTML +=
-            d.getMinutes() + ":" + d.getSeconds() + " " + message + "<br>";
-    }
-
-    L.Control.debugControl = L.Control.extend({
-        onAdd: e => {
-            debugControl_div = L.DomUtil.create("div");
-            debugControl_div.onclick = function() {
-                console.log("debug control clicked!");
-            };
-
-            debugControl_div.style = "background-color:white; max-width:50vw";
-            return debugControl_div;
-        }
-    });
-    L.control.debugControl = opts => {
-        return new L.Control.debugControl(opts);
-    };
-    L.control
-        .debugControl({
-            position: "bottomleft"
-        })
-        .addTo(Map);
-}
-
-*/
-
 // --------------------------------- Offline Basemap Caching ------
 const setupOfflineBaseLayerControls = () => {
   const myBaseLayerControls = [
     {
       object: myMap.streetsLayer,
-      label: "Streets",
+      label: "colour streets",
       class: "streets-offline-control"
     },
     {
@@ -1158,12 +949,14 @@ const setupOfflineBaseLayerControls = () => {
       label: "Greyscale",
       class: "greyscale-offline-control"
     },
+
     {
       object: myMap.satLayer,
       label: "Satellite",
       class: "satellite-offline-control"
     }
   ];
+
   return myBaseLayerControls.map(layer => {
     return L.control.offline(layer.object, tilesDb, {
       saveButtonHtml: `<i id="${layer.object}" title="Save ${
@@ -1235,7 +1028,6 @@ var Map = {};
 var fbDatabase = {};
 var offlineLayerControls = {};
 const initApp = () => {
-  //djsModmyFunc.hello();
   App.State.relatedData = {};
   App.State.visableFeatures = [];
   App.State.symbology.beforeSelectedColor = {};
@@ -1263,7 +1055,7 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.098");
+  window.alert("ORCL WebApp version 0.9.100");
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
@@ -1322,72 +1114,27 @@ Map.on("locationfound", updateLatestLocation);
 //Map.on("viewreset", () => console.log("VIEW RESET"));
 
 Map.on("click", e => {
-  //console.log("map clicked!", e);
-  //var tempMarker = new L.marker(e.latlng).addTo(Map);
-  //tempMarker.bindPopup("Hello");
+  App.unsetSelectedStyle();
+  App.selectedLayer = null;
+  App.selectedFeature = null;
+});
+
+Map.on("dblclick", e => {
   const addPopupToClick = e => {
     L.popup()
       .setLatLng(e.latlng)
       .setContent("<button class='btn btn-primary'>Add note here</button>")
       .openOn(Map);
   };
-
   addPopupToClick(e);
-
-  //alert("click!");
-  /*
-    App.selectedLayer.setStyle({
-        //color: App.State.symbology.beforeSelectedColor,
-        //color: 'red',
-        //fillColor: App.State.symbology.beforeSelectedFillColor
-        //fillColor: 'red'
-    })
-    */
-  App.unsetSelectedStyle();
-  App.selectedLayer = null;
-  App.selectedFeature = null;
 });
 
 Map.on("moveend", function() {
-  //console.log("moveend!");
-  //alert("moveEnd!");
   App.featureLabels();
 });
 
 Map.on("movestart", function() {
   console.log("movestart!");
-  //App.featureLabels()
-});
-
-Map.on("dblclick", function(e) {
-  //console.log("doubleClick!", e);
-  //App.featureLabels()
-});
-
-Map.on("viewreset", function() {
-  console.log("viewreset");
-});
-
-Map.on("zoomstart", function() {
-  console.log("zoomstart!");
-});
-
-Map.on("viewprereset", function() {
-  console.log("viewPREreset!");
-});
-
-Map.on("zoomend", function() {
-  console.log("zoomend!");
-  /*
-    if (Map.getZoom <21){
-        if (App.State.visableFeatures !== null){
-            App.State.visableFeatures.map (layer =>{
-                layer.unbindTooltip ()
-            })
-        }
-    }
-    App.featureLabels()
-*/
 });
 
 function updateLatestLocation(e) {
@@ -1395,11 +1142,3 @@ function updateLatestLocation(e) {
 
   App.State.latestLocation = e.latlng;
 }
-
-/*
-Map.on("popupclose", function(e) {
-    App.sidebar.hide();
-    App.selectedFeature = null;
-    console.log("popupClosed!")
-});
-*/
