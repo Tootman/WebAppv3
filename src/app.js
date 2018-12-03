@@ -673,13 +673,31 @@ export const App = {
         //if (feature.geometry.type=="Polygon"){console.log("sent to back!"); layer.bringToBack()}
         //console.log("feature type:", feature.geometry.type)
 
+        /*
         layer.bindPopup(
           '<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();">' +
             "<br>" +
             featureLabel +
             " " +
-            "</div"
+            "</div>" +
+            "<button class='btn btn-primary left-spacing'> Add note here </button>"
         );
+        */
+        let featureContentPopup = "";
+        let addNoteButtonContent = "";
+        featureContentPopup =
+          '<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();">' +
+          "<br>" +
+          featureLabel +
+          " " +
+          "</div>";
+        if (feature.geometry.type == "Polygon") {
+          addNoteButtonContent =
+            "<button class='btn btn-primary left-spacing'> Add note here </button>";
+        }
+
+        layer.bindPopup(featureContentPopup + addNoteButtonContent);
+
         //layer.bindTooltip ("hello!")
         //layer.bindPopup (featureLabel)
         layer.on("click", e => {
@@ -1251,7 +1269,7 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.05");
+  window.alert("ORCL WebApp version 0.9.097");
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
@@ -1310,7 +1328,19 @@ Map.on("locationfound", updateLatestLocation);
 //Map.on("viewreset", () => console.log("VIEW RESET"));
 
 Map.on("click", e => {
-  console.log("map clicked!!");
+  //console.log("map clicked!", e);
+  //var tempMarker = new L.marker(e.latlng).addTo(Map);
+  //tempMarker.bindPopup("Hello");
+  const addPopupToClick = e => {
+    L.popup()
+      .setLatLng(e.latlng)
+      .setContent("<button class='btn btn-primary'>Add note here</button>")
+      .openOn(Map);
+  };
+
+  addPopupToClick(e);
+
+  //alert("click!");
   /*
     App.selectedLayer.setStyle({
         //color: App.State.symbology.beforeSelectedColor,
@@ -1325,12 +1355,18 @@ Map.on("click", e => {
 });
 
 Map.on("moveend", function() {
-  console.log("moveend!");
+  //console.log("moveend!");
+  //alert("moveEnd!");
   App.featureLabels();
 });
 
 Map.on("movestart", function() {
   console.log("movestart!");
+  //App.featureLabels()
+});
+
+Map.on("dblclick", function(e) {
+  //console.log("doubleClick!", e);
   //App.featureLabels()
 });
 
