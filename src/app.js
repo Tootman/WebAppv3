@@ -14,12 +14,6 @@ import { tilesDb } from "./offline-tiles-module.js";
 import { User } from "./User.js";
 import { djsModmyFunc } from "./djs_module.js";
 
-const myOb = {
-  myFunc: () => {
-    const hello = () => "hello";
-  }
-};
-
 const myMap = {
   settings: {
     symbology: {
@@ -52,10 +46,10 @@ const myMap = {
       assetConditionOptions: [6, 5, 4, 3, 2, 1, "n/a"]
     }
   },
-  state: {
-    // Hopefully this is where all data will live, after the app is refactored to be more like React
-    latestLocation: null // lat Lng
-  },
+  //state: {
+  // Hopefully this is where all data will live, after the app is refactored to be more like React
+  //latestLocation: null // lat Lng
+  //},
 
   setupBaseLayer: function() {
     const greyscaleLayer = L.tileLayer.offline(this.settings.mbUrl, tilesDb, {
@@ -117,7 +111,7 @@ const myMap = {
 export const App = {
   State: {
     relatedData: {}, // init va3l
-
+    latestLocation: null, // lat Lng
     relDataSyncStatus: {}, // objects holds relatedData sync status flag for each feature, TRUE if synced , False
     surveyed: {}, // true when inspected ie completed , false when not-yet-instected
     completedResetDate: new Date(2018, 9, 1, 0, 0, 0, 0),
@@ -198,9 +192,9 @@ export const App = {
   },
 
   findNearestFeatures: function() {
-    if (myMap.state.latestLocation) {
+    if (App.State.latestLocation) {
       const nearest = leafletKnn(App.geoLayer).nearest(
-        L.latLng(myMap.state.latestLocation),
+        L.latLng(App.State.latestLocation),
         1
       ); // example usage for Ham Green
       nearest[0].layer.fire("click");
@@ -1269,7 +1263,7 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.097");
+  window.alert("ORCL WebApp version 0.9.098");
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
@@ -1399,7 +1393,7 @@ Map.on("zoomend", function() {
 function updateLatestLocation(e) {
   //console.log("locates location:", e)
 
-  myMap.state.latestLocation = e.latlng;
+  App.State.latestLocation = e.latlng;
 }
 
 /*
