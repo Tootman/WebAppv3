@@ -1,5 +1,3 @@
-"use strict";
-
 import L from "leaflet";
 import firebase from "firebase";
 import "./style.scss";
@@ -12,7 +10,7 @@ require("./L.Control.Sidebar");
 require("./L.Control.Locate.min");
 import { tilesDb } from "./offline-tiles-module.js";
 import { User } from "./User.js";
-import { djsModmyFunc } from "./djs_module.js";
+//import { djsModmyFunc } from "./djs_module.js";
 
 const myMap = {
   setupBaseLayer: function() {
@@ -222,14 +220,12 @@ export const App = {
 
     function createWrapperDiv() {
       let x = document.createElement("tr");
-      // x.classList.add("");
       parentTag.appendChild(x);
       return x;
     }
 
     function createValueLabel(parent) {
       let x = document.createElement("td");
-      //x.classList.add("col-sm-9")
       x.innerHTML = value;
       parent.appendChild(x);
       if (type === "Checkbox") {
@@ -362,7 +358,6 @@ export const App = {
     let content = "";
     for (const item in App.mapMeta) {
       if (item !== null && item !== undefined) {
-        console.log("meta attribute: " + item);
         content += String(item + ": " + App.mapMeta[item] + "<br>");
       }
     }
@@ -393,7 +388,7 @@ export const App = {
         App.busyWorkingIndicator(false);
       })
       .catch(err => {
-        console.log("error! cannot get from firebase!", err);
+        console.log("Error! cannot retrieve mapdata from firebase:", err);
         App.busyWorkingIndicator(false);
       });
   },
@@ -428,8 +423,6 @@ export const App = {
     };
 
     App.State.relatedData = Object.keys(related).map((relKey, index) => {
-      //attachRelatedToRecord(relKey, index, relDataObject);
-      console.log("relkey, Index:", relKey, index);
       const itemOb = {};
       const lastItem = getLastRelDataItem(related[relKey]);
       itemOb[relKey] = lastItem;
@@ -458,7 +451,6 @@ export const App = {
       const stateTime = new Date(
         App.State.relatedData[itemFeatureKey].timestamp
       );
-      console.log(localStorageTime.getTime(), stateTime.getTime());
       if (localStorageTime.getTime() > stateTime.getTime()) {
         console.log(
           "New item to upload! : ",
@@ -492,17 +484,13 @@ export const App = {
     ObjectType,
     isCompleted
   ) => {
-    console.log(featureOb, objectID, ObjectType, isCompleted);
     const featureKey = objectID + ObjectType; // strings
-
     if (App.State.relatedData[featureKey] !== undefined) {
       var relDataDate = new Date(
         Date.parse(App.State.relatedData[featureKey].timestamp)
       );
-      console.log("relDataDate: ", relDataDate);
       const refDate = App.State.completedResetDate.getTime();
       var relDate = relDataDate.getTime();
-      console.log("related for " + featureKey + "exists!");
       if (relDataDate > App.State.completedResetDate) {
         layerOb.setStyle({
           color: App.State.symbology.completedColor, // why not working??
@@ -594,20 +582,34 @@ export const App = {
           featureLabel +
           " " +
           "</div>";
+        /*
         if (feature.geometry.type == "Polygon") {
           addNoteButtonContent =
-            "<button class='btn btn-primary btn-large left-spacing'>Add point </button>";
+            '<div class="dropdown">' +
+            '<button class="btn btn-primary left-spacing" >Add point ...</button>' +
+            '<div class="dropdown-content">' +
+            '<button class="btn btn-primary dropdown-button" >Hazard</button> ' +
+            '<button class="btn btn-primary dropdown-button">Unmapped Asset</button>' +
+            '<button class="btn btn-primary dropdown-button">Comment</button>' +
+            "</div> </div>";
+        }
+*/
+        if (feature.geometry.type == "LineString") {
+          addNoteButtonContent =
+            '<div class="dropdown">' +
+            '<button class="btn btn-primary left-spacing" >Add point ...</button>' +
+            '<div class="dropdown-content">' +
+            '<button class="btn btn-primary dropdown-button" >Hazard</button> ' +
+            '<button class="btn btn-primary dropdown-button">Barrier breach</button>' +
+            '<button class="btn btn-primary dropdown-button">Unmapped Asset</button>' +
+            '<button class="btn btn-primary dropdown-button">Comment</button>' +
+            "</div> </div>";
         }
 
         layer.bindPopup(featureContentPopup + addNoteButtonContent);
 
-        //layer.bindTooltip ("hello!")
-        //layer.bindPopup (featureLabel)
         layer.on("click", e => {
-          // restore previouslly selected colours
-          //console.log("layer:", layer, "selectedLayer: ", App.selectedLayer, "same:", (layer !== App.selectedLayer))
           if (App.selectedLayer !== layer) {
-            console.log("selected Layer NOT same as Layer");
             if (App.selectedLayer) {
               App.unsetSelectedStyle();
             }
@@ -617,10 +619,7 @@ export const App = {
             App.State.symbology.beforeSelectedLineWeight = layer.options.weight;
 
             // now reset the style of the old layer
-          } else {
-            console.log("selected Layer IS same as Layer");
           }
-
           App.selectedFeature = feature; // expose selected feature and layer
           App.selectedLayer = layer;
           App.selectedLayer.setStyle({
@@ -656,7 +655,6 @@ export const App = {
   },
 
   unsetSelectedStyle: () => {
-    console.log("unselected", App.selectedLayer);
     App.selectedLayer.setStyle({
       //color: App.State.symbology.beforeSelectedColor,
       color: App.State.symbology.beforeSelectedColor,
@@ -706,26 +704,19 @@ export const App = {
     }
     const redrawToolTips = () => {
       App.geoLayer.eachLayer(function(layer) {
-        //console.log (layer)
-        //layer.unbindTooltip()
         let relID = "";
         let hasRelData;
         try {
           relID =
             layer.feature.properties.OBJECTID + layer.feature.geometry.type;
           hasRelData = App.State.relatedData[relID];
-          //console.log (hasRelData)
         } catch (err) {
           relID = undefined;
           hasRelData = false;
-          //console.log("undefined!", )
         }
-        //console.log(hasRelData)
 
         if (layer.getLatLng && !hasRelData) {
-          //console.log ("latlng:",layer.getLatlng)
           if (bounds.contains(layer.getLatLng())) {
-            //console.log(layer)
             App.State.visableFeatures.push(layer);
           }
         } else if (layer.getBounds && !hasRelData) {
@@ -733,14 +724,12 @@ export const App = {
             bounds.intersects(layer.getBounds()) ||
             bounds.contains(layer.getBounds())
           ) {
-            //console.log(layer)
             App.State.visableFeatures.push(layer);
           }
         }
       });
     };
     redrawToolTips();
-    // console.log("new bounds", bounds)
     App.State.visableFeatures.map(layer => {
       layer.bindTooltip(layer.feature.properties.Asset, {
         permanent: true,
@@ -770,14 +759,15 @@ const RelatedData = {
         const f_id = snap.parent.key; // fudege to retrieve feature key
         App.State.relDataSyncStatus[f_id] = true;
         App.updateRelDataSyncMsg(f_id);
-        console.log("Pushed new Related Record :", f_id);
         // Remove record from local storage
         const localStorageKey =
           "backup.relatedData." + App.mapHash + "." + featureKey;
         localStorage.removeItem(localStorageKey);
       })
       .catch(error => {
-        console.log("My Error: " + error.message);
+        console.log(
+          "Problem with pushing related Data to Firebase: " + error.message
+        );
         alert("Sorry - something went wrong - have you logged in etc?");
       });
   },
@@ -790,11 +780,9 @@ const RelatedData = {
     );
 
     App.selectedFeature.geometry.type + "/";
-    console.log("key: " + RelatedData.featureKey);
     RelatedData.nodePath = String(
       "App/Maps/" + App.mapHash + "/Related/" + RelatedData.featureKey + "/"
     );
-    console.log("nodePath: " + RelatedData.nodePath);
     const relatedRecord = {};
     relatedRecord.timestamp = Date();
     relatedRecord.user = firebase.auth().currentUser.displayName;
@@ -849,7 +837,6 @@ const RelatedData = {
 
   addPhoto: function() {
     const el = document.getElementById("photo-capture");
-    console.log(el.files[0].name);
     document.getElementById("related-data-photo").value = el.files[0].name;
   }
 };
@@ -876,7 +863,6 @@ function loadMyLayer(layerName) {
 
   document.getElementById("open-new-project-button").style.display = "none";
   //loadFromPresetButtons(layerName);
-  // console.log("LoadmyLayer!")
   loadProject();
 
   function loadProject() {
@@ -890,7 +876,6 @@ function loadMyLayer(layerName) {
         .once("value")
         .then(snapshot => {
           document.getElementById("message-area").innerHTML = null;
-          //console.log("map index fetched ok: ");
           const el = document.getElementById("opennewproject");
           el.insertAdjacentHTML("afterBegin", "Open project");
           displayMapIndeces(snapshot.val());
@@ -1055,17 +1040,14 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.100");
+  window.alert("ORCL WebApp version 0.9.102");
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
         .register("sw.js")
-        .then(registration => {
-          //  for dev
-          console.log("SW registered: ", registration);
-        })
+        .then(registration => {})
         .catch(registrationError => {
           console.log("SW registration failed: ", registrationError);
         });
@@ -1111,7 +1093,6 @@ function initLocationControl() {
 }
 
 Map.on("locationfound", updateLatestLocation);
-//Map.on("viewreset", () => console.log("VIEW RESET"));
 
 Map.on("click", e => {
   App.unsetSelectedStyle();
@@ -1120,10 +1101,19 @@ Map.on("click", e => {
 });
 
 Map.on("dblclick", e => {
+  const addPointContent =
+    "<div class='dropdown'>" +
+    "<button class='btn btn-primary left-spacing' >Add point ...</button>" +
+    "<div class='dropdown-content'>" +
+    "<button class='btn btn-primary dropdown-button' >Hazard</button>" +
+    "<button class='btn btn-primary dropdown-button'>Unmapped Asset (Point)</button>" +
+    "<button class='btn btn-primary dropdown-button'>General comment</button>" +
+    "</div> </div>";
+
   const addPopupToClick = e => {
     L.popup()
       .setLatLng(e.latlng)
-      .setContent("<button class='btn btn-primary'>Add note here</button>")
+      .setContent(addPointContent)
       .openOn(Map);
   };
   addPopupToClick(e);
@@ -1133,12 +1123,6 @@ Map.on("moveend", function() {
   App.featureLabels();
 });
 
-Map.on("movestart", function() {
-  console.log("movestart!");
-});
-
 function updateLatestLocation(e) {
-  //console.log("locates location:", e)
-
   App.State.latestLocation = e.latlng;
 }
