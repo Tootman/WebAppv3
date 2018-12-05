@@ -147,7 +147,18 @@ export const App = {
         nv: "not visable",
         pv: "partially visable"
       }
-    }
+    },
+    AddPointButtonsPoints: [
+      { label: "Hazard", id: "hazard" },
+      { label: "Unmapped asset", id: "unmappedAsset" },
+      { label: "general comment", id: "comment" }
+    ],
+    AddPointButtonsLines: [
+      { label: "Hazard", id: "hazard" },
+      { label: "Unmapped asset", id: "unmappedAsset" },
+      { label: "General comment", id: "comment" },
+      { label: "Breach in barrier", id: "breach" }
+    ]
   },
 
   populateConditionInputField: () => {
@@ -582,32 +593,13 @@ export const App = {
           featureLabel +
           " " +
           "</div>";
-        /*
-        if (feature.geometry.type == "Polygon") {
-          addNoteButtonContent =
-            '<div class="dropdown">' +
-            '<button class="btn btn-primary left-spacing" >Add point ...</button>' +
-            '<div class="dropdown-content">' +
-            '<button class="btn btn-primary dropdown-button" >Hazard</button> ' +
-            '<button class="btn btn-primary dropdown-button">Unmapped Asset</button>' +
-            '<button class="btn btn-primary dropdown-button">Comment</button>' +
-            "</div> </div>";
-        }
-*/
+
         if (feature.geometry.type == "LineString") {
-          addNoteButtonContent =
-            '<div class="dropdown">' +
-            '<button class="btn btn-primary left-spacing" >Add point ...</button>' +
-            '<div class="dropdown-content">' +
-            '<button class="btn btn-primary dropdown-button" >Hazard</button> ' +
-            '<button class="btn btn-primary dropdown-button">Barrier breach</button>' +
-            '<button class="btn btn-primary dropdown-button">Unmapped Asset</button>' +
-            '<button class="btn btn-primary dropdown-button">Comment</button>' +
-            "</div> </div>";
+          addNoteButtonContent = App.createPopupContentButtonSet(
+            App.State.AddPointButtonsLines
+          );
         }
-
         layer.bindPopup(featureContentPopup + addNoteButtonContent);
-
         layer.on("click", e => {
           if (App.selectedLayer !== layer) {
             if (App.selectedLayer) {
@@ -689,6 +681,38 @@ export const App = {
     const mapData = JSON.parse(localStorage.getItem(storageKey));
     const mapKey = storageKey[0].split("mapData.")[1];
     App.setupGeoLayer(mapKey, mapData);
+  },
+
+  addPointForm: buttonSetType => {
+    //alert(buttonSetType);
+    // comment box
+    const sidebarContent = `
+    <h3>Add point </h3>
+    type: ${buttonSetType}
+    <p>  <textarea class="form-control" rows="2" id="add-point-comment" placeholder = "optional comment here ..."></textarea>
+    </p>
+    <p><button class="btn btn-primary">Add photo</button></p>
+    <hr>
+    <p><button class="btn btn-primary">Submit </button> </p>
+    `;
+    // take photo
+
+    App.sidebar.setContent(sidebarContent);
+    App.sidebar.show();
+  },
+
+  createPopupContentButtonSet: buttonSet => {
+    let popupContent = `<div class='dropdown'>
+    <button class='btn btn-primary left-spacing'>
+        Add point ...
+    </button>
+    <div class='dropdown-content'>`;
+    const createButtons = buttonSet.map(button => {
+      popupContent += `<button onclick="App.addPointForm('${button.id}')"
+       class="btn btn-primary dropdown-button" >${button.label}</button>`;
+    });
+    popupContent += `</div></div>`;
+    return popupContent;
   },
 
   featureLabels: () => {
@@ -1101,19 +1125,12 @@ Map.on("click", e => {
 });
 
 Map.on("dblclick", e => {
-  const addPointContent =
-    "<div class='dropdown'>" +
-    "<button class='btn btn-primary left-spacing' >Add point ...</button>" +
-    "<div class='dropdown-content'>" +
-    "<button class='btn btn-primary dropdown-button' >Hazard</button>" +
-    "<button class='btn btn-primary dropdown-button'>Unmapped Asset (Point)</button>" +
-    "<button class='btn btn-primary dropdown-button'>General comment</button>" +
-    "</div> </div>";
-
   const addPopupToClick = e => {
     L.popup()
       .setLatLng(e.latlng)
-      .setContent(addPointContent)
+      .setContent(
+        App.createPopupContentButtonSet(App.State.AddPointButtonsPoints)
+      )
       .openOn(Map);
   };
   addPopupToClick(e);
