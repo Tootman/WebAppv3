@@ -14,7 +14,7 @@ import { User } from "./User.js";
 
 const myMap = {
   setupBaseLayer: function() {
-    const greyscaleLayer = L.tileLayer.offline(
+    this.greyscaleLayer = L.tileLayer.offline(
       App.State.settings.mbUrl,
       tilesDb,
       {
@@ -24,54 +24,42 @@ const myMap = {
         maxNativeZoom: 18
       }
     );
-    const streetsLayer = L.tileLayer.offline(
-      App.State.settings.mbUrl,
-      tilesDb,
-      {
-        id: "mapbox.streets",
-        attribution: App.State.settings.mbAttr,
-        maxZoom: 26,
-        //minNativeZoom: 22,
-        maxNativeZoom: 18 // was 20
-      }
-    );
-    streetsLayer.on("offline:save-end", function() {
+    this.streetsLayer = L.tileLayer.offline(App.State.settings.mbUrl, tilesDb, {
+      id: "mapbox.streets",
+      attribution: App.State.settings.mbAttr,
+      maxZoom: 26,
+      maxNativeZoom: 18
+    });
+    this.streetsLayer.on("offline:save-end", function() {
       alert("All the tiles were saved.");
     });
 
-    const satLayer = L.tileLayer.offline(App.State.settings.mbUrl, tilesDb, {
+    this.satLayer = L.tileLayer.offline(App.State.settings.mbUrl, tilesDb, {
       id: "mapbox.satellite",
       attribution: App.State.settings.mbAttr,
       maxZoom: 26,
       minZoom: 14
     });
-    const myLayerGroup = L.layerGroup();
-    this.myLayerGroup = myLayerGroup;
-    // create map with 3 layers
+    this.myLayerGroup = L.layerGroup();
+
     const map = L.map("map", {
       center: App.State.settings.map.defaultCenter,
       zoom: App.State.settings.map.defaultZoom,
       maxZoom: App.State.settings.map.maxZoom,
       minZoom: App.State.settings.map.minZoom,
       zoomDelta: App.State.settings.map.zoomDelta,
-      layers: [streetsLayer, myLayerGroup] // loads with this layer initially
+      layers: [this.streetsLayer, this.myLayerGroup] // loads with this layer initially
     });
     // create group of basemap layers
     let baseMaps = {
-      Greyscale: greyscaleLayer,
-      Streets: streetsLayer,
-      Satellite: satLayer
+      Greyscale: this.greyscaleLayer,
+      Streets: this.streetsLayer,
+      Satellite: this.satLayer
     };
-    this.basemaps = baseMaps;
-    myMap.streetsLayer = streetsLayer;
-    myMap.satLayer = satLayer;
-    myMap.greyscaleLayer = greyscaleLayer;
 
-    // create group of overlay layers
-    let overlayMaps = {
-      myLayers: myLayerGroup
+    this.overlayMaps = {
+      myLayers: this.myLayerGroup
     };
-    this.overlayMap = overlayMaps;
     this.LayersControl = L.control.layers(baseMaps).addTo(map);
     return map;
   }
@@ -161,31 +149,28 @@ export const App = {
     ]
   },
 
-  populateConditionInputField: () => {
-    const conditionSelect = document.getElementById("related-data-condition");
-    Object.keys(App.State.formFields.condition).forEach(key => {
+  populateInputOptions: (el, items) => {
+    Object.keys(items).forEach(key => {
       const option = document.createElement("option");
       option.value = key;
-      option.text = App.State.formFields.condition[key];
-      conditionSelect.add(option);
+      option.text = items[key];
+      el.add(option);
     });
   },
 
-  updateRelDataSyncMsg: featureID => {
-    const relSyncDiv = document.getElementById("rel-data-sync-message");
-    if (relSyncDiv == null) return; //exit if element doesn yet exist ie of form is'nt open
+  updateRelDataSyncMsg: (syncStatus, el) => {
+    if (el == null) return; //exit if element doesn yet exist ie of form is'nt open
     let msg = "";
-    const s = App.State.relDataSyncStatus[featureID];
-    if (s == null) {
+    if (syncStatus == null) {
       msg = "no related data";
-    } else if (s == true) {
+    } else if (syncStatus == true) {
       msg = "successful sync";
-    } else if (s == false) {
+    } else if (syncStatus == false) {
       msg =
         "Data not yet synced - please connect to network before closing this App";
     }
-    relSyncDiv.innerHTML = msg;
-    relSyncDiv.style = "color:'CornflowerBlue' ";
+    el.innerHTML = msg;
+    el.style = "color:'CornflowerBlue' ";
   },
 
   whenGeoFeatureClicked: function() {
@@ -198,15 +183,22 @@ export const App = {
         document.getElementById("form-template").innerHTML
       );
     }
-    let p = App.selectedFeature.properties;
+    const p = App.selectedFeature.properties;
     renderSideBar();
-    this.generateFormElements(p);
-    if (p.photo !== null && p.photo !== undefined) {
-      this.getPhoto(p.photo);
-    }
-    App.updateRelDataSyncMsg(fId);
+    this.generateFeatureEditFormElements(
+      p,
+      document.getElementById("fields-section")
+    );
+    if (!!p.photo) this.getPhoto(p.photo);
+    App.updateRelDataSyncMsg(
+      App.State.relDataSyncStatus[fId],
+      document.getElementById("rel-data-sync-message")
+    );
     App.updateSidebarRelatedFromState(fId);
-    App.populateConditionInputField();
+    App.populateInputOptions(
+      document.getElementById("related-data-condition"),
+      App.State.formFields.condition
+    );
     App.sidebar.show();
   },
 
@@ -222,21 +214,19 @@ export const App = {
     }
   },
 
-  createFormItem: function(parentTag, el, type, prop, value) {
+  createFormItem: (parentTag, el, type, prop, value) => {
     const wrapperDiv = createWrapperDiv(parentTag);
     createLabel(wrapperDiv, el, type, prop, value);
-    //createInputBox(wrapperDiv, el, type, prop, value);
     createValueLabel(wrapperDiv, el, type, prop, value);
-    //createRow(wrapperDiv, el, type, prop, value);
 
     function createWrapperDiv() {
-      let x = document.createElement("tr");
+      const x = document.createElement("tr");
       parentTag.appendChild(x);
       return x;
     }
 
     function createValueLabel(parent) {
-      let x = document.createElement("td");
+      const x = document.createElement("td");
       x.innerHTML = value;
       parent.appendChild(x);
       if (type === "Checkbox") {
@@ -246,51 +236,29 @@ export const App = {
     }
 
     function createLabel(parent) {
-      let x = document.createElement("td");
-      //x.classList.add("col-sm-3")
+      const x = document.createElement("td");
       x.innerHTML = prop;
       parent.appendChild(x);
     }
 
     function createRow(parent) {
-      let x = document.createElement("div");
+      const x = document.createElement("div");
       x.innerHTML = prop + " " + value + "<br>";
       parent.appendChild(x);
     }
   },
 
-  generateFormElements: props => {
-    const fs = document.getElementById("fields-section");
-    fs.innerHTML = null;
+  generateFeatureEditFormElements: (props, sectionEl) => {
+    //const fs = document.getElementById("fields-section");
+    sectionEl.innerHTML = null;
     const createFormItems = Object.keys(props).forEach(key => {
       const propType = typeof props[key];
       if (propType === "string" || propType === "number") {
-        App.createFormItem(fs, "Input", "text", key, props[key]);
+        App.createFormItem(sectionEl, "Input", "text", key, props[key]);
       } else if (propType === "boolean") {
-        App.createFormItem(fs, "Input", "Checkbox", key, props[key]);
+        App.createFormItem(sectionEl, "Input", "Checkbox", key, props[key]);
       }
     });
-  },
-
-  submitForm: () => {
-    let p = App.selectedFeature.properties;
-    readSidebarFormProperties(p);
-    App.selectedLayer.setTooltipContent(p.Asset);
-    App.sidebar.hide();
-    this.selectedFeature = null;
-    localStorage.setItem("geoJSON", JSON.stringify(this.geoLayer.toGeoJSON()));
-
-    function readSidebarFormProperties(props) {
-      const readFormProps = Object.keys(props).forEach(key => {
-        const propType = typeof props[key];
-        const el = document.getElementById(String("input_" + key));
-        if (propType === "string" || propType === "number") {
-          props[key] = el.value;
-        } else if (propType === "boolean") {
-          props[key] = el.checked;
-        }
-      });
-    }
   },
 
   assignTaskCompletedStyle: (layer, featureProperty) => {
@@ -508,9 +476,7 @@ export const App = {
           fillColor: App.State.symbology.completedFillColor,
           weight: App.State.symbology.completedLineWeight,
           radius: 1
-          //radius: App.State.symbology.completedRadius
         });
-        // if (ObjectType == 'Point'){layerOb.setStyle({radius: App.State.symbology.completedRadius})}
       }
     }
   },
@@ -527,44 +493,6 @@ export const App = {
     } else reldiv.innerHTML = "";
   },
 
-  /*
-    appendRelatedDataToFeatureState(featureSet, related) {
-        if (related === null || related === undefined) {
-            return featureSet; // return straight back as is
-        }
-        const getLastRelDataItem = RelDataSet => {
-            const sortedKeys = Object.keys(RelDataSet).sort();
-            const lastDataItem = RelDataSet[sortedKeys[sortedKeys.length - 1]];
-            return lastDataItem;
-        };
-
-        const attachRelatedToRecord = (relKey, index, relDataOb) => {
-            // creates an ob with set of keys with related properties as their values
-            relDataOb[relKey] = getLastRelDataItem(related[relKey]);
-        };
-        const relDataObject = {};
-        Object.keys(related).map((relKey, index) => {
-            attachRelatedToRecord(relKey, index, relDataObject);
-        });
-
-        const assignPropsToFeature = (feature, featureIndex, relDataObject) => {
-            const ObId = String(
-                feature.properties.OBJECTID + feature.geometry.type
-            );
-            Object.assign(
-                featureSet[featureIndex].properties,
-                relDataObject[ObId]
-            ); // asign related Props to feature
-        };
-        const updatedFeatureSet = featureSet.map((feature, index) => {
-            assignPropsToFeature(feature, index, relDataObject);
-        });
-        const featureState = this.state.geoJson; // get a ref to state
-        //featureState.features = featureSet;
-        //this.setState(featureState);
-    },
-    */
-
   setupGeoLayer: (key, mapData) => {
     App.mapMeta = mapData.meta;
     App.mapHash = key;
@@ -576,7 +504,6 @@ export const App = {
     App.geoLayer = L.geoJson(mapData.Geo, {
       onEachFeature: (feature, layer) => {
         let featureLabel = feature.properties[featureLabelField];
-        //App.assignTaskCompletedStyle(layer, feature.properties);
         App.setCompletedStyle(
           feature,
           layer,
@@ -587,13 +514,8 @@ export const App = {
 
         let featureContentPopup = "";
         let addNoteButtonContent = "";
-        featureContentPopup =
-          '<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();">' +
-          "<br>" +
-          featureLabel +
-          " " +
-          "</div>";
-
+        featureContentPopup = `<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();"><br>
+          ${featureLabel} </div>`;
         if (feature.geometry.type == "LineString") {
           addNoteButtonContent = App.createPopupContentButtonSet(
             App.State.AddPointButtonsLines
@@ -652,7 +574,6 @@ export const App = {
       color: App.State.symbology.beforeSelectedColor,
       fillColor: App.State.symbology.beforeSelectedFillColor,
       weight: App.State.symbology.beforeSelectedLineWeight
-      //fillColor: App.State.symbology.beforeSelectedFillColor
     });
   },
 
@@ -782,7 +703,10 @@ const RelatedData = {
 
         const f_id = snap.parent.key; // fudege to retrieve feature key
         App.State.relDataSyncStatus[f_id] = true;
-        App.updateRelDataSyncMsg(f_id);
+        App.updateRelDataSyncMsg(
+          App.State.relDataSyncStatus[f_id],
+          document.getElementById("rel-data-sync-message")
+        );
         // Remove record from local storage
         const localStorageKey =
           "backup.relatedData." + App.mapHash + "." + featureKey;
@@ -823,7 +747,10 @@ const RelatedData = {
     }
     const key = RelatedData.featureKey;
     App.State.relDataSyncStatus[key] = false; // while push promise is unresolved
-    App.updateRelDataSyncMsg(key);
+    App.updateRelDataSyncMsg(
+      App.State.relDataSyncStatus[key],
+      document.getElementById("rel-data-sync-message")
+    );
     App.updateFeatureRelatedState(key, relatedRecord);
 
     App.updateSidebarRelatedFromState(key);
