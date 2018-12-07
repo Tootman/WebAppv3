@@ -263,7 +263,7 @@ export const App = {
 
   assignTaskCompletedStyle: (layer, featureProperty) => {
     const s = App.State.settings.symbology;
-    if (featureProperty.taskCompleted == true) {
+    if (featureProperty.taskCompleted) {
       layer.setStyle(s.taskCompleteStyle);
     } else {
       if (layer.feature.geometry.type.includes("Poly")) {
@@ -306,12 +306,8 @@ export const App = {
             document.getElementById("settings-template").innerHTML
           );
           User().initLoginForm();
-          if (App.geoLayer === undefined || App.geoLayer === null) {
-            //savefb.style.display = "none";
-          } else {
-            //savefb.style.display = "block";
-            App.populateMapMeta();
-          }
+          if (!!App.geoLayer) App.populateMapMeta();
+
           document
             .getElementById("open-new-project-button")
             .addEventListener("click", function() {
@@ -336,7 +332,7 @@ export const App = {
     const container = document.getElementById("map-info-section");
     let content = "";
     for (const item in App.mapMeta) {
-      if (item !== null && item !== undefined) {
+      if (!!item) {
         content += String(item + ": " + App.mapMeta[item] + "<br>");
       }
     }
@@ -345,11 +341,9 @@ export const App = {
 
   busyWorkingIndicator: busyWorking => {
     const cogIcon = document.getElementsByClassName("icon-cog")[0];
-    if (busyWorking) {
-      cogIcon.classList.add("icon-cog-spin");
-    } else {
-      cogIcon.classList.remove("icon-cog-spin");
-    }
+    busyWorking
+      ? cogIcon.classList.add("icon-cog-spin")
+      : cogIcon.classList.remove("icon-cog-spin");
   },
 
   retrieveMapFromFireBase: function(index) {
@@ -388,9 +382,7 @@ export const App = {
   },
 
   populateRelated: related => {
-    if (related == null || related == undefined) {
-      return;
-    }
+    if (!related) return;
     const relDataObject = {}; // to be replaced with State etc
     const relDataSyncObject = {}; // just to make sure it's initially empty
     App.State.relDataSyncStatus = {}; // make sure start with empty obj
@@ -412,11 +404,11 @@ export const App = {
     App.State.relatedData = relDataObject;
     App.State.relDataSyncStatus = relDataSyncObject;
     App.getRelDataFromLocalStorage(App.mapHash);
+    return { relDataObject, relDataSyncObject };
   },
 
   getRelDataFromLocalStorage: mapHash => {
     const regex = "backup.relatedData." + mapHash + ".";
-
     const relDataKeys = Object.keys(localStorage).filter(item =>
       item.match(regex)
     );
@@ -453,7 +445,6 @@ export const App = {
   updateFeatureRelatedState: (featureKey, relatedData) => {
     // update a single feature's RelatedRecord State
     App.State.relatedData[featureKey] = relatedData;
-    //App.setCompleted(featureKey, true)
   },
 
   setCompletedStyle: (
@@ -570,7 +561,6 @@ export const App = {
 
   unsetSelectedStyle: () => {
     App.selectedLayer.setStyle({
-      //color: App.State.symbology.beforeSelectedColor,
       color: App.State.symbology.beforeSelectedColor,
       fillColor: App.State.symbology.beforeSelectedFillColor,
       weight: App.State.symbology.beforeSelectedLineWeight
@@ -605,29 +595,20 @@ export const App = {
   },
 
   addPointForm: buttonSetType => {
-    //alert(buttonSetType);
-    // comment box
     const sidebarContent = `
     <h3>Add point </h3>
     type: ${buttonSetType}
-    <p>  <textarea class="form-control" rows="2" id="add-point-comment" placeholder = "optional comment here ..."></textarea>
-    </p>
-    <p><button class="btn btn-primary">Add photo</button></p>
-    <hr>
-    <p><button class="btn btn-primary">Submit </button> </p>
-    `;
-    // take photo
-
+    <p>  <textarea class="form-control" rows="2" id="add-point-comment" placeholder = "optional comment here ..."></textarea></p>
+    <p><button class="btn btn-primary">Add photo</button></p><hr>
+    <p><button class="btn btn-primary">Submit </button> </p>`;
     App.sidebar.setContent(sidebarContent);
     App.sidebar.show();
   },
 
   createPopupContentButtonSet: buttonSet => {
     let popupContent = `<div class='dropdown'>
-    <button class='btn btn-primary left-spacing'>
-        Add point ...
-    </button>
-    <div class='dropdown-content'>`;
+    <button class='btn btn-primary left-spacing'>Add point ...
+    </button> <div class='dropdown-content'>`;
     const createButtons = buttonSet.map(button => {
       popupContent += `<button onclick="App.addPointForm('${button.id}')"
        class="btn btn-primary dropdown-button" >${button.label}</button>`;
@@ -796,7 +777,6 @@ window.RelatedData = RelatedData;
 
 function uploadMapToFirebase() {
   // grab the blobal Mapindex, then send gson layer up to node
-  //const nodePath = String("'/App/Maps/" + myMap.settings.mapIndex)
   const nodePath = String("App/Maps/" + App.mapHash + "/Geo");
 
   fbDatabase
@@ -808,7 +788,6 @@ function uploadMapToFirebase() {
 }
 
 window.User = User;
-
 function loadMyLayer(layerName) {
   // just for testing
 
@@ -938,19 +917,12 @@ L.Control.OfflineBaselayersControl = L.Control.extend({
       }
     };
     return OfflineBaselayersControl_div;
-  },
-
-  onRemove: function(map) {
-    // Nothing to do here
   }
 });
 L.control.OfflineBaselayersControl = opts => {
   return new L.Control.OfflineBaselayersControl(opts);
 };
 
-// ------------------------------------------------------------------
-
-// firebase
 const fireBaseconfig = {
   apiKey: "AIzaSyB977vJdWTGA-JJ03xotQkeu8X4_Ds_BLQ",
   authDomain: "fir-realtime-db-24299.firebaseapp.com",
@@ -1035,7 +1007,6 @@ function initLocationControl() {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 3000
-
         //watch: true
       },
       icon: "icon-direction"
