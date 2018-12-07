@@ -214,66 +214,49 @@ export const App = {
     }
   },
 
-  createFormItem: (parentTag, el, type, prop, value) => {
-    const wrapperDiv = createWrapperDiv(parentTag);
-    createLabel(wrapperDiv, el, type, prop, value);
-    createValueLabel(wrapperDiv, el, type, prop, value);
-
-    function createWrapperDiv() {
-      const x = document.createElement("tr");
-      parentTag.appendChild(x);
-      return x;
-    }
-
-    function createValueLabel(parent) {
-      const x = document.createElement("td");
-      x.innerHTML = value;
-      parent.appendChild(x);
-      if (type === "Checkbox") {
-        x.checked = value;
-      }
-      parent.appendChild(x);
-    }
-
-    function createLabel(parent) {
-      const x = document.createElement("td");
-      x.innerHTML = prop;
-      parent.appendChild(x);
-    }
-
-    function createRow(parent) {
-      const x = document.createElement("div");
-      x.innerHTML = prop + " " + value + "<br>";
-      parent.appendChild(x);
-    }
-  },
-
   generateFeatureEditFormElements: (props, sectionEl) => {
-    //const fs = document.getElementById("fields-section");
     sectionEl.innerHTML = null;
+    const createFormItem = (parentTag, el, type, prop, value) => {
+      const createWrapperDiv = () => {
+        const x = document.createElement("tr");
+        parentTag.appendChild(x);
+        return x;
+      };
+      const createValueLabel = parent => {
+        const x = document.createElement("td");
+        x.innerHTML = value;
+        parent.appendChild(x);
+        if (type === "Checkbox") {
+          x.checked = value;
+        }
+        parent.appendChild(x);
+      };
+
+      const createLabel = parent => {
+        const x = document.createElement("td");
+        x.innerHTML = prop;
+        parent.appendChild(x);
+      };
+
+      const createRow = parent => {
+        const x = document.createElement("div");
+        x.innerHTML = prop + " " + value + "<br>";
+        parent.appendChild(x);
+      };
+
+      const wrapperDiv = createWrapperDiv(parentTag);
+      createLabel(wrapperDiv, el, type, prop, value);
+      createValueLabel(wrapperDiv, el, type, prop, value);
+    };
+
     const createFormItems = Object.keys(props).forEach(key => {
       const propType = typeof props[key];
       if (propType === "string" || propType === "number") {
-        App.createFormItem(sectionEl, "Input", "text", key, props[key]);
+        createFormItem(sectionEl, "Input", "text", key, props[key]);
       } else if (propType === "boolean") {
-        App.createFormItem(sectionEl, "Input", "Checkbox", key, props[key]);
+        createFormItem(sectionEl, "Input", "Checkbox", key, props[key]);
       }
     });
-  },
-
-  assignTaskCompletedStyle: (layer, featureProperty) => {
-    const s = App.State.settings.symbology;
-    if (featureProperty.taskCompleted) {
-      layer.setStyle(s.taskCompleteStyle);
-    } else {
-      if (layer.feature.geometry.type.includes("Poly")) {
-        layer.setStyle(s.polyTaskNotCompleteStyle);
-      } else if (layer.feature.geometry.type.includes("Line")) {
-        layer.setStyle(s.lineTaskNotCompleteStyle);
-      } else if (layer.feature.geometry.type.includes("Point")) {
-        layer.setStyle(s.pointTaskNotCompleteStyle);
-      }
-    }
   },
 
   resetMap: () => {
@@ -962,7 +945,7 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.102");
+  window.alert("ORCL WebApp version 0.9.103");
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
@@ -1033,7 +1016,7 @@ Map.on("dblclick", e => {
   addPopupToClick(e);
 });
 
-Map.on("moveend", function() {
+Map.on("moveend", () => {
   App.featureLabels();
 });
 
