@@ -385,14 +385,11 @@ export const App = {
     if (!related) return;
     const relDataObject = {}; // to be replaced with State etc
     const relDataSyncObject = {}; // just to make sure it's initially empty
-    App.State.relDataSyncStatus = {}; // make sure start with empty obj
-    App.State.relatedData = {};
     const getLastRelDataItem = RelDataSet => {
       const sortedKeys = Object.keys(RelDataSet).sort();
       const lastDataItem = RelDataSet[sortedKeys[sortedKeys.length - 1]];
       return lastDataItem;
     };
-
     App.State.relatedData = Object.keys(related).map((relKey, index) => {
       const itemOb = {};
       const lastItem = getLastRelDataItem(related[relKey]);
@@ -401,8 +398,6 @@ export const App = {
       relDataSyncObject[relKey] = true; // ie the feature's rela data is now synced
       return itemOb;
     });
-    App.State.relatedData = relDataObject;
-    App.State.relDataSyncStatus = relDataSyncObject;
     App.getRelDataFromLocalStorage(App.mapHash);
     return { relDataObject, relDataSyncObject };
   },
@@ -491,7 +486,14 @@ export const App = {
     const featureLabelField = mapData.Meta
       ? mapData.Meta.LabelProperty
       : "Asset";
-    App.populateRelated(mapData.Related); // need to catch when no related available
+    const relData = App.populateRelated(mapData.Related); // need to catch when no related available
+    if (!!relData) {
+      App.State.relatedData = relData.relDataObject;
+      App.State.relDataSyncStatus = relData.relDataSyncObject;
+    } else {
+      App.State.relatedData = {};
+      App.State.relDataSyncStatus = {};
+    }
     App.geoLayer = L.geoJson(mapData.Geo, {
       onEachFeature: (feature, layer) => {
         let featureLabel = feature.properties[featureLabelField];
@@ -560,6 +562,7 @@ export const App = {
   },
 
   unsetSelectedStyle: () => {
+    if (!App.selectedLayer) return;
     App.selectedLayer.setStyle({
       color: App.State.symbology.beforeSelectedColor,
       fillColor: App.State.symbology.beforeSelectedFillColor,
@@ -694,9 +697,6 @@ const RelatedData = {
         localStorage.removeItem(localStorageKey);
       })
       .catch(error => {
-        console.log(
-          "Problem with pushing related Data to Firebase: " + error.message
-        );
         alert("Sorry - something went wrong - have you logged in etc?");
       });
   },
@@ -944,7 +944,6 @@ const initApp = () => {
   fbDatabase = firebase.database();
 
   // --------------------------------------- Main ---------------------
-
   Map = myMap.setupBaseLayer();
   // initDebugControl()
   initLogoWatermark();
