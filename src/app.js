@@ -194,7 +194,11 @@ export const App = {
       App.State.relDataSyncStatus[fId],
       document.getElementById("rel-data-sync-message")
     );
-    App.updateSidebarRelatedFromState(fId);
+    App.updateSidebarRelatedFromState(
+      fId,
+      document.getElementById("latest-related"),
+      App.State.relatedData
+    );
     App.populateInputOptions(
       document.getElementById("related-data-condition"),
       App.State.formFields.condition
@@ -430,31 +434,31 @@ export const App = {
     layerOb,
     objectID,
     ObjectType,
-    isCompleted
+    isCompleted,
+    relatedData,
+    completedResetDate,
+    symbology
   ) => {
     const featureKey = objectID + ObjectType; // strings
-    if (App.State.relatedData[featureKey] !== undefined) {
-      var relDataDate = new Date(
-        Date.parse(App.State.relatedData[featureKey].timestamp)
-      );
-      const refDate = App.State.completedResetDate.getTime();
+    if (relatedData[featureKey] !== undefined) {
+      var relDataDate = new Date(Date.parse(relatedData[featureKey].timestamp));
+      const refDate = completedResetDate.getTime();
       var relDate = relDataDate.getTime();
-      if (relDataDate > App.State.completedResetDate) {
+      if (relDataDate > completedResetDate) {
         layerOb.setStyle({
-          color: App.State.symbology.completedColor, // why not working??
-          fillColor: App.State.symbology.completedFillColor,
-          weight: App.State.symbology.completedLineWeight,
+          color: symbology.completedColor, // why not working??
+          fillColor: symbology.completedFillColor,
+          weight: symbology.completedLineWeight,
           radius: 1
         });
       }
     }
   },
 
-  updateSidebarRelatedFromState: featureKey => {
+  updateSidebarRelatedFromState: (featureKey, reldiv, relatedData) => {
     // update a feature's RelatedRecord State
-    const reldiv = document.getElementById("latest-related");
     reldiv.innerHTML = "";
-    const relSet = App.State.relatedData[featureKey];
+    const relSet = relatedData[featureKey];
     if (relSet) {
       Object.keys(relSet).map(key => {
         reldiv.innerHTML += key + ": " + relSet[key] + "<br>";
@@ -463,6 +467,7 @@ export const App = {
   },
 
   setupGeoLayer: (key, mapData) => {
+    // TODO: major refactor needed to make functional
     App.mapMeta = mapData.meta;
     App.mapHash = key;
     myMap.myLayerGroup.clearLayers(App.geoLayer);
@@ -485,7 +490,10 @@ export const App = {
           layer,
           feature.properties["OBJECTID"],
           feature.geometry.type,
-          true
+          true,
+          App.State.relatedData,
+          App.State.completedResetDate,
+          App.State.symbology
         );
 
         let featureContentPopup = "";
@@ -604,6 +612,7 @@ export const App = {
   },
 
   featureLabels: () => {
+    // TODO: refactor to functional
     const bounds = Map.getBounds();
     if (App.State.visableFeatures !== null) {
       App.State.visableFeatures.map(layer => {
@@ -615,7 +624,7 @@ export const App = {
       return;
     }
     const redrawToolTips = () => {
-      App.geoLayer.eachLayer(function(layer) {
+      App.geoLayer.eachLayer(layer => {
         let relID = "";
         let hasRelData;
         try {
@@ -667,7 +676,6 @@ const RelatedData = {
       .push(relatedRecord)
       .then(snap => {
         // if successfully synced
-
         const f_id = snap.parent.key; // fudege to retrieve feature key
         App.State.relDataSyncStatus[f_id] = true;
         App.updateRelDataSyncMsg(
@@ -693,8 +701,10 @@ const RelatedData = {
 
     App.selectedFeature.geometry.type + "/";
     RelatedData.nodePath = String(
-      "App/Maps/" + App.mapHash + "/Related/" + RelatedData.featureKey + "/"
+      //    "App/Maps/" + App.mapHash + "/Related/" + RelatedData.featureKey + "/"
+      `App/Maps/${App.mapHash}/Related/${RelatedData.featureKey}/`
     );
+
     const relatedRecord = {};
     relatedRecord.timestamp = Date();
     relatedRecord.user = firebase.auth().currentUser.displayName;
@@ -717,7 +727,11 @@ const RelatedData = {
     );
     App.updateFeatureRelatedState(key, relatedRecord);
 
-    App.updateSidebarRelatedFromState(key);
+    App.updateSidebarRelatedFromState(
+      key,
+      document.getElementById("latest-related"),
+      App.State.relatedData
+    );
     //RelatedData.backupUpRelStateToLocalStorage()
     RelatedData.saveRelDataRecordToLocalStorage(
       App.mapHash,
