@@ -1035,7 +1035,7 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.103");
+  window.alert("ORCL WebApp version 0.9.104");
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
