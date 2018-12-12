@@ -370,10 +370,7 @@ export const App = {
     localStorage.removeItem("latestRelDataBackup");
   },
 
-  pushNewPointToFirebase: ({
-    mapID = "-LNKVocPD7Xnil3Cl5v9",
-    json = { key: "keyVal" }
-  }) => {
+  pushNewPointToFirebase: ({ mapID, json }) => {
     console.log("push Marker to firebase!");
     const refPath = `App/Maps/${mapID}/Markers/`;
     fbDatabase.ref(refPath).push(json);
@@ -670,6 +667,10 @@ export const App = {
       comment: comment.value,
       photo: photo.value,
       timeStamp: Date()
+    });
+    App.pushNewPointToFirebase({
+      mapID: App.mapHash,
+      json: geojsonOb
     });
     console.log("geojsonOb:", geojsonOb);
   },
