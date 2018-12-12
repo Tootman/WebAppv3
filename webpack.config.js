@@ -83,7 +83,7 @@ module.exports = {
   },
   plugins: [
     // new cleanPlugin(['build']),
-
+    /*
     new HtmlWebpackPlugin({
       //hash: true,
       template: "./index.html",
@@ -96,7 +96,7 @@ module.exports = {
         minifyCSS: true
       }
     }),
-
+*/
     // following https://developers.google.com/web/tools/workbox/modules/workbox-webpack-plugin
     new GenerateSW({
       swDest: "sw.js",

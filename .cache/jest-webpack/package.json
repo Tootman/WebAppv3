@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack",
-    "start": "webpack-dev-server --output-public-path=/build/",
+    "start": "webpack-dev-server --output-public-path=/build/ --https",
     "deploy": "gh-pages -d build",
     "test": "jest-webpack"
   },

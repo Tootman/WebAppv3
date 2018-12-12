@@ -101,36 +101,74 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 /*
-import L from "leaflet";
-import firebase from "firebase";
-//import "./style.scss";
-import "leaflet-offline";
-import localforage from "localforage";
-//import logoImg from "./ORCL-logo-cropped.png";
-import leafletKnn from "leaflet-knn";
-//import fontello_ttf from "./fontello/font/fontello.ttf";
-require("./L.Control.Sidebar");
-require("./L.Control.Locate.min");
-import { tilesDb } from "./offline-tiles-module.js";
-import { User } from "./User.js";
-*/
-
-var otherMod = exports.otherMod = {
+export const otherMod = {
   //console.log("myFunc in djsMod!")
-  goodbye: function goodbye() {
+  goodbye: () => {
     console.log("bye from djs mod!");
     return "godbye";
     //alert("hello from djs mod!");
   }
 };
+*/
 
-var djsModmyFunc = exports.djsModmyFunc = {
+/*
+export const djsModmyFunc = {
   //console.log("myFunc in djsMod!")
-  hello: function hello() {
+  hello: () => {
     console.log("hello from djs mod!");
     return "hello";
     //alert("hello from djs mod!");
   }
+};
+*/
+var pushNewPointToFirebase = exports.pushNewPointToFirebase = function pushNewPointToFirebase(_ref) {
+  var mapID = _ref.mapID,
+      Json = _ref.Json;
+
+  var fbDatabase = firebase.database();
+  var refPath = "App/Maps/" + mapID + "/Markers/";
+  // need to test if /Markers exists though
+  //fbDatabase.ref(refPath).push(Json)) //
+};
+var markersFromSnapshot = exports.markersFromSnapshot = function markersFromSnapshot(_ref2) {
+  var snapshot = _ref2.snapshot;
+
+  var geojsonMarkers = Object.keys(snapshot).map(function (featureKey) {
+    return {
+      coordinates: snapshot[featureKey].coordinates,
+      type: snapshot[featureKey].type,
+      propertires: snapshot[featureKey].properties
+    };
+  });
+
+  return geojsonMarkers;
+};
+
+var generateNewPointGeoJson = exports.generateNewPointGeoJson = function generateNewPointGeoJson(_ref3) {
+  var type = _ref3.type,
+      lat = _ref3.lat,
+      lng = _ref3.lng,
+      user = _ref3.user,
+      timeStamp = _ref3.timeStamp,
+      photo = _ref3.photo,
+      comment = _ref3.comment;
+
+  var properties = {};
+  properties.user = user;
+  properties.timeStamp = timeStamp;
+  properties.comment = comment;
+  properties.photo = photo;
+  properties.type = type;
+
+  var geometry = {};
+  geometry.coordinates = [lng, lat];
+  geometry.type = "Point";
+
+  var feature = {};
+  feature.type = "Feature";
+  feature.geometry = geometry;
+  feature.properties = properties;
+  return feature;
 };
 
 /***/ }),
