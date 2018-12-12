@@ -1,18 +1,4 @@
 /*
-import L from "leaflet";
-import firebase from "firebase";
-//import "./style.scss";
-import "leaflet-offline";
-import localforage from "localforage";
-//import logoImg from "./ORCL-logo-cropped.png";
-import leafletKnn from "leaflet-knn";
-//import fontello_ttf from "./fontello/font/fontello.ttf";
-require("./L.Control.Sidebar");
-require("./L.Control.Locate.min");
-import { tilesDb } from "./offline-tiles-module.js";
-import { User } from "./User.js";
-*/
-
 export const otherMod = {
   //console.log("myFunc in djsMod!")
   goodbye: () => {
@@ -21,7 +7,9 @@ export const otherMod = {
     //alert("hello from djs mod!");
   }
 };
+*/
 
+/*
 export const djsModmyFunc = {
   //console.log("myFunc in djsMod!")
   hello: () => {
@@ -29,4 +17,50 @@ export const djsModmyFunc = {
     return "hello";
     //alert("hello from djs mod!");
   }
+};
+*/
+export const pushNewPointToFirebase = ({ mapID, Json }) => {
+  const fbDatabase = firebase.database();
+  const refPath = `App/Maps/${mapID}/Markers/`;
+  // need to test if /Markers exists though
+  //fbDatabase.ref(refPath).push(Json)) //
+};
+
+export const markersFromSnapshot = ({ snapshot }) => {
+  const geojsonMarkers = Object.keys(snapshot).map(featureKey => {
+    return {
+      coordinates: snapshot[featureKey].coordinates,
+      type: snapshot[featureKey].type,
+      propertires: snapshot[featureKey].properties
+    };
+  });
+
+  return geojsonMarkers;
+};
+
+export const generateNewPointGeoJson = ({
+  type, // point/ Marker type
+  lat,
+  lng,
+  user,
+  timeStamp,
+  photo,
+  comment
+}) => {
+  const properties = {};
+  properties.user = user;
+  properties.timeStamp = timeStamp;
+  properties.comment = comment;
+  properties.photo = photo;
+  properties.type = type;
+
+  const geometry = {};
+  geometry.coordinates = [lng, lat];
+  geometry.type = "Point";
+
+  const feature = {};
+  feature.type = "Feature";
+  feature.geometry = geometry;
+  feature.properties = properties;
+  return feature;
 };

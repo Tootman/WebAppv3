@@ -108,6 +108,8 @@ export const App = {
     },
     relatedData: {}, // init va3l
     latestLocation: null, // lat Lng
+    currentLineAddPointLat: null,
+    currentLineAddPointLng: null,
     relDataSyncStatus: {}, // objects holds relatedData sync status flag for each feature, TRUE if synced , False
     surveyed: {}, // true when inspected ie completed , false when not-yet-instected
     completedResetDate: new Date(2018, 9, 1, 0, 0, 0, 0),
@@ -368,6 +370,46 @@ export const App = {
     localStorage.removeItem("latestRelDataBackup");
   },
 
+  pushNewPointToFirebase: ({
+    mapID = "-LNKVocPD7Xnil3Cl5v9",
+    json = { key: "keyVal" }
+  }) => {
+    console.log("push Marker to firebase!");
+    const refPath = `App/Maps/${mapID}/Markers/`;
+    fbDatabase.ref(refPath).push(json);
+    App.sidebar.hide();
+
+    // need to test if /Markers exists though
+    //fbDatabase.ref(refPath).push(Json)) //
+  },
+
+  generateNewPointGeoJson: ({
+    type, // point/ Marker type
+    lat,
+    lng,
+    user,
+    timeStamp,
+    photo,
+    comment
+  }) => {
+    const properties = {};
+    properties.user = user;
+    properties.timeStamp = timeStamp;
+    properties.comment = comment;
+    properties.photo = photo;
+    properties.type = type;
+
+    const geometry = {};
+    geometry.coordinates = [lng, lat];
+    geometry.type = "Point";
+
+    const feature = {};
+    feature.type = "Feature";
+    feature.geometry = geometry;
+    feature.properties = properties;
+    return feature;
+  },
+
   populateRelated: related => {
     if (!related) return;
     const relDataObject = {}; // to be replaced with State etc
@@ -501,10 +543,14 @@ export const App = {
         featureContentPopup = `<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();"><br>
           ${featureLabel} </div>`;
         if (feature.geometry.type == "LineString") {
-          addNoteButtonContent = App.createPopupContentButtonSet(
-            App.State.AddPointButtonsLines
-          );
+          const buttonsOb = App.createPopupContentButtonSet({
+            buttonSet: App.State.AddPointButtonsLines
+            //user: firebase.auth().currentUser.displayName
+          });
+          addNoteButtonContent = buttonsOb.popupContent;
+          //console.log(" popupContent lat, lng:", buttonsOb.lat, buttonsOb.lng);
         }
+
         layer.bindPopup(featureContentPopup + addNoteButtonContent);
         layer.on("click", e => {
           if (App.selectedLayer !== layer) {
@@ -515,7 +561,8 @@ export const App = {
             App.State.symbology.beforeSelectedFillColor =
               layer.options.fillColor;
             App.State.symbology.beforeSelectedLineWeight = layer.options.weight;
-
+            App.State.currentLineAddPointLat = e.latlng.lat;
+            App.State.currentLineAddPointLng = e.latlng.lng;
             // now reset the style of the old layer
           }
           App.selectedFeature = feature; // expose selected feature and layer
@@ -589,17 +636,45 @@ export const App = {
   },
 
   addPointForm: buttonSetType => {
+    const options = {};
     const sidebarContent = `
-    <h3>Add point </h3>
-    type: ${buttonSetType}
-    <p>  <textarea class="form-control" rows="2" id="add-point-comment" placeholder = "optional comment here ..."></textarea></p>
-    <p><button class="btn btn-primary">Add photo</button></p><hr>
-    <p><button class="btn btn-primary">Submit </button> </p>`;
+    <h3>Add point  - ${buttonSetType}</h3>
+    type: <input type="hidden" id="addpoint-type" readonly value = "${buttonSetType}">
+
+    <p>  <textarea class="form-control" rows="2" id="addpoint-comment" placeholder = "optional comment here ..."></textarea></p>
+    <p><button class="btn btn-primary" id="addpoint-photo">Add photo</button></p><hr>
+    <p><button class="btn btn-primary" onclick="App.submitAddButtonForm()">
+    Submit </button> </p>`;
     App.sidebar.setContent(sidebarContent);
     App.sidebar.show();
   },
 
-  createPopupContentButtonSet: buttonSet => {
+  submitAddButtonForm: () => {
+    const type = document.getElementById("addpoint-type");
+
+    const comment = document.getElementById("addpoint-comment");
+    const photo = document.getElementById("addpoint-photo");
+    //console.log("submit:", comment.value);
+    console.log(
+      "createPopupContentButtonSet! lat, lng:",
+      name,
+      App.State.currentLineAddPointLat,
+      App.State.currentLineAddPointLng,
+      firebase.auth().currentUser.displayName
+    );
+    const geojsonOb = App.generateNewPointGeoJson({
+      type: type.value,
+      lat: App.State.currentLineAddPointLat,
+      lng: App.State.currentLineAddPointLng,
+      user: firebase.auth().currentUser.displayName,
+      comment: comment.value,
+      photo: photo.value,
+      timeStamp: Date()
+    });
+    console.log("geojsonOb:", geojsonOb);
+  },
+
+  createPopupContentButtonSet: ({ buttonSet }) => {
     let popupContent = `<div class='dropdown'>
     <button class='btn btn-primary left-spacing'>Add point ...
     </button> <div class='dropdown-content'>`;
@@ -608,7 +683,7 @@ export const App = {
        class="btn btn-primary dropdown-button" >${button.label}</button>`;
     });
     popupContent += `</div></div>`;
-    return popupContent;
+    return { popupContent };
   },
 
   featureLabels: () => {
@@ -1020,14 +1095,21 @@ Map.on("click", e => {
 
 Map.on("dblclick", e => {
   const addPopupToClick = e => {
+    const buttonOb = App.createPopupContentButtonSet({
+      buttonSet: App.State.AddPointButtonsPoints
+      // user: firebase.auth().currentUser.displayName // firebase not accessable
+    });
+
     L.popup()
       .setLatLng(e.latlng)
-      .setContent(
-        App.createPopupContentButtonSet(App.State.AddPointButtonsPoints)
-      )
+      .setContent(buttonOb.popupContent)
+
       .openOn(Map);
   };
   addPopupToClick(e);
+  App.State.currentLineAddPointLat = e.latlng.lat;
+  App.State.currentLineAddPointLng = e.latlng.lng;
+  App.State;
 });
 
 Map.on("moveend", () => {
