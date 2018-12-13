@@ -50,7 +50,8 @@ version: 0.9.06 - beta
 - need to indicate to user when related data form has been successfully submitted
   - LocalStorage.set exceeds quote for Hounslow condition survey (ie v large) dataset
 - how to get browser to reload new version of files ie how to properly implement version control
-- - popup seems only to be bound to 'pre-baked' content (early bound?), so cannot find a way of dynamically rendering the content (ie include user and e.latlng etc on feature.click. so have to retrieve current vals from state instead.
+- popup seems only to be bound to 'pre-baked' content (early bound?), so cannot find a way of dynamically rendering the content (ie include user and e.latlng etc on feature.click. so have to retrieve current vals from state instead.
+- Create Markers Node under Map if doesn't exist
 
 ### dev notes
 
