@@ -335,6 +335,25 @@ export const App = {
       : cogIcon.classList.remove("icon-cog-spin");
   },
 
+  setupMarkersLayer: mapData => {
+    const markers = mapData.Markers;
+    const generatePopupPropSet = marker => {
+      return Object.keys(marker.properties)
+        .map(item => {
+          return item + ": " + marker.properties[item];
+        })
+        .join("<br>");
+    };
+
+    Object.keys(markers).map(markerKey => {
+      const marker = markers[markerKey];
+      const popupContent = generatePopupPropSet(marker);
+      L.marker([marker.geometry.coordinates[1], marker.geometry.coordinates[0]])
+        .bindPopup(popupContent)
+        .addTo(Map);
+    });
+  },
+
   retrieveMapFromFireBase: function(index) {
     let nodePath = String("/App/Maps/" + index);
     App.sidebar.hide();
@@ -346,6 +365,7 @@ export const App = {
         const mapData = snapshot.val();
         App.clearLocalStorageMaps();
         App.setupGeoLayer(index, mapData);
+        App.setupMarkersLayer(mapData);
         document.getElementById("opennewproject").style.display = "none";
         App.busyWorkingIndicator(false);
       })
@@ -356,7 +376,11 @@ export const App = {
   },
 
   saveMapToLocalStorage: (myKey, mapData) => {
-    localStorage.setItem("mapData." + myKey, JSON.stringify(mapData));
+    try {
+      localStorage.setItem("mapData." + myKey, JSON.stringify(mapData));
+    } catch (e) {
+      console.log("couldnt save map to localStorage - maybe too big");
+    }
   },
 
   clearLocalStorageMaps: () => {
@@ -678,7 +702,7 @@ export const App = {
   createPopupContentButtonSet: ({ buttonSet }) => {
     let popupContent = `<div class='dropdown'>
     <button class='btn btn-primary left-spacing'>Add point ...
-    </button> <div class='dropdown-content'>`;
+    </button> <div class='dropdown-content'>0.`;
     const createButtons = buttonSet.map(button => {
       popupContent += `<button onclick="App.addPointForm('${button.id}')"
        class="btn btn-primary dropdown-button" >${button.label}</button>`;
@@ -1035,7 +1059,7 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.104");
+  window.alert("ORCL WebApp version 0.9.106");
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
