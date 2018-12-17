@@ -1,13 +1,5 @@
 self.__precacheManifest = [
   {
-    "revision": "16a68c6d3d711c1ea13e908d0ac3d54c",
-    "url": "fontello/font/fontello.woff2"
-  },
-  {
-    "revision": "bc8b0d1726f744f343b55016842c243b",
-    "url": "index.html"
-  },
-  {
     "revision": "2273e3d8ad9264b7daa5bdbf8e6b47f8",
     "url": "images/marker-icon.png"
   },
@@ -18,6 +10,10 @@ self.__precacheManifest = [
   {
     "revision": "4f0283c6ce28e888000e978e537a6a56",
     "url": "images/layers-2x.png"
+  },
+  {
+    "revision": "16a68c6d3d711c1ea13e908d0ac3d54c",
+    "url": "fontello/font/fontello.woff2"
   },
   {
     "revision": "2057be1651904955c836dffbaeeecd92",
@@ -36,7 +32,7 @@ self.__precacheManifest = [
     "url": "fontello/font/fontello.eot"
   },
   {
-    "revision": "997a1910418e67f521f4",
+    "revision": "34fb58473dddd479430c",
     "url": "bundle.js"
   },
   {
