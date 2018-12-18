@@ -317,7 +317,7 @@ export const App = {
       .addTo(Map);
   },
 
-  populateMapMeta: function() {
+  populateMapMeta: () => {
     const container = document.getElementById("map-info-section");
     let content = "";
     for (const item in App.mapMeta) {
@@ -337,22 +337,32 @@ export const App = {
 
   MarkersLayer: null,
 
+  addMarkerToMarkersLayer: (lat, lng, content) => {
+    L.marker([lat, lng])
+      .bindPopup(content)
+      .addTo(App.MarkersLayer);
+  },
+
+  generatePopupPropSet: marker => {
+    return Object.keys(marker.properties)
+      .map(item => {
+        return item + ": " + marker.properties[item];
+      })
+      .join("<br>");
+  },
+
   setupMarkersLayer: mapData => {
     App.MarkersLayer = new L.layerGroup();
     const markers = mapData.Markers;
-    const generatePopupPropSet = marker => {
-      return Object.keys(marker.properties)
-        .map(item => {
-          return item + ": " + marker.properties[item];
-        })
-        .join("<br>");
-    };
+
     Object.keys(markers).map(markerKey => {
       const marker = markers[markerKey];
-      const popupContent = generatePopupPropSet(marker);
-      L.marker([marker.geometry.coordinates[1], marker.geometry.coordinates[0]])
-        .bindPopup(popupContent)
-        .addTo(App.MarkersLayer);
+      const popupContent = App.generatePopupPropSet(marker);
+      App.addMarkerToMarkersLayer(
+        marker.geometry.coordinates[1],
+        marker.geometry.coordinates[0],
+        popupContent
+      );
     });
     App.MarkersLayer.addTo(Map);
   },
@@ -402,10 +412,27 @@ export const App = {
     localStorage.removeItem("latestRelDataBackup");
   },
 
+  propsTotabularContent: myOb => {
+    return contentStr;
+  },
+
   pushNewPointToFirebase: ({ mapID, json }) => {
     console.log("push Marker to firebase!");
     const refPath = `App/Maps/${mapID}/Markers/`;
-    fbDatabase.ref(refPath).push(json);
+    fbDatabase
+      .ref(refPath)
+      .push(json)
+      .then(snap => {
+        App.addMarkerToMarkersLayer(
+          App.State.currentLineAddPointLat,
+          App.State.currentLineAddPointLng,
+          App.generatePopupPropSet(json)
+        );
+        console.log("pushed!");
+      })
+      .catch(error => {
+        alert("Sorry - something went wrong - have you logged in etc?");
+      });
     App.sidebar.hide();
 
     // need to test if /Markers exists though
@@ -704,7 +731,8 @@ export const App = {
       mapID: App.mapHash,
       json: geojsonOb
     });
-    console.log("geojsonOb:", geojsonOb);
+
+    //console.log("geojsonOb:", geojsonOb);
   },
 
   createPopupContentButtonSet: ({ buttonSet }) => {
