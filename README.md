@@ -1,16 +1,25 @@
-# WebApp
+# WebApp (ConditionSurvey App)
 
 ---
 
-version: 0.9.06 - beta
+version: 0.9.107 - beta
 
 ### Description
 
 'WebApp' is a browser-based Mapping Web App designed for GIS Geo-spatial data collection - (in particular, asset condition surveys), using smartphone, in the field.
 
+### Next todo
+
+- AddPoints:
+- - Persist between sessions ? Manage cached Firebase pushes (similar to RelatedData push)
+- - reset or remove when new map loaded
+- - Move popupcontent to Flyout panel
+- - icon dependent on point 'type'
+- - Push notiification / sync new point on other devices
+
 ### Features
 
-- Offline capability using ServiceWorker (ie PWA)
+- Offline capability using ServiceWorker (PWA)
 - Slippy Basemap tile caching
 - Highlighting of not-yet surveyed features on map
 - cloud storage of data, falling back to localStorage / cached data when Off-line
@@ -60,6 +69,7 @@ version: 0.9.06 - beta
 - Move 'Task completed' Boolean from Geodata object to separate object somewhere in State)
 - Issue of how to handle multiple point features at exact same location - suggested solution - re-process map to force coincident features to be separated geographically - eg signs on post, position above each other to be spaced out say 10cm apart (maybe surrounding the mapped point, or linearly, say due north)
 - js bundle only seems to run from /build/ folder
+- enable html webpack-plugin to recompile index.html, disable the plugin plugin to allow Jest unit testing
 
 ### user stories
 

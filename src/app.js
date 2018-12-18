@@ -335,7 +335,10 @@ export const App = {
       : cogIcon.classList.remove("icon-cog-spin");
   },
 
+  MarkersLayer: null,
+
   setupMarkersLayer: mapData => {
+    App.MarkersLayer = new L.layerGroup();
     const markers = mapData.Markers;
     const generatePopupPropSet = marker => {
       return Object.keys(marker.properties)
@@ -344,14 +347,18 @@ export const App = {
         })
         .join("<br>");
     };
-
     Object.keys(markers).map(markerKey => {
       const marker = markers[markerKey];
       const popupContent = generatePopupPropSet(marker);
       L.marker([marker.geometry.coordinates[1], marker.geometry.coordinates[0]])
         .bindPopup(popupContent)
-        .addTo(Map);
+        .addTo(App.MarkersLayer);
     });
+    App.MarkersLayer.addTo(Map);
+  },
+
+  removeMarkersLayerMarkers: () => {
+    if (!!App.MarkersLayer) App.MarkersLayer.clearLayers();
   },
 
   retrieveMapFromFireBase: function(index) {
@@ -365,6 +372,7 @@ export const App = {
         const mapData = snapshot.val();
         App.clearLocalStorageMaps();
         App.setupGeoLayer(index, mapData);
+        App.removeMarkersLayerMarkers();
         App.setupMarkersLayer(mapData);
         document.getElementById("opennewproject").style.display = "none";
         App.busyWorkingIndicator(false);
@@ -1059,7 +1067,7 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.106");
+  window.alert("ORCL WebApp version 0.9.107");
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {

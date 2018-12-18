@@ -62,14 +62,14 @@
     </div>
     <template id="form-template">
         <table id="fields-section" class="table">
-            
+
             <!-- form fields inserted here -->
         </table>
         <div id="photo-div"></div>
 
-        
+
            <!--  <button type="submit" id="submit-form" onClick="App.submitForm()" class="">Save changes (to above map form)</button> -->
-        
+
         <p>
             <hr>
         </p>
@@ -88,10 +88,11 @@
         </p>
         <label for="photo-capture" id="take-photo-btn" class="btn btn-primary">take photo</label>
         <input id="photo-capture" onChange="RelatedData.addPhoto()" name="photo-capture" style="visibility:hidden;" capture="camera" accept="image/*" type="file"/>
-        
+
         <textarea class="form-control" rows="3" id="related-data-comments" placeholder="put any comments/notes here"></textarea>
-        
+
         <button class="btn btn-primary" onclick="RelatedData.submit()"> Submit related Data</button>
+
         <div id="related-data-info">
         </div>
     </template>
@@ -100,6 +101,7 @@
         <section id="opennewproject">
             <div id="message-area"></div>
             <button id="open-new-project-button" onclick="" class="btn btn-primary">Open map</button>
+
             <div id="maplist">
             </div>
         </section>
