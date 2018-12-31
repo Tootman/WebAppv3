@@ -107,6 +107,7 @@ export const App = {
       }
     },
     relatedData: {}, // init va3l
+    Markers: {},
     latestLocation: null, // lat Lng
     currentLineAddPointLat: null,
     currentLineAddPointLng: null,
@@ -353,10 +354,10 @@ export const App = {
 
   setupMarkersLayer: mapData => {
     App.MarkersLayer = new L.layerGroup();
-    const markers = mapData.Markers;
-
-    Object.keys(markers).map(markerKey => {
-      const marker = markers[markerKey];
+    //const markers = mapData.Markers;
+    App.State.Markers = mapData.Markers;
+    Object.keys(App.State.Markers).map(markerKey => {
+      const marker = App.State.Markers[markerKey];
       const popupContent = App.generatePopupPropSet(marker);
       App.addMarkerToMarkersLayer(
         marker.geometry.coordinates[1],
@@ -423,12 +424,7 @@ export const App = {
       .ref(refPath)
       .push(json)
       .then(snap => {
-        App.addMarkerToMarkersLayer(
-          App.State.currentLineAddPointLat,
-          App.State.currentLineAddPointLng,
-          App.generatePopupPropSet(json)
-        );
-        console.log("pushed!");
+        console.log("pushed new marker!");
       })
       .catch(error => {
         alert("Sorry - something went wrong - have you logged in etc?");
@@ -793,6 +789,28 @@ export const App = {
         interactive: true
       });
     });
+  },
+  setupFbAddMarkerNodeEventCallback: () => {
+    let firstReturnedSnap = true;
+    //const pathRef = `/App/Maps/${App.mapHash}/Markers/`
+    const dbRef = fbDatabase.ref(`/App/Maps/${App.mapHash}/Markers/`);
+    dbRef.limitToLast(1).on("child_added", (snapshot, prevChildKey) => {
+      if (firstReturnedSnap == true) {
+        firstReturnedSnap = false;
+        return;
+      }
+      console.log("snapshot:", snapshot.key, snapshot.val());
+      App.addMarkerToMarkersLayer(
+        App.State.currentLineAddPointLat,
+        App.State.currentLineAddPointLng,
+        App.generatePopupPropSet(snapshot.val())
+      );
+      //const markerExists = App.State.Markers[snapshot.key]
+      //  ? "Exists"
+      //  : "Doenot Exist!";
+      //console.log("exists:", markerExists, App.State.Markers[snapshot.key]);
+      firstReturnedSnap = false;
+    });
   }
 };
 
@@ -1095,7 +1113,8 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.107");
+  window.alert("ORCL WebApp version 0.9.108");
+  App.setupFbAddMarkerNodeEventCallback();
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
