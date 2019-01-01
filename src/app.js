@@ -799,10 +799,14 @@ export const App = {
         firstReturnedSnap = false;
         return;
       }
-      console.log("snapshot:", snapshot.key, snapshot.val());
+      const json = snapshot.val();
+      console.log("snapshot:", snapshot.key, json);
+
       App.addMarkerToMarkersLayer(
-        App.State.currentLineAddPointLat,
-        App.State.currentLineAddPointLng,
+        json.geometry.coordinates[1],
+        json.geometry.coordinates[0],
+        //App.State.currentLineAddPointLng,
+
         App.generatePopupPropSet(snapshot.val())
       );
       //const markerExists = App.State.Markers[snapshot.key]
