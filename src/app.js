@@ -801,18 +801,35 @@ export const App = {
       }
       const json = snapshot.val();
       console.log("snapshot:", snapshot.key, json);
-
       App.addMarkerToMarkersLayer(
         json.geometry.coordinates[1],
         json.geometry.coordinates[0],
-        //App.State.currentLineAddPointLng,
-
         App.generatePopupPropSet(snapshot.val())
       );
-      //const markerExists = App.State.Markers[snapshot.key]
-      //  ? "Exists"
-      //  : "Doenot Exist!";
-      //console.log("exists:", markerExists, App.State.Markers[snapshot.key]);
+
+      firstReturnedSnap = false;
+    });
+  },
+  setupAddRelatedRecordEventListener: () => {
+    // triggered on NewRelRecord in FB. Creates Ob, or overwtires Ob when already exists
+    let firstReturnedSnap = true;
+    const dbRef = fbDatabase.ref(`/App/Maps/${App.mapHash}/Related/`);
+    dbRef.limitToLast(1).on("child_added", (snapshot, prev) => {
+      if (firstReturnedSnap == true) {
+        firstReturnedSnap = false;
+        return;
+      }
+      const relRecordSet = snapshot.val();
+      const latestRecord =
+        relRecordSet[
+          Object.keys(relRecordSet)
+            .sort()
+            .reverse()[0]
+        ];
+      console.log("snapshot:", snapshot.key, latestRecord);
+      //  update/create feature's RelatedData State Object
+      App.updateFeatureRelatedState(snapshot.key, latestRecord);
+      // update feature's symbology
       firstReturnedSnap = false;
     });
   }
@@ -852,6 +869,20 @@ const RelatedData = {
 
   submit: () => {
     // calculate key from OBJECTID + geometrytype
+
+    /*
+    populateRelatedRecordOb = ({
+      timestamp = Date(),
+      user = null,
+      condition = null,
+      comments = "",
+      photo,
+
+    }) => {
+
+    };
+    */
+
     RelatedData.featureKey = String(
       App.selectedFeature.properties.OBJECTID +
         App.selectedFeature.geometry.type
@@ -877,6 +908,7 @@ const RelatedData = {
     if (document.getElementById("related-data-photo").value) {
       relatedRecord.photo = document.getElementById("related-data-photo").value;
     }
+
     const key = RelatedData.featureKey;
     App.State.relDataSyncStatus[key] = false; // while push promise is unresolved
     App.updateRelDataSyncMsg(
@@ -1117,8 +1149,9 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.110");
+  window.alert("ORCL WebApp version 0.9.111");
   App.setupFbAddMarkerNodeEventCallback();
+  App.setupAddRelatedRecordEventListener();
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
