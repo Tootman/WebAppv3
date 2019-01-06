@@ -108,6 +108,7 @@ export const App = {
     },
     relatedData: {}, // init va3l
     Markers: {},
+    featureIdLookup: {},
     latestLocation: null, // lat Lng
     currentLineAddPointLat: null,
     currentLineAddPointLng: null,
@@ -373,6 +374,8 @@ export const App = {
   },
 
   retrieveMapFromFireBase: function(index) {
+    const currentRelatedRef = `/App/Maps/${App.mapHash}/Related/`;
+    fbDatabase.ref(currentRelatedRef).off(); // remove ALL existing listeners from current map
     let nodePath = String("/App/Maps/" + index);
     App.sidebar.hide();
     App.busyWorkingIndicator(true);
@@ -387,6 +390,7 @@ export const App = {
         App.setupMarkersLayer(mapData);
         document.getElementById("opennewproject").style.display = "none";
         App.busyWorkingIndicator(false);
+        App.setupAddRelatedRecordEventListener();
       })
       .catch(err => {
         console.log("Error! cannot retrieve mapdata from firebase:", err);
@@ -576,6 +580,15 @@ export const App = {
       App.State.relatedData = {};
       App.State.relDataSyncStatus = {};
     }
+    const setupFeatureToObjectIdLookup = () => {
+      Object.keys(App.geoLayer._layers).map(layerId => {
+        const layer = App.geoLayer._layers[layerId];
+        const key =
+          layer.feature.properties.OBJECTID + layer.feature.geometry.type;
+        App.State.featureIdLookup[key] = layerId;
+      });
+    };
+
     App.geoLayer = L.geoJson(mapData.Geo, {
       onEachFeature: (feature, layer) => {
         let featureLabel = feature.properties[featureLabelField];
@@ -646,6 +659,7 @@ export const App = {
       interactive: true
     });
     myMap.myLayerGroup.addLayer(App.geoLayer);
+    setupFeatureToObjectIdLookup();
     Map.fitBounds(App.geoLayer.getBounds());
     App.movePolygonsToBack();
     App.saveMapToLocalStorage(key, mapData);
@@ -810,10 +824,29 @@ export const App = {
       firstReturnedSnap = false;
     });
   },
+
+  setFeatureSymbologyToCompleted: featureKey => {
+    const layer = App.geoLayer.getLayer(App.State.featureIdLookup[featureKey]);
+    //layer.setStyle({ color: "green" });
+    App.setCompletedStyle(
+      layer.feature,
+      layer,
+      layer.feature.properties["OBJECTID"],
+      layer.feature.geometry.type,
+      true,
+      App.State.relatedData,
+      App.State.completedResetDate,
+      App.State.symbology
+    );
+  },
+
   setupAddRelatedRecordEventListener: () => {
     // triggered on NewRelRecord in FB. Creates Ob, or overwtires Ob when already exists
+
     let firstReturnedSnap = true;
     const dbRef = fbDatabase.ref(`/App/Maps/${App.mapHash}/Related/`);
+    //dbRef.off(); // remove existing listeners
+    /*
     dbRef.limitToLast(1).on("child_added", (snapshot, prev) => {
       if (firstReturnedSnap == true) {
         firstReturnedSnap = false;
@@ -832,6 +865,19 @@ export const App = {
       // update feature's symbology
       firstReturnedSnap = false;
     });
+    */
+    fbDatabase.ref(dbRef).on("child_added", (snapshot, prev) => {
+      const snap = snapshot.val();
+      const record =
+        snap[
+          Object.keys(snap)
+            .sort()
+            .reverse()[0]
+        ];
+      console.log("latest:", record);
+      App.updateFeatureRelatedState(snapshot.key, record);
+      App.setFeatureSymbologyToCompleted(snapshot.key);
+    });
   }
 };
 
@@ -847,7 +893,7 @@ const RelatedData = {
 
   pushRelatedDataRecord: (relDataPath, featureKey, relatedRecord) => {
     fbDatabase
-      .ref(relDataPath) // meed to move this constant into App.State
+      .ref(relDataPath) // need to move this constant into App.State
       .push(relatedRecord)
       .then(snap => {
         // if successfully synced
@@ -1151,7 +1197,6 @@ const initApp = () => {
   App.loadMapDataFromLocalStorage();
   window.alert("ORCL WebApp version 0.9.111");
   App.setupFbAddMarkerNodeEventCallback();
-  App.setupAddRelatedRecordEventListener();
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
