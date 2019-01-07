@@ -61,40 +61,35 @@
         <h1>leaflet-sidebar</h1>
     </div>
     <template id="form-template">
-        <table id="fields-section" class="table">
 
-            <!-- form fields inserted here -->
-        </table>
+<h3 id="relatedform-title">Title</h3>
+<hr>
         <div id="photo-div"></div>
 
 
            <!--  <button type="submit" id="submit-form" onClick="App.submitForm()" class="">Save changes (to above map form)</button> -->
 
+
         <p>
-            <hr>
-        </p>
-        <h4>Related data </h4>
-        <p>
-            <b>Latest: </b>
-            <br>
             <div id="rel-data-sync-message"></div>
             <div id="latest-related"></div>
         </p>
         <p>Condition:
             <select class="form-control" id="related-data-condition" placeholder="enter one of: 1,2,3,4,5,6, Not found" />
         </p>
-        <p>Photo:
-            <input type="text" id="related-data-photo" placeholder="{photo} - use the take photo button" />
+        <p>
+            <input type="hidden" id="related-data-photo" placeholder="{photo} - use the take photo button" />
         </p>
-        <label for="photo-capture" id="take-photo-btn" class="btn btn-primary">take photo</label>
-        <input id="photo-capture" onChange="RelatedData.addPhoto()" name="photo-capture" style="visibility:hidden;" capture="camera" accept="image/*" type="file"/>
-
-        <textarea class="form-control" rows="3" id="related-data-comments" placeholder="put any comments/notes here"></textarea>
-
-        <button class="btn btn-primary" onclick="RelatedData.submit()"> Submit related Data</button>
-
+        <p><label for="photo-capture" id="take-photo-btn" class="btn btn-sm btn-warning">Take photo</label>
+        <input id="photo-capture" onChange="RelatedData.addPhoto()" name="photo-capture" style="visibility:hidden;" capture="camera" accept="image/*" type="file"/></p>
+        <p><textarea class="form-control" rows="3" id="related-data-comments" placeholder="Comments ..."></textarea></p>
+        <p><button class="btn btn-primary" onclick="RelatedData.submit()"> Submit related Data</button></P>
         <div id="related-data-info">
         </div>
+        <table id="fields-section" class="table">
+
+            <!-- form fields inserted here -->
+        </table>
     </template>
     <template id="settings-template">
         <h1 class="sidebar-heading"></h1>

@@ -15,7 +15,6 @@ version: 0.9.107 - beta
 - - reset or remove when new map loaded
 - - Move popupcontent to Flyout panel
 - - icon dependent on point 'type'
-- - Push notiification / sync new point on other devices
 
 ### Features
 
@@ -23,6 +22,7 @@ version: 0.9.107 - beta
 - Slippy Basemap tile caching
 - Highlighting of not-yet surveyed features on map
 - cloud storage of data, falling back to localStorage / cached data when Off-line
+- Live update on all devices when a user adds Marker, or adds or modifies RelatedData record
 
 ## User guidance / notes
 
@@ -61,6 +61,8 @@ version: 0.9.107 - beta
 - how to get browser to reload new version of files ie how to properly implement version control
 - popup seems only to be bound to 'pre-baked' content (early bound?), so cannot find a way of dynamically rendering the content (ie include user and e.latlng etc on feature.click. so have to retrieve current vals from state instead.
 - Create Markers Node under Map if doesn't exist
+- Firebase RelatedData on_added node callback not working as expected. Tried to follow pattern for AddMarker callback, which does work as expected. Issue is that all existing nodes trigger callback.
+- antialias on marker icon (or what ever the issue is)
 
 ### dev notes
 

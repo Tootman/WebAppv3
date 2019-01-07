@@ -190,6 +190,8 @@ export const App = {
     }
     const p = App.selectedFeature.properties;
     renderSideBar();
+    const titleDiv = document.getElementById("relatedform-title");
+    titleDiv.innerHTML = p.Asset;
     this.generateFeatureEditFormElements(
       p,
       document.getElementById("fields-section")
@@ -456,11 +458,9 @@ export const App = {
     properties.comment = comment;
     properties.photo = photo;
     properties.type = type;
-
     const geometry = {};
     geometry.coordinates = [lng, lat];
     geometry.type = "Point";
-
     const feature = {};
     feature.type = "Feature";
     feature.geometry = geometry;
@@ -529,23 +529,21 @@ export const App = {
     App.State.relatedData[featureKey] = relatedData;
   },
 
-  setCompletedStyle: (
-    featureOb,
-    layerOb,
-    objectID,
-    ObjectType,
+  setCompletedStyle: ({
+    feature,
+    layer,
     isCompleted,
-    relatedData,
-    completedResetDate,
-    symbology
-  ) => {
-    const featureKey = objectID + ObjectType; // strings
+    completedResetDate = App.State.completedResetDate
+  }) => {
+    const symbology = App.State.symbology;
+    const relatedData = App.State.relatedData;
+    const featureKey = feature.properties.OBJECTID + feature.geometry.type; // strings
     if (relatedData[featureKey] !== undefined) {
       var relDataDate = new Date(Date.parse(relatedData[featureKey].timestamp));
       const refDate = completedResetDate.getTime();
       var relDate = relDataDate.getTime();
       if (relDataDate > completedResetDate) {
-        layerOb.setStyle({
+        layer.setStyle({
           color: symbology.completedColor, // why not working??
           fillColor: symbology.completedFillColor,
           weight: symbology.completedLineWeight,
@@ -594,16 +592,11 @@ export const App = {
     App.geoLayer = L.geoJson(mapData.Geo, {
       onEachFeature: (feature, layer) => {
         let featureLabel = feature.properties[featureLabelField];
-        App.setCompletedStyle(
-          feature,
-          layer,
-          feature.properties["OBJECTID"],
-          feature.geometry.type,
-          true,
-          App.State.relatedData,
-          App.State.completedResetDate,
-          App.State.symbology
-        );
+        App.setCompletedStyle({
+          feature: feature,
+          layer: layer,
+          isCompleted: true
+        });
 
         let featureContentPopup = "";
         let addNoteButtonContent = "";
@@ -719,17 +712,8 @@ export const App = {
 
   submitAddButtonForm: () => {
     const type = document.getElementById("addpoint-type");
-
     const comment = document.getElementById("addpoint-comment");
     const photo = document.getElementById("addpoint-photo");
-    //console.log("submit:", comment.value);
-    console.log(
-      "createPopupContentButtonSet! lat, lng:",
-      name,
-      App.State.currentLineAddPointLat,
-      App.State.currentLineAddPointLng,
-      firebase.auth().currentUser.displayName
-    );
     const geojsonOb = App.generateNewPointGeoJson({
       type: type.value,
       lat: App.State.currentLineAddPointLat,
@@ -829,25 +813,17 @@ export const App = {
 
   setFeatureSymbologyToCompleted: featureKey => {
     const layer = App.geoLayer.getLayer(App.State.featureIdLookup[featureKey]);
-    //layer.setStyle({ color: "green" });
-    App.setCompletedStyle(
-      layer.feature,
-      layer,
-      layer.feature.properties["OBJECTID"],
-      layer.feature.geometry.type,
-      true,
-      App.State.relatedData,
-      App.State.completedResetDate,
-      App.State.symbology
-    );
+    App.setCompletedStyle({
+      layer: layer,
+      feature: layer.feature,
+      isCompleted: true
+    });
   },
 
   setupAddRelatedRecordEventListener: () => {
     // triggered on NewRelRecord in FB. Creates Ob, or overwtires Ob when already exists
 
-    //let firstReturnedSnap = true;
     const dbRef = fbDatabase.ref(`/App/Maps/${App.mapHash}/Related/`);
-
     const handleRelatedCallback = snapshot => {
       const snap = snapshot.val();
       const record =
@@ -860,28 +836,6 @@ export const App = {
       App.updateFeatureRelatedState(snapshot.key, record);
       App.setFeatureSymbologyToCompleted(snapshot.key);
     };
-
-    //dbRef.off(); // remove existing listeners
-    /*
-    dbRef.limitToLast(1).on("child_added", (snapshot, prev) => {
-      if (firstReturnedSnap == true) {
-        firstReturnedSnap = false;
-        return;
-      }
-      const relRecordSet = snapshot.val();
-      const latestRecord =
-        relRecordSet[
-          Object.keys(relRecordSet)
-            .sort()
-            .reverse()[0]
-        ];
-      console.log("snapshot:", snapshot.key, latestRecord);
-      //  update/create feature's RelatedData State Object
-      App.updateFeatureRelatedState(snapshot.key, latestRecord);
-      // update feature's symbology
-      firstReturnedSnap = false;
-    });
-    */
     fbDatabase.ref(dbRef).on("child_added", (snapshot, prev) => {
       handleRelatedCallback(snapshot);
     });
@@ -928,19 +882,6 @@ const RelatedData = {
 
   submit: () => {
     // calculate key from OBJECTID + geometrytype
-
-    /*
-    populateRelatedRecordOb = ({
-      timestamp = Date(),
-      user = null,
-      condition = null,
-      comments = "",
-      photo,
-
-    }) => {
-
-    };
-    */
 
     RelatedData.featureKey = String(
       App.selectedFeature.properties.OBJECTID +
