@@ -167,7 +167,7 @@ export const App = {
     if (el == null) return; //exit if element doesn yet exist ie of form is'nt open
     let msg = "";
     if (syncStatus == null) {
-      msg = "no related data";
+      msg = "";
     } else if (syncStatus == true) {
       msg = "successful sync";
     } else if (syncStatus == false) {
@@ -910,10 +910,11 @@ const RelatedData = {
         // if successfully synced
         const f_id = snap.parent.key; // fudege to retrieve feature key
         App.State.relDataSyncStatus[f_id] = true;
-        App.updateRelDataSyncMsg(
-          App.State.relDataSyncStatus[f_id],
-          document.getElementById("rel-data-sync-message")
-        );
+        //App.updateRelDataSyncMsg(
+        //    App.State.relDataSyncStatus[f_id],
+        //    document.getElementById("rel-data-sync-message")
+        //  );
+        App.sidebar.hide();
         // Remove record from local storage
         const localStorageKey =
           "backup.relatedData." + App.mapHash + "." + featureKey;
@@ -921,6 +922,7 @@ const RelatedData = {
       })
       .catch(error => {
         alert("Sorry - something went wrong - have you logged in etc?");
+        //document.getElementById("rel-data-sync-message")
       });
   },
 
@@ -987,7 +989,7 @@ const RelatedData = {
     );
     // RelatedData.backupUpRelStateToLocalStorage();
     RelatedData.pushRelatedDataRecord(RelatedData.nodePath, key, relatedRecord);
-    document.getElementById("related-data-info").innerHTML = "Submitted!";
+    //document.getElementById("related-data-info").innerHTML = "Submitted!";
     App.State.symbology.beforeSelectedColor =
       App.State.symbology.completedColor;
     App.State.symbology.beforeSelectedFillColor =
