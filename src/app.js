@@ -1208,7 +1208,7 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.111");
+  window.alert("ORCL WebApp version 0.9.112");
   App.setupFbAddMarkerNodeEventCallback();
 
   // ----- offline service worker -----------
