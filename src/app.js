@@ -109,6 +109,7 @@ export const App = {
     relatedData: {}, // init va3l
     Markers: {},
     featureIdLookup: {},
+    //firstReturnedRelDataCallback: true,
     latestLocation: null, // lat Lng
     currentLineAddPointLat: null,
     currentLineAddPointLng: null,
@@ -390,6 +391,7 @@ export const App = {
         App.setupMarkersLayer(mapData);
         document.getElementById("opennewproject").style.display = "none";
         App.busyWorkingIndicator(false);
+        //App.State.firstReturnedRelDataCallback = false;
         App.setupAddRelatedRecordEventListener();
       })
       .catch(err => {
@@ -809,7 +811,7 @@ export const App = {
     //const pathRef = `/App/Maps/${App.mapHash}/Markers/`
     const dbRef = fbDatabase.ref(`/App/Maps/${App.mapHash}/Markers/`);
     dbRef.limitToLast(1).on("child_added", (snapshot, prevChildKey) => {
-      if (firstReturnedSnap == true) {
+      if (firstReturnedSnap) {
         firstReturnedSnap = false;
         return;
       }
@@ -843,8 +845,22 @@ export const App = {
   setupAddRelatedRecordEventListener: () => {
     // triggered on NewRelRecord in FB. Creates Ob, or overwtires Ob when already exists
 
-    let firstReturnedSnap = true;
+    //let firstReturnedSnap = true;
     const dbRef = fbDatabase.ref(`/App/Maps/${App.mapHash}/Related/`);
+
+    const handleRelatedCallback = snapshot => {
+      const snap = snapshot.val();
+      const record =
+        snap[
+          Object.keys(snap)
+            .sort()
+            .reverse()[0]
+        ];
+      //console.log("latest:", record);
+      App.updateFeatureRelatedState(snapshot.key, record);
+      App.setFeatureSymbologyToCompleted(snapshot.key);
+    };
+
     //dbRef.off(); // remove existing listeners
     /*
     dbRef.limitToLast(1).on("child_added", (snapshot, prev) => {
@@ -867,16 +883,11 @@ export const App = {
     });
     */
     fbDatabase.ref(dbRef).on("child_added", (snapshot, prev) => {
-      const snap = snapshot.val();
-      const record =
-        snap[
-          Object.keys(snap)
-            .sort()
-            .reverse()[0]
-        ];
-      console.log("latest:", record);
-      App.updateFeatureRelatedState(snapshot.key, record);
-      App.setFeatureSymbologyToCompleted(snapshot.key);
+      handleRelatedCallback(snapshot);
+    });
+
+    fbDatabase.ref(dbRef).on("child_changed", snapshot => {
+      handleRelatedCallback(snapshot);
     });
   }
 };
