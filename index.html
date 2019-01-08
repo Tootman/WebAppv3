@@ -62,19 +62,15 @@
     </div>
     <template id="form-template">
 
-<h3 id="relatedform-title">Title</h3>
+<h5 id="relatedform-title"></h5>
 <hr>
         <div id="photo-div"></div>
-
-
            <!--  <button type="submit" id="submit-form" onClick="App.submitForm()" class="">Save changes (to above map form)</button> -->
-
-
         <p>
             <div id="rel-data-sync-message"></div>
             <div id="latest-related"></div>
         </p>
-        <p>Condition:
+        <p>Condition
             <select class="form-control" id="related-data-condition" placeholder="enter one of: 1,2,3,4,5,6, Not found" />
         </p>
         <p>
@@ -82,14 +78,16 @@
         </p>
         <p><label for="photo-capture" id="take-photo-btn" class="btn btn-sm btn-warning">Take photo</label>
         <input id="photo-capture" onChange="RelatedData.addPhoto()" name="photo-capture" style="visibility:hidden;" capture="camera" accept="image/*" type="file"/></p>
-        <p><textarea class="form-control" rows="3" id="related-data-comments" placeholder="Comments ..."></textarea></p>
-        <p><button class="btn btn-primary" onclick="RelatedData.submit()"> Submit related Data</button></P>
+        <p><textarea class="form-control" rows="3" id="related-data-comments" placeholder="Comment / note"></textarea></p>
+        <p><button class="btn btn-primary" onclick="RelatedData.submit()"> Submit</button></P>
         <div id="related-data-info">
         </div>
+        <hr>
+        <p><h5>Original map data</h5>
         <table id="fields-section" class="table">
 
             <!-- form fields inserted here -->
-        </table>
+        </table> </p>
     </template>
     <template id="settings-template">
         <h1 class="sidebar-heading"></h1>

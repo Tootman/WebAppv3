@@ -63,6 +63,7 @@ version: 0.9.107 - beta
 - Create Markers Node under Map if doesn't exist
 - Firebase RelatedData on_added node callback not working as expected. Tried to follow pattern for AddMarker callback, which does work as expected. Issue is that all existing nodes trigger callback.
 - antialias on marker icon (or what ever the issue is)
+- load markers from cached map data when offline
 
 ### dev notes
 

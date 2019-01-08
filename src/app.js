@@ -114,7 +114,7 @@ export const App = {
     currentLineAddPointLat: null,
     currentLineAddPointLng: null,
     relDataSyncStatus: {}, // objects holds relatedData sync status flag for each feature, TRUE if synced , False
-    surveyed: {}, // true when inspected ie completed , false when not-yet-instected
+    //surveyed: {}, // true when inspected ie completed , false when not-yet-instected
     completedResetDate: new Date(2018, 9, 1, 0, 0, 0, 0),
     symbology: {
       uncompletedColor: "red",
@@ -179,10 +179,7 @@ export const App = {
   },
 
   whenGeoFeatureClicked: function() {
-    const fId =
-      App.selectedFeature.properties.OBJECTID +
-      App.selectedFeature.geometry.type;
-
+    const fId = App.featureToKey(App.selectedFeature);
     function renderSideBar() {
       App.sidebar.setContent(
         document.getElementById("form-template").innerHTML
@@ -191,7 +188,7 @@ export const App = {
     const p = App.selectedFeature.properties;
     renderSideBar();
     const titleDiv = document.getElementById("relatedform-title");
-    titleDiv.innerHTML = p.Asset;
+    titleDiv.innerHTML = `Asset: ${p.Asset}`;
     this.generateFeatureEditFormElements(
       p,
       document.getElementById("fields-section")
@@ -242,24 +239,20 @@ export const App = {
         }
         parent.appendChild(x);
       };
-
       const createLabel = parent => {
         const x = document.createElement("td");
         x.innerHTML = prop;
         parent.appendChild(x);
       };
-
       const createRow = parent => {
         const x = document.createElement("div");
-        x.innerHTML = prop + " " + value + "<br>";
+        x.innerHTML = `${prop}  ${value}<br>`;
         parent.appendChild(x);
       };
-
       const wrapperDiv = createWrapperDiv(parentTag);
       createLabel(wrapperDiv, el, type, prop, value);
       createValueLabel(wrapperDiv, el, type, prop, value);
     };
-
     const createFormItems = Object.keys(props).forEach(key => {
       const propType = typeof props[key];
       if (propType === "string" || propType === "number") {
@@ -301,7 +294,6 @@ export const App = {
           );
           User().initLoginForm();
           if (!!App.geoLayer) App.populateMapMeta();
-
           document
             .getElementById("open-new-project-button")
             .addEventListener("click", function() {
@@ -327,7 +319,7 @@ export const App = {
     let content = "";
     for (const item in App.mapMeta) {
       if (!!item) {
-        content += String(item + ": " + App.mapMeta[item] + "<br>");
+        content += `${item}: ${App.mapMeta[item]}<br>`;
       }
     }
     container.innerHTML = content;
@@ -351,14 +343,13 @@ export const App = {
   generatePopupPropSet: marker => {
     return Object.keys(marker.properties)
       .map(item => {
-        return item + ": " + marker.properties[item];
+        return `${item}: ${marker.properties[item]}`;
       })
       .join("<br>");
   },
 
   setupMarkersLayer: mapData => {
     App.MarkersLayer = new L.layerGroup();
-    //const markers = mapData.Markers;
     App.State.Markers = mapData.Markers;
     Object.keys(App.State.Markers).map(markerKey => {
       const marker = App.State.Markers[markerKey];
@@ -379,7 +370,7 @@ export const App = {
   retrieveMapFromFireBase: function(index) {
     const currentRelatedRef = `/App/Maps/${App.mapHash}/Related/`;
     fbDatabase.ref(currentRelatedRef).off(); // remove ALL existing listeners from current map
-    let nodePath = String("/App/Maps/" + index);
+    let nodePath = `/App/Maps/${index}`;
     App.sidebar.hide();
     App.busyWorkingIndicator(true);
     fbDatabase
@@ -406,7 +397,7 @@ export const App = {
     try {
       localStorage.setItem("mapData." + myKey, JSON.stringify(mapData));
     } catch (e) {
-      console.log("couldnt save map to localStorage - maybe too big");
+      alert("couldnt save map to localStorage - maybe too big ");
     }
   },
 
@@ -505,13 +496,6 @@ export const App = {
         App.State.relatedData[itemFeatureKey].timestamp
       );
       if (localStorageTime.getTime() > stateTime.getTime()) {
-        console.log(
-          "New item to upload! : ",
-          itemFeatureKey,
-          item.timestamp,
-          "State Timestamp:",
-          App.State.relatedData[itemFeatureKey].timestamp
-        );
         App.updateFeatureRelatedState(itemFeatureKey, item);
         App.State.relDataSyncStatus[key] = false; // while item is sucessfully pushed to db
         RelatedData.pushRelatedDataRecord(
@@ -525,7 +509,6 @@ export const App = {
   },
 
   updateFeatureRelatedState: (featureKey, relatedData) => {
-    // update a single feature's RelatedRecord State
     App.State.relatedData[featureKey] = relatedData;
   },
 
@@ -537,7 +520,7 @@ export const App = {
   }) => {
     const symbology = App.State.symbology;
     const relatedData = App.State.relatedData;
-    const featureKey = feature.properties.OBJECTID + feature.geometry.type; // strings
+    const featureKey = App.featureToKey(feature);
     if (relatedData[featureKey] !== undefined) {
       var relDataDate = new Date(Date.parse(relatedData[featureKey].timestamp));
       const refDate = completedResetDate.getTime();
@@ -558,10 +541,11 @@ export const App = {
     reldiv.innerHTML = "";
     const relSet = relatedData[featureKey];
     if (relSet) {
+      reldiv.innerHTML = `<h6>Latest related data</h6>`;
       Object.keys(relSet).map(key => {
-        reldiv.innerHTML += key + ": " + relSet[key] + "<br>";
+        reldiv.innerHTML += `${key}: ${relSet[key]}<br>`;
       });
-    } else reldiv.innerHTML = "";
+    } else reldiv.innerHTML = "no related data found";
   },
 
   setupGeoLayer: (key, mapData) => {
@@ -569,6 +553,7 @@ export const App = {
     App.mapMeta = mapData.meta;
     App.mapHash = key;
     myMap.myLayerGroup.clearLayers(App.geoLayer);
+    App.State.featureIdLookup = {};
     const featureLabelField = mapData.Meta
       ? mapData.Meta.LabelProperty
       : "Asset";
@@ -583,8 +568,7 @@ export const App = {
     const setupFeatureToObjectIdLookup = () => {
       Object.keys(App.geoLayer._layers).map(layerId => {
         const layer = App.geoLayer._layers[layerId];
-        const key =
-          layer.feature.properties.OBJECTID + layer.feature.geometry.type;
+        const key = App.featureToKey(layer.feature);
         App.State.featureIdLookup[key] = layerId;
       });
     };
@@ -670,7 +654,6 @@ export const App = {
   },
 
   movePolygonsToBack() {
-    //move polygons to back
     App.geoLayer.eachLayer(layer => {
       if (layer.feature.geometry.type == "Polygon") {
         layer.bringToBack();
@@ -727,8 +710,6 @@ export const App = {
       mapID: App.mapHash,
       json: geojsonOb
     });
-
-    //console.log("geojsonOb:", geojsonOb);
   },
 
   createPopupContentButtonSet: ({ buttonSet }) => {
@@ -760,8 +741,7 @@ export const App = {
         let relID = "";
         let hasRelData;
         try {
-          relID =
-            layer.feature.properties.OBJECTID + layer.feature.geometry.type;
+          relID = App.featureToKey(layer.feature);
           hasRelData = App.State.relatedData[relID];
         } catch (err) {
           relID = undefined;
@@ -832,7 +812,6 @@ export const App = {
             .sort()
             .reverse()[0]
         ];
-      //console.log("latest:", record);
       App.updateFeatureRelatedState(snapshot.key, record);
       App.setFeatureSymbologyToCompleted(snapshot.key);
     };
@@ -843,6 +822,9 @@ export const App = {
     fbDatabase.ref(dbRef).on("child_changed", snapshot => {
       handleRelatedCallback(snapshot);
     });
+  },
+  featureToKey: feature => {
+    return `${feature.properties.OBJECTID}${feature.geometry.type}`;
   }
 };
 
@@ -864,10 +846,6 @@ const RelatedData = {
         // if successfully synced
         const f_id = snap.parent.key; // fudege to retrieve feature key
         App.State.relDataSyncStatus[f_id] = true;
-        //App.updateRelDataSyncMsg(
-        //    App.State.relDataSyncStatus[f_id],
-        //    document.getElementById("rel-data-sync-message")
-        //  );
         App.sidebar.hide();
         // Remove record from local storage
         const localStorageKey =
@@ -876,24 +854,14 @@ const RelatedData = {
       })
       .catch(error => {
         alert("Sorry - something went wrong - have you logged in etc?");
-        //document.getElementById("rel-data-sync-message")
       });
   },
 
   submit: () => {
-    // calculate key from OBJECTID + geometrytype
-
-    RelatedData.featureKey = String(
-      App.selectedFeature.properties.OBJECTID +
-        App.selectedFeature.geometry.type
-    );
-
-    App.selectedFeature.geometry.type + "/";
-    RelatedData.nodePath = String(
-      //    "App/Maps/" + App.mapHash + "/Related/" + RelatedData.featureKey + "/"
-      `App/Maps/${App.mapHash}/Related/${RelatedData.featureKey}/`
-    );
-
+    RelatedData.featureKey = App.featureToKey(App.selectedFeature);
+    RelatedData.nodePath = `App/Maps/${App.mapHash}/Related/${
+      RelatedData.featureKey
+    }/`;
     const relatedRecord = {};
     relatedRecord.timestamp = Date();
     relatedRecord.user = firebase.auth().currentUser.displayName;
@@ -916,7 +884,6 @@ const RelatedData = {
       document.getElementById("rel-data-sync-message")
     );
     App.updateFeatureRelatedState(key, relatedRecord);
-
     App.updateSidebarRelatedFromState(
       key,
       document.getElementById("latest-related"),
@@ -962,29 +929,12 @@ const RelatedData = {
 
 window.RelatedData = RelatedData;
 
-function uploadMapToFirebase() {
-  // grab the blobal Mapindex, then send gson layer up to node
-  const nodePath = String("App/Maps/" + App.mapHash + "/Geo");
-
-  fbDatabase
-    .ref(nodePath)
-    .set(App.geoLayer.toGeoJSON())
-    .catch(function(error) {
-      alert("Sorry you need to be logged in to do this");
-    });
-}
-
 window.User = User;
-function loadMyLayer(layerName) {
-  // just for testing
-
+const loadMyLayer = layerName => {
   document.getElementById("open-new-project-button").style.display = "none";
-  //loadFromPresetButtons(layerName);
   loadProject();
-
   function loadProject() {
     retriveMapIndexFromFirebase();
-
     function retriveMapIndexFromFirebase() {
       document.getElementById("message-area").innerHTML =
         "<p>waiting for network connection ...</p>";
@@ -1021,7 +971,7 @@ function loadMyLayer(layerName) {
       });
     }
   }
-}
+};
 
 function initLogoWatermark() {
   L.Control.watermark = L.Control.extend({
@@ -1051,14 +1001,12 @@ const setupOfflineBaseLayerControls = () => {
       label: "Greyscale",
       class: "greyscale-offline-control"
     },
-
     {
       object: myMap.satLayer,
       label: "Satellite",
       class: "satellite-offline-control"
     }
   ];
-
   return myBaseLayerControls.map(layer => {
     return L.control.offline(layer.object, tilesDb, {
       saveButtonHtml: `<i id="${layer.object}" title="Save ${
@@ -1083,7 +1031,6 @@ const setupOfflineBaseLayerControls = () => {
     });
   });
 };
-
 L.Control.OfflineBaselayersControl = L.Control.extend({
   onAdd: function(map) {
     const OfflineBaselayersControl_div = L.DomUtil.create(
@@ -1109,7 +1056,6 @@ L.Control.OfflineBaselayersControl = L.Control.extend({
 L.control.OfflineBaselayersControl = opts => {
   return new L.Control.OfflineBaselayersControl(opts);
 };
-
 const fireBaseconfig = {
   apiKey: "AIzaSyB977vJdWTGA-JJ03xotQkeu8X4_Ds_BLQ",
   authDomain: "fir-realtime-db-24299.firebaseapp.com",
@@ -1125,6 +1071,7 @@ var offlineLayerControls = {};
 const initApp = () => {
   App.State.relatedData = {};
   App.State.visableFeatures = [];
+  App.State.featureIdLookup = {};
   App.State.symbology.beforeSelectedColor = {};
   App.State.symbology.beforeSelectedFillColor = {};
   firebase.initializeApp(fireBaseconfig);
@@ -1200,9 +1147,7 @@ function initLocationControl() {
     })
     .addTo(Map);
 }
-
 Map.on("locationfound", updateLatestLocation);
-
 Map.on("click", e => {
   App.unsetSelectedStyle();
   App.selectedLayer = null;
@@ -1215,11 +1160,9 @@ Map.on("dblclick", e => {
       buttonSet: App.State.AddPointButtonsPoints
       // user: firebase.auth().currentUser.displayName // firebase not accessable
     });
-
     L.popup()
       .setLatLng(e.latlng)
       .setContent(buttonOb.popupContent)
-
       .openOn(Map);
   };
   addPopupToClick(e);
@@ -1227,7 +1170,6 @@ Map.on("dblclick", e => {
   App.State.currentLineAddPointLng = e.latlng.lng;
   App.State;
 });
-
 Map.on("moveend", () => {
   App.featureLabels();
 });
