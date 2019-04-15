@@ -8,16 +8,19 @@ import leafletKnn from "leaflet-knn";
 import fontello_ttf from "./fontello/font/fontello.ttf";
 require("./L.Control.Sidebar");
 require("./L.Control.Locate.min");
-import { tilesDb } from "./offline-tiles-module.js";
-import { User } from "./User.js";
+import {
+  tilesDb
+} from "./offline-tiles-module.js";
+import {
+  User
+} from "./User.js";
 //import { djsModmyFunc } from "./djs_module.js";
 
 const myMap = {
   setupBaseLayer: function() {
     this.greyscaleLayer = L.tileLayer.offline(
       App.State.settings.mbUrl,
-      tilesDb,
-      {
+      tilesDb, {
         id: "mapbox.light",
         attribution: App.State.settings.mbAttr,
         maxZoom: 26,
@@ -97,16 +100,16 @@ export const App = {
           weight: 1
         }
       },
-      mbAttr:
-        '<a href="http://openstreetmap.org">OSMap</a> ©<a href="http://mapbox.com">Mapbox</a>',
-      mbUrl:
-        "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w",
+      mbAttr: '<a href="http://openstreetmap.org">OSMap</a> ©<a href="http://mapbox.com">Mapbox</a>',
+      mbUrl: "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w",
       uploadjsonURL: "https://geo.danieljsimmons.uk/dan1/upload/uploadjson.php",
       editform: {
         assetConditionOptions: [6, 5, 4, 3, 2, 1, "n/a"]
       }
     },
     relatedData: {}, // init va3l
+    mapHash: null,
+    relatedDataMapHash: "-LR7CewcYJ2ZUDgCJSK8",
     Markers: {},
     featureIdLookup: {},
     //firstReturnedRelDataCallback: true,
@@ -141,16 +144,35 @@ export const App = {
         pv: "partially visable"
       }
     },
-    AddPointButtonsPoints: [
-      { label: "Hazard", id: "hazard" },
-      { label: "Unmapped asset", id: "unmappedAsset" },
-      { label: "general comment", id: "comment" }
+    AddPointButtonsPoints: [{
+        label: "Hazard",
+        id: "hazard"
+      },
+      {
+        label: "Unmapped asset",
+        id: "unmappedAsset"
+      },
+      {
+        label: "general comment",
+        id: "comment"
+      }
     ],
-    AddPointButtonsLines: [
-      { label: "Hazard", id: "hazard" },
-      { label: "Unmapped asset", id: "unmappedAsset" },
-      { label: "General comment", id: "comment" },
-      { label: "Breach in barrier", id: "breach" }
+    AddPointButtonsLines: [{
+        label: "Hazard",
+        id: "hazard"
+      },
+      {
+        label: "Unmapped asset",
+        id: "unmappedAsset"
+      },
+      {
+        label: "General comment",
+        id: "comment"
+      },
+      {
+        label: "Breach in barrier",
+        id: "breach"
+      }
     ]
   },
 
@@ -180,6 +202,7 @@ export const App = {
 
   whenGeoFeatureClicked: function() {
     const fId = App.featureToKey(App.selectedFeature);
+
     function renderSideBar() {
       App.sidebar.setContent(
         document.getElementById("form-template").innerHTML
@@ -328,8 +351,9 @@ export const App = {
   busyWorkingIndicator: busyWorking => {
     const cogIcon = document.getElementsByClassName("icon-cog")[0];
     busyWorking
-      ? cogIcon.classList.add("icon-cog-spin")
-      : cogIcon.classList.remove("icon-cog-spin");
+      ?
+      cogIcon.classList.add("icon-cog-spin") :
+      cogIcon.classList.remove("icon-cog-spin");
   },
 
   MarkersLayer: null,
@@ -368,7 +392,7 @@ export const App = {
   },
 
   retrieveMapFromFireBase: function(index) {
-    const currentRelatedRef = `/App/Maps/${App.mapHash}/Related/`;
+    const currentRelatedRef = `/App/Maps/${App.State.relatedDataMapHash}/Related/`;
     fbDatabase.ref(currentRelatedRef).off(); // remove ALL existing listeners from current map
     let nodePath = `/App/Maps/${index}`;
     App.sidebar.hide();
@@ -416,7 +440,10 @@ export const App = {
     return contentStr;
   },
 
-  pushNewPointToFirebase: ({ mapID, json }) => {
+  pushNewPointToFirebase: ({
+    mapID,
+    json
+  }) => {
     console.log("push Marker to firebase!");
     const refPath = `App/Maps/${mapID}/Markers/`;
     fbDatabase
@@ -476,8 +503,11 @@ export const App = {
       relDataSyncObject[relKey] = true; // ie the feature's rela data is now synced
       return itemOb;
     });
-    App.getRelDataFromLocalStorage(App.mapHash);
-    return { relDataObject, relDataSyncObject };
+    App.getRelDataFromLocalStorage(App.State.mapHash);
+    return {
+      relDataObject,
+      relDataSyncObject
+    };
   },
 
   getRelDataFromLocalStorage: mapHash => {
@@ -551,12 +581,12 @@ export const App = {
   setupGeoLayer: (key, mapData) => {
     // TODO: major refactor needed to make functional
     App.mapMeta = mapData.meta;
-    App.mapHash = key;
+    App.State.mapHash = key;
     myMap.myLayerGroup.clearLayers(App.geoLayer);
     App.State.featureIdLookup = {};
-    const featureLabelField = mapData.Meta
-      ? mapData.Meta.LabelProperty
-      : "Asset";
+    const featureLabelField = mapData.Meta ?
+      mapData.Meta.LabelProperty :
+      "Asset";
     const relData = App.populateRelated(mapData.Related); // need to catch when no related available
     if (!!relData) {
       App.State.relatedData = relData.relDataObject;
@@ -707,12 +737,14 @@ export const App = {
       timeStamp: Date()
     });
     App.pushNewPointToFirebase({
-      mapID: App.mapHash,
+      mapID: App.State.mapHash,
       json: geojsonOb
     });
   },
 
-  createPopupContentButtonSet: ({ buttonSet }) => {
+  createPopupContentButtonSet: ({
+    buttonSet
+  }) => {
     let popupContent = `<div class='dropdown'>
     <button class='btn btn-primary left-spacing'>Add point ...
     </button> <div class='dropdown-content'>0.`;
@@ -721,7 +753,9 @@ export const App = {
        class="btn btn-primary dropdown-button" >${button.label}</button>`;
     });
     popupContent += `</div></div>`;
-    return { popupContent };
+    return {
+      popupContent
+    };
   },
 
   featureLabels: () => {
@@ -772,8 +806,8 @@ export const App = {
   },
   setupFbAddMarkerNodeEventCallback: () => {
     let firstReturnedSnap = true;
-    //const pathRef = `/App/Maps/${App.mapHash}/Markers/`
-    const dbRef = fbDatabase.ref(`/App/Maps/${App.mapHash}/Markers/`);
+    //const pathRef = `/App/Maps/${App.State.mapHash}/Markers/`
+    const dbRef = fbDatabase.ref(`/App/Maps/${App.State.mapHash}/Markers/`);
     dbRef.limitToLast(1).on("child_added", (snapshot, prevChildKey) => {
       if (firstReturnedSnap) {
         firstReturnedSnap = false;
@@ -803,14 +837,14 @@ export const App = {
   setupAddRelatedRecordEventListener: () => {
     // triggered on NewRelRecord in FB. Creates Ob, or overwtires Ob when already exists
 
-    const dbRef = fbDatabase.ref(`/App/Maps/${App.mapHash}/Related/`);
+    const dbRef = fbDatabase.ref(`/App/Maps/${App.State.relatedDataMapHash}/Related/`);
     const handleRelatedCallback = snapshot => {
       const snap = snapshot.val();
       const record =
         snap[
           Object.keys(snap)
-            .sort()
-            .reverse()[0]
+          .sort()
+          .reverse()[0]
         ];
       App.updateFeatureRelatedState(snapshot.key, record);
       App.setFeatureSymbologyToCompleted(snapshot.key);
@@ -849,7 +883,7 @@ const RelatedData = {
         App.sidebar.hide();
         // Remove record from local storage
         const localStorageKey =
-          "backup.relatedData." + App.mapHash + "." + featureKey;
+          "backup.relatedData." + App.State.mapHash + "." + featureKey;
         localStorage.removeItem(localStorageKey);
       })
       .catch(error => {
@@ -859,7 +893,7 @@ const RelatedData = {
 
   submit: () => {
     RelatedData.featureKey = App.featureToKey(App.selectedFeature);
-    RelatedData.nodePath = `App/Maps/${App.mapHash}/Related/${
+    RelatedData.nodePath = `App/Maps/${App.State.relatedDataMapHash}/Related/${
       RelatedData.featureKey
     }/`;
     const relatedRecord = {};
@@ -891,7 +925,7 @@ const RelatedData = {
     );
     //RelatedData.backupUpRelStateToLocalStorage()
     RelatedData.saveRelDataRecordToLocalStorage(
-      App.mapHash,
+      App.State.mapHash,
       key,
       relatedRecord
     );
@@ -933,8 +967,10 @@ window.User = User;
 const loadMyLayer = layerName => {
   document.getElementById("open-new-project-button").style.display = "none";
   loadProject();
+
   function loadProject() {
     retriveMapIndexFromFirebase();
+
     function retriveMapIndexFromFirebase() {
       document.getElementById("message-area").innerHTML =
         "<p>waiting for network connection ...</p>";
@@ -985,13 +1021,14 @@ function initLogoWatermark() {
   L.control.watermark = opts => {
     return new L.Control.watermark(opts);
   };
-  L.control.watermark({ position: "bottomright" }).addTo(Map);
+  L.control.watermark({
+    position: "bottomright"
+  }).addTo(Map);
 }
 
 // --------------------------------- Offline Basemap Caching ------
 const setupOfflineBaseLayerControls = () => {
-  const myBaseLayerControls = [
-    {
+  const myBaseLayerControls = [{
       object: myMap.streetsLayer,
       label: "colour streets",
       class: "streets-offline-control"
@@ -1081,12 +1118,16 @@ const initApp = () => {
   Map = myMap.setupBaseLayer();
   // initDebugControl()
   initLogoWatermark();
-  L.control.scale({ position: "bottomleft" }).addTo(Map);
+  L.control.scale({
+    position: "bottomleft"
+  }).addTo(Map);
   App.initSettingsControl();
   setupSideBar();
   initLocationControl();
   Map.doubleClickZoom.disable();
-  L.control.OfflineBaselayersControl({ position: "topright" }).addTo(Map);
+  L.control.OfflineBaselayersControl({
+    position: "topright"
+  }).addTo(Map);
   offlineLayerControls = setupOfflineBaseLayerControls();
   offlineLayerControls.map(layer => {
     layer.addTo(Map);
