@@ -372,9 +372,12 @@ export const App = {
       .join("<br>");
   },
 
-  setupMarkersLayer: mapData => {
+  setupMarkersLayer: myMapData => {
+    if (myMapData.Markers == undefined) {
+      return null
+    }
     App.MarkersLayer = new L.layerGroup();
-    App.State.Markers = mapData.Markers;
+    App.State.Markers = myMapData.Markers;
     Object.keys(App.State.Markers).map(markerKey => {
       const marker = App.State.Markers[markerKey];
       const popupContent = App.generatePopupPropSet(marker);
@@ -410,6 +413,7 @@ export const App = {
         App.removeMarkersLayerMarkers();
         App.setupMarkersLayer(mapData);
         document.getElementById("opennewproject").style.display = "none";
+        console.log("setting cog false")
         App.busyWorkingIndicator(false);
         //App.State.firstReturnedRelDataCallback = false;
         App.setupAddRelatedRecordEventListener();
@@ -580,7 +584,7 @@ export const App = {
   },
 
   setupGeoLayer: (key, mapData) => {
-    console.log("djs-setupGeoLayer");
+
     // TODO: major refactor needed to make functional
     App.mapMeta = mapData.meta;
     App.State.mapHash = key;
@@ -610,7 +614,7 @@ export const App = {
       })
       .then(data => {
         const relData = App.populateRelated(data);
-        console.log('djs-setting reldata..')
+
         if (!!relData) {
           App.State.relatedData = relData.relDataObject;
           App.State.relDataSyncStatus = relData.relDataSyncObject;
@@ -621,14 +625,14 @@ export const App = {
       });
 
     const setupFeatureToObjectIdLookup = () => {
-      console.log("djs-setupFeatureToObjectIdLookup");
+
       Object.keys(App.geoLayer._layers).map(layerId => {
         const layer = App.geoLayer._layers[layerId];
         const key = App.featureToKey(layer.feature);
         App.State.featureIdLookup[key] = layerId;
       });
     };
-    console.log("djs-setting up App.geoLayer");
+
     App.geoLayer = L.geoJson(mapData.Geo, {
       onEachFeature: (feature, layer) => {
         let featureLabel = feature.properties[featureLabelField];
@@ -693,7 +697,7 @@ export const App = {
       },
       interactive: true
     });
-    console.log("djs-adding GeoLayer to map...");
+
     myMap.myLayerGroup.addLayer(App.geoLayer);
     setupFeatureToObjectIdLookup();
     Map.fitBounds(App.geoLayer.getBounds());
@@ -1171,7 +1175,7 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
-  window.alert("ORCL WebApp version 0.9.113");
+  window.alert("ORCL WebApp version 0.9.116");
   App.setupFbAddMarkerNodeEventCallback();
 
   // ----- offline service worker -----------
