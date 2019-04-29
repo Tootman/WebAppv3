@@ -420,7 +420,12 @@ export const App = {
         console.log("setting cog false");
         App.busyWorkingIndicator(false);
         //App.State.firstReturnedRelDataCallback = false;
-        App.setupAddRelatedRecordEventListener();
+        try {
+          App.setupAddRelatedRecordEventListener(mapData.config.relDataMapHash);
+        }
+        catch (err) {
+          console.log ("relDataMapHash failed")
+        }
       })
       .catch(err => {
         console.log("Error! cannot retrieve mapdata from firebase:", err);
@@ -620,32 +625,10 @@ export const App = {
       });
 */
 
-    const fetchAndPopulateRelatedData = myMapData => {
-      const relDataRef = fbDatabase.ref(
-        `/App/Maps/${myMapData.config.relDataMapHash}/Related/`
-      );
-      relDataRef
-        .once("value")
-        .then(snap => {
-          return snap.val();
-        })
-        .then(data => {
-          const relData = App.populateRelated(data);
-
-          if (!!relData) {
-            App.State.relatedData = relData.relDataObject;
-            App.State.relDataSyncStatus = relData.relDataSyncObject;
-          } else {
-            App.State.relatedData = {};
-            App.State.relDataSyncStatus = {};
-          }
-        });
-    };
-
     try {
-      fetchAndPopulateRelatedData();
+      App.fetchAndPopulateRelatedData(mapData);
     } catch (err) {
-      console.log("coundnt fetch", err);
+      console.log("coudnt fetch", err);
     }
 
     const setupFeatureToObjectIdLookup = () => {
@@ -728,6 +711,31 @@ export const App = {
     App.saveMapToLocalStorage(key, mapData);
   },
 
+  fetchAndPopulateRelatedData: myMapData => {
+    const relDataRef = fbDatabase.ref(
+      `/App/Maps/${myMapData.config.relDataMapHash}/Related/`
+    );
+    relDataRef
+      .once("value")
+      .then(snap => {
+        return snap.val();
+      })
+      .then(data => {
+        const relData = App.populateRelated(data);
+
+        if (!!relData) {
+          App.State.relatedData = relData.relDataObject;
+          App.State.relDataSyncStatus = relData.relDataSyncObject;
+          console.log("relData ok");
+        } else {
+          App.State.relatedData = {};
+          App.State.relDataSyncStatus = {};
+          console.log("relData:", relData);
+          console.log("bool:", !!relData);
+        }
+      });
+  },
+
   unsetSelectedStyle: () => {
     if (!App.selectedLayer) return;
     App.selectedLayer.setStyle({
@@ -760,7 +768,12 @@ export const App = {
     }
     const mapData = JSON.parse(localStorage.getItem(storageKey));
     const mapKey = storageKey[0].split("mapData.")[1];
+    // App.fetchAndPopulateRelatedData(mapData); now done in setupGeoLayer
     App.setupGeoLayer(mapKey, mapData);
+    try{
+    App.setupAddRelatedRecordEventListener(mapData.config.relDataMapHash);
+  }
+  catch(err) {console.log("failed to set RelData listeners")}
   },
 
   addPointForm: buttonSetType => {
@@ -891,11 +904,11 @@ export const App = {
     }
   },
 
-  setupAddRelatedRecordEventListener: () => {
+  setupAddRelatedRecordEventListener: (myRelDataMapHash) => {
     // triggered on NewRelRecord in FB. Creates Ob, or overwtires Ob when already exists
-
+   
     const dbRef = fbDatabase.ref(
-      `/App/Maps/${App.State.relatedDataMapHash}/Related/`
+      `/App/Maps/${myRelDataMapHash}/Related/`
     );
     const handleRelatedCallback = snapshot => {
       const snap = snapshot.val();
@@ -1203,6 +1216,7 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
   App.loadMapDataFromLocalStorage();
+
   window.alert("ORCL WebApp version 0.9.116");
   App.setupFbAddMarkerNodeEventCallback();
 
