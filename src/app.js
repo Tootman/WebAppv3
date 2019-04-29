@@ -374,7 +374,7 @@ export const App = {
 
   setupMarkersLayer: myMapData => {
     if (myMapData.Markers == undefined) {
-      return null
+      return null;
     }
     App.MarkersLayer = new L.layerGroup();
     App.State.Markers = myMapData.Markers;
@@ -408,12 +408,16 @@ export const App = {
       .then(snapshot => {
         const mapData = snapshot.val();
         App.clearLocalStorageMaps();
-        App.State.relatedDataMapHash = mapData.config.relDataMapHash
+        try {
+          App.State.relatedDataMapHash = mapData.config.relDataMapHash;
+        } catch (err) {
+          App.State.relatedDataMapHash = null;
+        }
         App.setupGeoLayer(index, mapData);
         App.removeMarkersLayerMarkers();
         App.setupMarkersLayer(mapData);
         document.getElementById("opennewproject").style.display = "none";
-        console.log("setting cog false")
+        console.log("setting cog false");
         App.busyWorkingIndicator(false);
         //App.State.firstReturnedRelDataCallback = false;
         App.setupAddRelatedRecordEventListener();
@@ -584,7 +588,6 @@ export const App = {
   },
 
   setupGeoLayer: (key, mapData) => {
-
     // TODO: major refactor needed to make functional
     App.mapMeta = mapData.meta;
     App.State.mapHash = key;
@@ -593,16 +596,8 @@ export const App = {
     const featureLabelField = mapData.Meta
       ? mapData.Meta.LabelProperty
       : "Asset";
+
     /*
-    const relData = App.populateRelated(mapData.Related); // need to catch when no related available
-    if (!!relData) {
-      App.State.relatedData = relData.relDataObject;
-      App.State.relDataSyncStatus = relData.relDataSyncObject;
-    } else {
-      App.State.relatedData = {};
-      App.State.relDataSyncStatus = {};
-    }
-  */
     const relDataRef = fbDatabase.ref(
       `/App/Maps/${mapData.config.relDataMapHash}/Related/`
     );
@@ -623,9 +618,37 @@ export const App = {
           App.State.relDataSyncStatus = {};
         }
       });
+*/
+
+    const fetchAndPopulateRelatedData = myMapData => {
+      const relDataRef = fbDatabase.ref(
+        `/App/Maps/${myMapData.config.relDataMapHash}/Related/`
+      );
+      relDataRef
+        .once("value")
+        .then(snap => {
+          return snap.val();
+        })
+        .then(data => {
+          const relData = App.populateRelated(data);
+
+          if (!!relData) {
+            App.State.relatedData = relData.relDataObject;
+            App.State.relDataSyncStatus = relData.relDataSyncObject;
+          } else {
+            App.State.relatedData = {};
+            App.State.relDataSyncStatus = {};
+          }
+        });
+    };
+
+    try {
+      fetchAndPopulateRelatedData();
+    } catch (err) {
+      console.log("coundnt fetch", err);
+    }
 
     const setupFeatureToObjectIdLookup = () => {
-
       Object.keys(App.geoLayer._layers).map(layerId => {
         const layer = App.geoLayer._layers[layerId];
         const key = App.featureToKey(layer.feature);
@@ -856,11 +879,16 @@ export const App = {
 
   setFeatureSymbologyToCompleted: featureKey => {
     const layer = App.geoLayer.getLayer(App.State.featureIdLookup[featureKey]);
-    App.setCompletedStyle({
-      layer: layer,
-      feature: layer.feature,
-      isCompleted: true
-    });
+
+    try {
+      App.setCompletedStyle({
+        layer: layer,
+        feature: layer.feature,
+        isCompleted: true
+      });
+    } catch (err) {
+      console.log("coundnot set style on feature:", featureKey);
+    }
   },
 
   setupAddRelatedRecordEventListener: () => {
