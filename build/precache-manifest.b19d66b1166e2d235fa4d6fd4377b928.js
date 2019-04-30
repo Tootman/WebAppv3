@@ -4,7 +4,7 @@ self.__precacheManifest = [
     "url": "fontello/font/fontello.woff2"
   },
   {
-    "revision": "bc8b0d1726f744f343b55016842c243b",
+    "revision": "10d17e6d81c2336067c9aaa01ecd2f00",
     "url": "index.html"
   },
   {
@@ -36,7 +36,7 @@ self.__precacheManifest = [
     "url": "fontello/font/fontello.eot"
   },
   {
-    "revision": "56f3bab6f5c58f218a87",
+    "revision": "773e439c5d0090af0db1",
     "url": "bundle.js"
   },
   {
