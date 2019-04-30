@@ -896,7 +896,6 @@ export const App = {
     const dbRef = fbDatabase.ref(`/App/Maps/${relMapHash}/Markers/`);
     dbRef.on("child_added", (snapshot, prevChildKey) => {
       const json = snapshot.val();
-      console.log("fbMarkerOb:", json)
       App.addMarkerToMarkersLayer(
         json.geometry.coordinates[1],
         json.geometry.coordinates[0],
@@ -1229,7 +1228,7 @@ const initApp = () => {
   App.loadMapDataFromLocalStorage();
 
 
-  window.alert("ORCL WebApp version 0.9.116");
+  window.alert("ORCL WebApp version 0.9.117");
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
