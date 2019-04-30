@@ -422,9 +422,8 @@ export const App = {
         //App.State.firstReturnedRelDataCallback = false;
         try {
           App.setupAddRelatedRecordEventListener(mapData.config.relDataMapHash);
-        }
-        catch (err) {
-          console.log ("relDataMapHash failed")
+        } catch (err) {
+          console.log("relDataMapHash failed");
         }
       })
       .catch(err => {
@@ -767,13 +766,19 @@ export const App = {
       return;
     }
     const mapData = JSON.parse(localStorage.getItem(storageKey));
+    try {
+      App.State.relatedDataMapHash = mapData.config.relDataMapHash;
+    } catch (err) {
+      App.State.relatedDataMapHash = null;
+    }
     const mapKey = storageKey[0].split("mapData.")[1];
     // App.fetchAndPopulateRelatedData(mapData); now done in setupGeoLayer
     App.setupGeoLayer(mapKey, mapData);
-    try{
-    App.setupAddRelatedRecordEventListener(mapData.config.relDataMapHash);
-  }
-  catch(err) {console.log("failed to set RelData listeners")}
+    try {
+      App.setupAddRelatedRecordEventListener(mapData.config.relDataMapHash);
+    } catch (err) {
+      console.log("failed to set RelData listeners");
+    }
   },
 
   addPointForm: buttonSetType => {
@@ -904,12 +909,10 @@ export const App = {
     }
   },
 
-  setupAddRelatedRecordEventListener: (myRelDataMapHash) => {
+  setupAddRelatedRecordEventListener: myRelDataMapHash => {
     // triggered on NewRelRecord in FB. Creates Ob, or overwtires Ob when already exists
-   
-    const dbRef = fbDatabase.ref(
-      `/App/Maps/${myRelDataMapHash}/Related/`
-    );
+
+    const dbRef = fbDatabase.ref(`/App/Maps/${myRelDataMapHash}/Related/`);
     const handleRelatedCallback = snapshot => {
       const snap = snapshot.val();
       const record =
