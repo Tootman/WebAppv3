@@ -356,7 +356,7 @@ export const App = {
       : cogIcon.classList.remove("icon-cog-spin");
   },
 
-  MarkersLayer: null,
+  //MarkersLayer: null,
 
   addMarkerToMarkersLayer: (lat, lng, content) => {
     L.marker([lat, lng])
@@ -372,11 +372,14 @@ export const App = {
       .join("<br>");
   },
 
-  setupMarkersLayer: myMapData => {
+  setupMarkersLayer: () => {
+    /*
     if (myMapData.Markers == undefined) {
       return null;
     }
+    */
     App.MarkersLayer = new L.layerGroup();
+    /*
     App.State.Markers = myMapData.Markers;
     Object.keys(App.State.Markers).map(markerKey => {
       const marker = App.State.Markers[markerKey];
@@ -387,6 +390,7 @@ export const App = {
         popupContent
       );
     });
+    */
     App.MarkersLayer.addTo(Map);
   },
 
@@ -395,11 +399,16 @@ export const App = {
   },
 
   retrieveMapFromFireBase: function(index) {
-    const currentRelatedRef = `/App/Maps/${
-      App.State.relatedDataMapHash
-    }/Related/`;
-    fbDatabase.ref(currentRelatedRef).off(); // remove ALL existing listeners from current map
+    const currentRelatedRef = `/App/Maps/${App.State.relatedDataMapHash}/Related/`;
+    fbDatabase.ref(currentRelatedRef).off();
+    const currentMarkersRef = `/App/Maps/${App.State.relatedDataMapHash}/Markers/`
+    fbDatabase.ref(currentMarkersRef).off(); 
+     // remove ALL existing listeners from current map
     let nodePath = `/App/Maps/${index}`;
+    
+    App.markersLayer = null
+
+
     App.sidebar.hide();
     App.busyWorkingIndicator(true);
     fbDatabase
@@ -415,16 +424,23 @@ export const App = {
         }
         App.setupGeoLayer(index, mapData);
         App.removeMarkersLayerMarkers();
-        App.setupMarkersLayer(mapData);
+        //App.setupMarkersLayer(mapData);
         document.getElementById("opennewproject").style.display = "none";
-        console.log("setting cog false");
         App.busyWorkingIndicator(false);
-        //App.State.firstReturnedRelDataCallback = false;
+        
         try {
           App.setupAddRelatedRecordEventListener(mapData.config.relDataMapHash);
         } catch (err) {
-          console.log("relDataMapHash failed");
+          console.log("set relatedData callbacks failed");
         }
+        
+        try {
+          App.setupFbAddMarkerNodeEventCallback(mapData.config.relDataMapHash);
+          console.log("setUpMarkersCallback - from retrieve from Firebase")
+        } catch (err) {
+          console.log("failed to set Markers listeners");
+        }
+
       })
       .catch(err => {
         console.log("Error! cannot retrieve mapdata from firebase:", err);
@@ -446,17 +462,13 @@ export const App = {
       localStorage.removeItem(item);
     });
   },
-
   clearLocalStorageLatestRelDataBackup: () => {
     localStorage.removeItem("latestRelDataBackup");
   },
-
   propsTotabularContent: myOb => {
     return contentStr;
   },
-
   pushNewPointToFirebase: ({ mapID, json }) => {
-    console.log("push Marker to firebase!");
     const refPath = `App/Maps/${mapID}/Markers/`;
     fbDatabase
       .ref(refPath)
@@ -468,11 +480,7 @@ export const App = {
         alert("Sorry - something went wrong - have you logged in etc?");
       });
     App.sidebar.hide();
-
-    // need to test if /Markers exists though
-    //fbDatabase.ref(refPath).push(Json)) //
   },
-
   generateNewPointGeoJson: ({
     type, // point/ Marker type
     lat,
@@ -623,12 +631,21 @@ export const App = {
         }
       });
 */
+/*
 
     try {
       App.fetchAndPopulateRelatedData(mapData);
     } catch (err) {
-      console.log("coudnt fetch", err);
+      console.log("coudnt fetch related", err);
     }
+
+    try {
+      App.setupFbAddMarkerNodeEventCallback(mapData.config.relDataMapHash);
+    } catch (err) {
+      console.log("setMarkers callback failed");
+    }
+
+*/
 
     const setupFeatureToObjectIdLookup = () => {
       Object.keys(App.geoLayer._layers).map(layerId => {
@@ -657,7 +674,6 @@ export const App = {
             //user: firebase.auth().currentUser.displayName
           });
           addNoteButtonContent = buttonsOb.popupContent;
-          //console.log(" popupContent lat, lng:", buttonsOb.lat, buttonsOb.lng);
         }
 
         layer.bindPopup(featureContentPopup + addNoteButtonContent);
@@ -725,12 +741,9 @@ export const App = {
         if (!!relData) {
           App.State.relatedData = relData.relDataObject;
           App.State.relDataSyncStatus = relData.relDataSyncObject;
-          console.log("relData ok");
         } else {
           App.State.relatedData = {};
           App.State.relDataSyncStatus = {};
-          console.log("relData:", relData);
-          console.log("bool:", !!relData);
         }
       });
   },
@@ -772,12 +785,16 @@ export const App = {
       App.State.relatedDataMapHash = null;
     }
     const mapKey = storageKey[0].split("mapData.")[1];
-    // App.fetchAndPopulateRelatedData(mapData); now done in setupGeoLayer
     App.setupGeoLayer(mapKey, mapData);
     try {
       App.setupAddRelatedRecordEventListener(mapData.config.relDataMapHash);
     } catch (err) {
       console.log("failed to set RelData listeners");
+    }
+    try {
+      App.setupFbAddMarkerNodeEventCallback(mapData.config.relDataMapHash);
+    } catch (err) {
+      console.log("failed to set Markers listeners");
     }
   },
 
@@ -809,7 +826,7 @@ export const App = {
       timeStamp: Date()
     });
     App.pushNewPointToFirebase({
-      mapID: App.State.mapHash,
+      mapID: App.State.relatedDataMapHash,
       json: geojsonOb
     });
   },
@@ -874,39 +891,29 @@ export const App = {
       });
     });
   },
-  setupFbAddMarkerNodeEventCallback: () => {
+  setupFbAddMarkerNodeEventCallback: relMapHash => {
     let firstReturnedSnap = true;
-    //const pathRef = `/App/Maps/${App.State.mapHash}/Markers/`
-    const dbRef = fbDatabase.ref(`/App/Maps/${App.State.mapHash}/Markers/`);
-    dbRef.limitToLast(1).on("child_added", (snapshot, prevChildKey) => {
-      if (firstReturnedSnap) {
-        firstReturnedSnap = false;
-        return;
-      }
+    const dbRef = fbDatabase.ref(`/App/Maps/${relMapHash}/Markers/`);
+    dbRef.on("child_added", (snapshot, prevChildKey) => {
       const json = snapshot.val();
-      console.log("snapshot:", snapshot.key, json);
+      console.log("fbMarkerOb:", json)
       App.addMarkerToMarkersLayer(
         json.geometry.coordinates[1],
         json.geometry.coordinates[0],
         App.generatePopupPropSet(snapshot.val())
       );
-
-      firstReturnedSnap = false;
+    
     });
   },
-
   setFeatureSymbologyToCompleted: featureKey => {
     const layer = App.geoLayer.getLayer(App.State.featureIdLookup[featureKey]);
-
     try {
       App.setCompletedStyle({
         layer: layer,
         feature: layer.feature,
         isCompleted: true
       });
-    } catch (err) {
-      console.log("coundnot set style on feature:", featureKey);
-    }
+    } catch (err) {}
   },
 
   setupAddRelatedRecordEventListener: myRelDataMapHash => {
@@ -1217,11 +1224,12 @@ const initApp = () => {
   document.querySelectorAll(".leaflet-control-offline").forEach(el => {
     el.style.display = "none";
   });
-  //RelatedData.restoreRelStateFromLocalStorage()
+  //RelatedData.restoreRelStateFromLocalStorage() 
+  App.setupMarkersLayer()
   App.loadMapDataFromLocalStorage();
 
+
   window.alert("ORCL WebApp version 0.9.116");
-  App.setupFbAddMarkerNodeEventCallback();
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
@@ -1282,7 +1290,6 @@ Map.on("dblclick", e => {
   const addPopupToClick = e => {
     const buttonOb = App.createPopupContentButtonSet({
       buttonSet: App.State.AddPointButtonsPoints
-      // user: firebase.auth().currentUser.displayName // firebase not accessable
     });
     L.popup()
       .setLatLng(e.latlng)
