@@ -816,6 +816,7 @@ export const App = {
     const type = document.getElementById("addpoint-type");
     const comment = document.getElementById("addpoint-comment");
     const photo = document.getElementById("addpoint-photo");
+    const timeStamp = new Date().toLocaleDateString("en-GB",{day:'numeric', month:"short", year:"numeric", hour:"numeric", minute:"numeric", second:"numeric"})
     const geojsonOb = App.generateNewPointGeoJson({
       type: type.value,
       lat: App.State.currentLineAddPointLat,
@@ -823,7 +824,7 @@ export const App = {
       user: firebase.auth().currentUser.displayName,
       comment: comment.value,
       photo: photo.value,
-      timeStamp: Date()
+      timeStamp: timeStamp
     });
     App.pushNewPointToFirebase({
       mapID: App.State.relatedDataMapHash,
