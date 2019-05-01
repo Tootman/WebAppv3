@@ -979,7 +979,8 @@ const RelatedData = {
       RelatedData.featureKey
     }/`;
     const relatedRecord = {};
-    relatedRecord.timestamp = Date();
+    const timeStamp = new Date().toLocaleDateString("en-GB",{day:'numeric', month:"short", year:"numeric", hour:"numeric", minute:"numeric", second:"numeric"})
+    relatedRecord.timestamp = timeStamp;
     relatedRecord.user = firebase.auth().currentUser.displayName;
     relatedRecord.condition = document.getElementById(
       "related-data-condition"
