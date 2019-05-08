@@ -112,7 +112,8 @@ export const App = {
       mapHash: null,
       projectName: "",
       projectDescription: "",
-      completedResetDate: new Date(2000, 1, 1, 0, 0, 0, 0),
+      //completedResetDate: new Date(2000, 1, 1, 0, 0, 0, 0)
+    	completedResetDate: null,
     },
     //projectHash:"",
     relatedData: {}, // init vall - could contain data for other maps as well as this one
@@ -407,7 +408,8 @@ export const App = {
     if (!!App.MarkersLayer) App.MarkersLayer.clearLayers();
   },
 
-  retrieveMapFromFireBase: function(index) {
+  retrieveMapFromFireBase: function(mapHash, projectHash) {
+    //console.log("retfromfb ProjHasj:", projectHash)
     const currentRelatedRef = `/App/Maps/${
       App.State.relatedDataMapHash
     }/Related/`;
@@ -417,10 +419,16 @@ export const App = {
     }/Markers/`;
     fbDatabase.ref(currentMarkersRef).off();
     // remove ALL existing listeners from current map
-    let nodePath = `/App/Maps/${index}`;
+    let nodePath = `/App/Maps/${mapHash}`;
     //App.State.completedResetDate = new Date(App.State.projectsOb.)
+    App.State.projectConfig.projectName =
+      App.State.projectsOb[projectHash].name;
+    App.State.projectConfig.projectDescription =
+      App.State.projectsOb[projectHash].description;
+    App.State.projectConfig.completedResetDate =
+      App.State.projectsOb[projectHash].completedResetDate;
+    App.State.projectConfig.projectHash = projectHash;
     App.markersLayer = null;
-
     App.sidebar.hide();
     App.busyWorkingIndicator(true);
     fbDatabase
@@ -434,7 +442,7 @@ export const App = {
         } catch (err) {
           App.State.relatedDataMapHash = null;
         }
-        App.setupGeoLayer(index, mapData);
+        App.setupGeoLayer(mapHash, mapData);
         App.removeMarkersLayerMarkers();
         //App.setupMarkersLayer(mapData);
         document.getElementById("opennewproject").style.display = "none";
@@ -464,6 +472,14 @@ export const App = {
       localStorage.setItem("mapData." + myKey, JSON.stringify(mapData));
     } catch (e) {
       alert("couldnt save map to localStorage - maybe too big ");
+    }
+    try {
+      localStorage.setItem(
+        "projectConfig",
+        JSON.stringify(App.State.projectConfig)
+      );
+    } catch (e) {
+      alert("couldnt save project config to localStorage");
     }
   },
 
@@ -578,7 +594,7 @@ export const App = {
     feature,
     layer,
     isCompleted,
-    completedResetDate = App.State.projectConfig.completedResetDate
+    completedResetDate = new Date(App.State.projectConfig.completedResetDate)
   }) => {
     const symbology = App.State.symbology;
     const relatedData = App.State.relatedData;
@@ -777,7 +793,7 @@ export const App = {
   },
 
   getLocalStorageMapDataKey: () => {
-    // return keys that start with maoData
+    // return keys that start with mapData
     return Object.keys(localStorage).filter(item => {
       return new RegExp("^mapData.*").test(item);
     });
@@ -790,6 +806,13 @@ export const App = {
       return;
     }
     const mapData = JSON.parse(localStorage.getItem(storageKey));
+    
+    try {
+      App.State.projectConfig = JSON.parse(localStorage.getItem("projectConfig"));
+    } catch (err) {
+      console.log("couldn't retrieve projectConfig from localStorage")
+    }
+    
     try {
       App.State.relatedDataMapHash = mapData.config.relDataMapHash;
     } catch (err) {
@@ -1131,7 +1154,7 @@ const loadMyLayer = layerName => {
           document.getElementById("message-area").innerHTML = null;
           const el = document.getElementById("opennewproject");
           //el.insertAdjacentHTML("afterBegin", "Open project");
-          App.State.projectsOb = snapshot.val()
+          App.State.projectsOb = snapshot.val();
           displayProjectList(snapshot.val());
         })
         .catch(error => {
@@ -1187,9 +1210,8 @@ const displayMapSetOpenButtons = projectHash => {
     btn.setAttribute("title", item[1]); // index 1 is value
     btn.className = "btn btn-primary open-project-button";
     btn.addEventListener("click", e => {
-      App.retrieveMapFromFireBase(e.target.value);
+      App.retrieveMapFromFireBase(e.target.value, projectHash);
       //App.State.settings.mapIndex = e.target.value; // store map Index
-
     });
     btn.innerHTML = item[1];
     maplist.appendChild(btn);
