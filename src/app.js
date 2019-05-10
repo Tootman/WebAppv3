@@ -68,6 +68,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
+    version: { number: "0.9.118", date: "10 May 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -113,7 +114,7 @@ export const App = {
       projectName: "",
       projectDescription: "",
       //completedResetDate: new Date(2000, 1, 1, 0, 0, 0, 0)
-    	completedResetDate: null,
+      completedResetDate: null
     },
     //projectHash:"",
     relatedData: {}, // init vall - could contain data for other maps as well as this one
@@ -194,6 +195,53 @@ export const App = {
       option.text = items[key];
       el.add(option);
     });
+  },
+
+  initInfoWindowButton: () => {
+    L.Control.infoWindowButton = L.Control.extend({
+      onAdd: e => {
+        const button = L.DomUtil.create(
+          "button",
+          "info-window-button btn-primary"
+        );
+        button.innerHTML = "<b><i>i</i></b>";
+        button.onclick = () => {
+          App.openInfoPanel();
+        };
+        return button;
+      }
+    });
+    L.control.infoWindowButton = opts => {
+      return new L.Control.infoWindowButton(opts);
+    };
+    L.control
+      .infoWindowButton({
+        position: "bottomright"
+      })
+      .addTo(Map);
+  },
+
+  openInfoPanel: () => {
+    const projectInfoContent = `<h3>Project info </h3> <p>
+    Name: ${App.State.projectConfig.projectName}<br>
+    Description: ${App.State.projectConfig.projectDescription}<br>
+    ResetDate: ${App.State.projectConfig.completedResetDate}<p>
+    `;
+    const mapInfoContent = ` <h3> Map info </h3><p>
+    map name: ${App.State.projectConfig.mapName}
+    </p>
+    `;
+    const sysInfo = `<h3> System info</h3>
+    <p>
+    Software version number: ${App.State.version.number} <br>
+    Software version date: ${App.State.version.date}
+    </p>
+    `;
+
+    App.sidebar.setContent(
+      `${mapInfoContent}<hr>${projectInfoContent}<hr>${sysInfo}`
+    );
+    App.sidebar.show();
   },
 
   updateRelDataSyncMsg: (syncStatus, el) => {
@@ -428,6 +476,8 @@ export const App = {
     App.State.projectConfig.completedResetDate =
       App.State.projectsOb[projectHash].completedResetDate;
     App.State.projectConfig.projectHash = projectHash;
+    App.State.projectConfig.mapName =
+      App.State.projectsOb[projectHash].mapSet[mapHash];
     App.markersLayer = null;
     App.sidebar.hide();
     App.busyWorkingIndicator(true);
@@ -806,13 +856,15 @@ export const App = {
       return;
     }
     const mapData = JSON.parse(localStorage.getItem(storageKey));
-    
+
     try {
-      App.State.projectConfig = JSON.parse(localStorage.getItem("projectConfig"));
+      App.State.projectConfig = JSON.parse(
+        localStorage.getItem("projectConfig")
+      );
     } catch (err) {
-      console.log("couldn't retrieve projectConfig from localStorage")
+      console.log("couldn't retrieve projectConfig from localStorage");
     }
-    
+
     try {
       App.State.relatedDataMapHash = mapData.config.relDataMapHash;
     } catch (err) {
@@ -1335,6 +1387,8 @@ const initApp = () => {
       position: "bottomleft"
     })
     .addTo(Map);
+
+  App.initInfoWindowButton();
   App.initSettingsControl();
   setupSideBar();
   initLocationControl();
@@ -1355,7 +1409,7 @@ const initApp = () => {
   App.setupMarkersLayer();
   App.loadMapDataFromLocalStorage();
 
-  window.alert("ORCL WebApp version 0.9.117");
+  // window.alert("ORCL WebApp version 0.9.118");
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
