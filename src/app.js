@@ -231,7 +231,7 @@ export const App = {
     map name: ${App.State.projectConfig.mapName}
     </p>
     `;
-    const sysInfo = `<h3> System info</h3>
+    const sysInfo = `<h3>App info</h3>
     <p>
     Software version number: ${App.State.version.number} <br>
     Software version date: ${App.State.version.date}
@@ -1338,7 +1338,7 @@ L.Control.OfflineBaselayersControl = L.Control.extend({
       "button",
       "btn btn-sm icon-download btn-info"
     );
-    OfflineBaselayersControl_div.innerHTML = "Offline <br>Baselayers";
+    OfflineBaselayersControl_div.innerHTML = "Tiles";
     OfflineBaselayersControl_div.title =
       "Save Background layers (tiles) for Offline use";
     OfflineBaselayersControl_div.onclick = () => {

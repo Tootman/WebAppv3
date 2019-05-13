@@ -4,6 +4,8 @@ const precss = require("precss");
 const autoprefixer = require("autoprefixer");
 const cleanPlugin = require("clean-webpack-plugin");
 // const FontelloPlugin = require("fontello-webpack-plugin")
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
+  .BundleAnalyzerPlugin;
 
 //const workboxPlugin = require('workbox-webpack-plugin');
 
@@ -105,12 +107,13 @@ module.exports = {
       // include: [/\.html$/, /\.js$/, /\.css$/],
       globPatterns: ["/*.{png,jpg,gif,svg,css}"],
       globDirectory: "."
-    })
+    }),
 
     //,
     //new FontelloPlugin({
     //    config: require("./src/fontello/config.json")
     //    /* ...options */
     //})
+    new BundleAnalyzerPlugin()
   ]
 };

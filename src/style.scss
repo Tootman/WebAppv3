@@ -3,7 +3,6 @@
 @import "./L.Control.Sidebar";
 @import "./L.Control.Locate";
 @import "./fontello/css/fontello";
-/*@import "./fontello/"; */
 
 #mapid {
   height: 800px;
@@ -106,7 +105,6 @@ h2.sidebar-sub-heading {
 
 .leaflet-bar a.save-tiles-button {
   background-color: #17a2b8;
-  /* bootstrap info blue */
   color: white;
   width: 9em;
 }
@@ -166,7 +164,7 @@ h2.sidebar-sub-heading {
   }
 }
 
-.icon-cog-spin:before {
+.icon-cog-spinxbefore {
   -webkit-animation-name: spin;
   -webkit-animation-duration: 2000ms;
   -webkit-animation-iteration-count: infinite;
@@ -213,4 +211,10 @@ h2.sidebar-sub-heading {
 .dropdown:hover .dropdown-content {
   display: block;
   z-indez: 50000;
+}
+
+.info-window-button {
+  padding: 3px 15px 3px 15px;
+  font-size: 1.6em;
+  border-radius: 5px;
 }
