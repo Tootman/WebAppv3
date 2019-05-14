@@ -1,11 +1,11 @@
 import L from "leaflet";
 import firebase from "firebase";
 import "./style.scss";
-import "leaflet-offline";
-import localforage from "localforage";
+//import "leaflet-offline";
+//import localforage from "localforage";
 import logoImg from "./ORCL-logo-cropped.png";
 import leafletKnn from "leaflet-knn";
-import fontello_ttf from "./fontello/font/fontello.ttf";
+//import fontello_ttf from "./fontello/font/fontello.ttf";
 require("./L.Control.Sidebar");
 require("./L.Control.Locate.min");
 import { tilesDb } from "./offline-tiles-module.js";
@@ -292,6 +292,7 @@ export const App = {
     App.sidebar.show();
   },
 
+  /*
   findNearestFeatures: function() {
     if (App.State.latestLocation) {
       const nearest = leafletKnn(App.geoLayer).nearest(
@@ -303,6 +304,8 @@ export const App = {
       window.alert("Sorry - GPS lock needed first ");
     }
   },
+
+  */
 
   generateFeatureEditFormElements: (props, sectionEl) => {
     sectionEl.innerHTML = null;
