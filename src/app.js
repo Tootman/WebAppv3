@@ -7,7 +7,7 @@ import "./style.scss";
 import "leaflet-offline";
 //import localforage from "localforage";
 import logoImg from "./ORCL-logo-cropped.png";
-import leafletKnn from "leaflet-knn";
+//import leafletKnn from "leaflet-knn";
 import fontello_ttf from "./fontello/font/fontello.ttf";
 require("./L.Control.Sidebar");
 require("./L.Control.Locate.min");
@@ -71,7 +71,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.118", date: "10 May 2019" },
+    version: { number: "0.9.119", date: "10 May 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
