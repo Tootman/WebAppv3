@@ -1,5 +1,8 @@
 import L from "leaflet";
-import firebase from "firebase";
+//import firebase from "firebase";
+import * as firebase from "firebase/app";
+//import "firebase/auth";
+//import "firebase/database";
 import "./style.scss";
 import "leaflet-offline";
 //import localforage from "localforage";

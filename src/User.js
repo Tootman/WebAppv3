@@ -1,5 +1,7 @@
-import firebase from "firebase";
-
+//import firebase from "firebase";
+import * as firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/database";
 export const User = function() {
   const email = document.getElementById("emailInput");
   const pw = document.getElementById("passwordInput");
