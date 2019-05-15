@@ -13,7 +13,6 @@ require("./L.Control.Sidebar");
 require("./L.Control.Locate.min");
 import { tilesDb } from "./offline-tiles-module.js";
 import { User } from "./User.js";
-//import { djsModmyFunc } from "./djs_module.js";
 
 const myMap = {
   setupBaseLayer: function() {
@@ -200,51 +199,23 @@ export const App = {
     });
   },
 
-  initInfoWindowButton: () => {
-    L.Control.infoWindowButton = L.Control.extend({
-      onAdd: e => {
-        const button = L.DomUtil.create(
-          "button",
-          "info-window-button btn-primary"
-        );
-        button.innerHTML = "<b><i>i</i></b>";
-        button.onclick = () => {
-          App.openInfoPanel();
-        };
-        return button;
-      }
-    });
-    L.control.infoWindowButton = opts => {
-      return new L.Control.infoWindowButton(opts);
-    };
-    L.control
-      .infoWindowButton({
-        position: "bottomright"
-      })
-      .addTo(Map);
-  },
-
-  openInfoPanel: () => {
+  populateInfoPanel: state => {
     const projectInfoContent = `<h3>Project info </h3> <p>
-    Name: ${App.State.projectConfig.projectName}<br>
-    Description: ${App.State.projectConfig.projectDescription}<br>
-    ResetDate: ${App.State.projectConfig.completedResetDate}<p>
+    Name: ${state.projectConfig.projectName}<br>
+    Description: ${state.projectConfig.projectDescription}<br>
+    ResetDate: ${state.projectConfig.completedResetDate}<p>
     `;
     const mapInfoContent = ` <h3> Map info </h3><p>
-    map name: ${App.State.projectConfig.mapName}
+    map name: ${state.projectConfig.mapName}
     </p>
     `;
     const sysInfo = `<h3>App info</h3>
     <p>
-    Software version number: ${App.State.version.number} <br>
-    Software version date: ${App.State.version.date}
+    Software version number: ${state.version.number} <br>
+    Software version date: ${state.version.date}
     </p>
     `;
-
-    App.sidebar.setContent(
-      `${mapInfoContent}<hr>${projectInfoContent}<hr>${sysInfo}`
-    );
-    App.sidebar.show();
+    return `${mapInfoContent}<hr>${projectInfoContent}<hr>${sysInfo}`;
   },
 
   updateRelDataSyncMsg: (syncStatus, el) => {
@@ -262,19 +233,13 @@ export const App = {
     el.style = "color:'CornflowerBlue' ";
   },
 
-  whenGeoFeatureClicked: function() {
-    const fId = App.featureToKey(App.selectedFeature);
-
-    function renderSideBar() {
-      App.sidebar.setContent(
-        document.getElementById("form-template").innerHTML
-      );
-    }
-    const p = App.selectedFeature.properties;
-    renderSideBar();
+  whenGeoFeatureClicked: selectedFeature => {
+    const fId = App.featureToKey(selectedFeature);
+    const p = selectedFeature.properties;
+    App.sidebar.setContent(document.getElementById("form-template").innerHTML);
     const titleDiv = document.getElementById("relatedform-title");
     titleDiv.innerHTML = `Asset: ${p.Asset}`;
-    this.generateFeatureEditFormElements(
+    App.generateFeatureEditFormElements(
       p,
       document.getElementById("fields-section")
     );
@@ -294,21 +259,6 @@ export const App = {
     );
     App.sidebar.show();
   },
-
-  /*
-  findNearestFeatures: function() {
-    if (App.State.latestLocation) {
-      const nearest = leafletKnn(App.geoLayer).nearest(
-        L.latLng(App.State.latestLocation),
-        1
-      );
-      nearest[0].layer.fire("click");
-    } else {
-      window.alert("Sorry - GPS lock needed first ");
-    }
-  },
-
-  */
 
   generateFeatureEditFormElements: (props, sectionEl) => {
     sectionEl.innerHTML = null;
@@ -381,12 +331,14 @@ export const App = {
             document.getElementById("settings-template").innerHTML
           );
           User().initLoginForm();
-          if (!!App.geoLayer) App.populateMapMeta();
+          //if (!!App.geoLayer) App.populateMapMeta();
           document
             .getElementById("open-new-project-button")
             .addEventListener("click", function() {
               loadMyLayer("dummy");
             });
+          const infoEl = document.getElementById("map-info-section");
+          infoEl.innerHTML = App.populateInfoPanel(App.State);
           App.sidebar.show();
         };
         return myControl_div;
@@ -402,25 +354,12 @@ export const App = {
       .addTo(Map);
   },
 
-  populateMapMeta: () => {
-    const container = document.getElementById("map-info-section");
-    let content = "";
-    for (const item in App.mapMeta) {
-      if (!!item) {
-        content += `${item}: ${App.mapMeta[item]}<br>`;
-      }
-    }
-    container.innerHTML = content;
-  },
-
   busyWorkingIndicator: busyWorking => {
     const cogIcon = document.getElementsByClassName("icon-cog")[0];
     busyWorking
       ? cogIcon.classList.add("icon-cog-spin")
       : cogIcon.classList.remove("icon-cog-spin");
   },
-
-  //MarkersLayer: null,
 
   addMarkerToMarkersLayer: (lat, lng, content) => {
     L.marker([lat, lng])
@@ -437,24 +376,7 @@ export const App = {
   },
 
   setupMarkersLayer: () => {
-    /*
-        if (myMapData.Markers == undefined) {
-          return null;
-        }
-        */
     App.MarkersLayer = new L.layerGroup();
-    /*
-        App.State.Markers = myMapData.Markers;
-        Object.keys(App.State.Markers).map(markerKey => {
-          const marker = App.State.Markers[markerKey];
-          const popupContent = App.generatePopupPropSet(marker);
-          App.addMarkerToMarkersLayer(
-            marker.geometry.coordinates[1],
-            marker.geometry.coordinates[0],
-            popupContent
-          );
-        });
-        */
     App.MarkersLayer.addTo(Map);
   },
 
@@ -692,44 +614,6 @@ export const App = {
       ? mapData.Meta.LabelProperty
       : "Asset";
 
-    /*
-    const relDataRef = fbDatabase.ref(
-      `/App/Maps/${mapData.config.relDataMapHash}/Related/`
-    );
-
-    relDataRef
-      .once("value")
-      .then(snap => {
-        return snap.val();
-      })
-      .then(data => {
-        const relData = App.populateRelated(data);
-
-        if (!!relData) {
-          App.State.relatedData = relData.relDataObject;
-          App.State.relDataSyncStatus = relData.relDataSyncObject;
-        } else {
-          App.State.relatedData = {};
-          App.State.relDataSyncStatus = {};
-        }
-      });
-*/
-    /*
-
-            try {
-              App.fetchAndPopulateRelatedData(mapData);
-            } catch (err) {
-              console.log("coudnt fetch related", err);
-            }
-
-            try {
-              App.setupFbAddMarkerNodeEventCallback(mapData.config.relDataMapHash);
-            } catch (err) {
-              console.log("setMarkers callback failed");
-            }
-
-        */
-
     const setupFeatureToObjectIdLookup = () => {
       Object.keys(App.geoLayer._layers).map(layerId => {
         const layer = App.geoLayer._layers[layerId];
@@ -749,7 +633,7 @@ export const App = {
 
         let featureContentPopup = "";
         let addNoteButtonContent = "";
-        featureContentPopup = `<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked();"><br>
+        featureContentPopup = `<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked(App.selectedFeature);"><br>
           ${featureLabel} </div>`;
         if (feature.geometry.type == "LineString") {
           const buttonsOb = App.createPopupContentButtonSet({
@@ -1162,46 +1046,6 @@ const loadMyLayer = layerName => {
   function loadProject() {
     console.log("loadProject ...");
 
-    /*
-        retriveMapIndexFromFirebase();
-
-        function retriveMapIndexFromFirebase() {
-          document.getElementById("message-area").innerHTML =
-            "<p>waiting for network connection ...</p>";
-          fbDatabase
-            .ref("/App/Mapindex")
-            .once("value")
-            .then(snapshot => {
-              document.getElementById("message-area").innerHTML = null;
-              const el = document.getElementById("opennewproject");
-              el.insertAdjacentHTML("afterBegin", "Open project");
-              displayMapIndeces(snapshot.val());
-            })
-            .catch(error => {
-              document.getElementById("message-area").innerHTML =
-                "Sorry - " + error.message;
-            });
-        }
-
-        function displayMapIndeces(mapIndexList) {
-          const el = document.getElementById("opennewproject");
-          el.insertAdjacentHTML("afterBegin", "Open project");
-          Object.values(mapIndexList).map(item => {
-            const btn = document.createElement("button");
-            btn.setAttribute("value", item.mapID);
-            btn.setAttribute("title", item.description);
-            btn.className = "btn btn-primary open-project-button";
-            const id = item.mapID;
-            btn.addEventListener("click", e => {
-              App.retrieveMapFromFireBase(e.target.value);
-              App.State.settings.mapIndex = e.target.value; // store map Index
-            });
-            btn.innerHTML = item.name;
-            maplist.appendChild(btn);
-          });
-        }
-        */
-
     const retrieveProjectsFromFirebase = () => {
       document.getElementById("message-area").innerHTML =
         "<p>waiting for network connection ...</p>";
@@ -1394,7 +1238,7 @@ const initApp = () => {
     })
     .addTo(Map);
 
-  App.initInfoWindowButton();
+  //App.infoPanel.initInfoWindowButton();
   App.initSettingsControl();
   setupSideBar();
   initLocationControl();
