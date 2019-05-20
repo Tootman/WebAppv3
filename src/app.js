@@ -301,10 +301,6 @@ export const App = {
     });
   },
 
-  resetMap: () => {
-    localStorage.removeItem("geoJSON");
-    App.geoLayer = {};
-  },
   getPhoto: photoURL => {
     fetch(photoURL)
       .then(res => res.blob()) // Gets the response and returns it as a blob
@@ -318,20 +314,19 @@ export const App = {
   },
 
   initSettingsControl: () => {
-    L.Control.myControl = L.Control.extend({
+    L.Control.settingsControl = L.Control.extend({
       onAdd: e => {
-        const myControl_div = L.DomUtil.create(
+        const settingsControl_div = L.DomUtil.create(
           "button",
           "main-button-control btn btn-lg btn-danger icon-cog"
         );
-        myControl_div.innerHTML = "";
-        myControl_div.title = "Settings";
-        myControl_div.onclick = () => {
+        settingsControl_div.innerHTML = "";
+        settingsControl_div.title = "Settings";
+        settingsControl_div.onclick = () => {
           App.sidebar.setContent(
             document.getElementById("settings-template").innerHTML
           );
           User().initLoginForm();
-          //if (!!App.geoLayer) App.populateMapMeta();
           document
             .getElementById("open-new-project-button")
             .addEventListener("click", function() {
@@ -341,14 +336,14 @@ export const App = {
           infoEl.innerHTML = App.populateInfoPanel(App.State);
           App.sidebar.show();
         };
-        return myControl_div;
+        return settingsControl_div;
       }
     });
-    L.control.myControl = opts => {
-      return new L.Control.myControl(opts);
+    L.control.settingsControl = opts => {
+      return new L.Control.settingsControl(opts);
     };
     L.control
-      .myControl({
+      .settingsControl({
         position: "bottomleft"
       })
       .addTo(Map);
