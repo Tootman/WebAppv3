@@ -36,7 +36,7 @@ self.__precacheManifest = [
     "url": "fontello/font/fontello.eot"
   },
   {
-    "revision": "1d63e32aea89486d3413",
+    "revision": "c9b9bb8ae2096ff697a6",
     "url": "bundle.js"
   },
   {

@@ -1,6 +1,6 @@
 import L from "leaflet";
 //import firebase from "firebase";
-import * as firebase from "firebase/app";
+import firebase from "firebase";
 //import "firebase/auth";
 //import "firebase/database";
 import "./style.scss";
@@ -187,7 +187,9 @@ export const App = {
         label: "Breach in barrier",
         id: "breach"
       }
-    ]
+    ],
+    relDataPhotoBlob: null,
+    relDataPhotoName: null
   },
 
   populateInputOptions: (el, items) => {
@@ -948,8 +950,26 @@ const RelatedData = {
           featureKey;
         localStorage.removeItem(localStorageKey);
       })
+      .then(snap => {
+        const RelDataPhotoBlobEl = document.getElementById("photo-capture");
+        if (!!App.State.relDataPhotoBlob) {
+          //document.getElementById("related-data-photo").value = relPhotoEl.files[0].name;
+          const storageRef = firebase.storage().ref();
+          const fbFileRef = storageRef.child(
+            `test/${RelDataPhotoBlobEl.files[0].name}`
+          );
+          fbFileRef.put(RelDataPhotoBlobEl.files[0]).then(snapshot => {
+            console.log("Uploaded a file!");
+            document.getElementById("photo-capture").value = null;
+            document.getElementById("related-data-photo").value = null;
+            App.State.relDataPhotoBlob.value = null;
+            App.State.relDataPhotoName = null;
+          });
+        }
+      })
       .catch(error => {
-        alert("Sorry - something went wrong - have you logged in etc?");
+        alert("Sorry - something went wrong - have you logged  etc?");
+        console.log("push to fb error:", error);
       });
   },
 
@@ -1025,10 +1045,30 @@ const RelatedData = {
     }
   },
 
-  addPhoto: function() {
+  addPhoto: () => {
+    // relData photo
     const el = document.getElementById("photo-capture");
     document.getElementById("related-data-photo").value = el.files[0].name;
+    App.State.relDataPhotoBlob = el.files[0];
+    App.State.relDataPhotoName = App.State.relDataPhotoBlob.name;
   }
+
+  /*
+  uploadRelPhoto: blobEl => {
+    const storageRef = firebase.storage().ref();
+    const fbFileRef = storageRef.child(`test/${blobEl.files[0].name}`);
+    fbFileRef
+      .put(blobEl.files[0])
+      .then(snapshot => {
+        console.log("Uploaded a file!");
+        blobEl.value = null;
+        document.getElementById("related-data-photo").value = null;
+        App.State.relDataPhotoBlob.value = null;
+        App.State.relDataPhotoName = null;
+      })
+      .catch(err => console.log("error in upload relPhoto:", err));
+  }
+  */
 };
 
 window.RelatedData = RelatedData;
@@ -1213,6 +1253,7 @@ const fireBaseconfig = {
 
 var Map = {};
 var fbDatabase = {};
+var fbStorage = {};
 var offlineLayerControls = {};
 const initApp = () => {
   App.State.relatedData = {};
@@ -1222,6 +1263,7 @@ const initApp = () => {
   App.State.symbology.beforeSelectedFillColor = {};
   firebase.initializeApp(fireBaseconfig);
   fbDatabase = firebase.database();
+  fbStorage = firebase.storage();
 
   // --------------------------------------- Main ---------------------
   Map = myMap.setupBaseLayer();
