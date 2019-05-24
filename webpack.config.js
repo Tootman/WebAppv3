@@ -118,5 +118,11 @@ module.exports = {
     //    /* ...options */
     //})
     new BundleAnalyzerPlugin()
-  ]
+  ],
+  resolve: {
+    alias: {
+      // Use compiled pica files from /dist folder
+      pica: "pica/dist/pica.js"
+    }
+  }
 };

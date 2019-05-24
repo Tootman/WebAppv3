@@ -13,6 +13,7 @@ require("./L.Control.Sidebar");
 require("./L.Control.Locate.min");
 import { tilesDb } from "./offline-tiles-module.js";
 import { User } from "./User.js";
+import Pica from "pica";
 
 const myMap = {
   setupBaseLayer: function() {
@@ -70,7 +71,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.119", date: "10 May 2019" },
+    version: { number: "0.9.120", date: "21 May 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -260,6 +261,22 @@ export const App = {
       App.State.formFields.condition
     );
     App.sidebar.show();
+    // fetch and insert relData photo if exists
+
+    if (!!App.State.relatedData[fId]) {
+      if (!!App.State.relatedData[fId].photo) {
+        const photoName = App.State.relatedData[fId].photo;
+        const relPhotoEl = document.getElementById("related-photo-img");
+        const myTestVar = "Hello";
+        const relPhotoPath = "/hounslow/300x400";
+        //const relPhotoFileName = App.State.relDataPhotoName;
+        RelatedData.fetchPhotoFromFBStorage(
+          relPhotoEl,
+          relPhotoPath,
+          photoName
+        );
+      }
+    }
   },
 
   generateFeatureEditFormElements: (props, sectionEl) => {
@@ -690,6 +707,7 @@ export const App = {
     App.saveMapToLocalStorage(key, mapData);
   },
 
+  /*
   fetchAndPopulateRelatedData: myMapData => {
     const relDataRef = fbDatabase.ref(
       `/App/Maps/${myMapData.config.relDataMapHash}/Related/`
@@ -709,8 +727,25 @@ export const App = {
           App.State.relatedData = {};
           App.State.relDataSyncStatus = {};
         }
+      })
+      .then(snap => {
+        // fetch and insert relData photo if exists
+        if (!!App.State.relDataPhotoName) {
+          const relPhotoEl = document.getElementById("related-photo-img");
+          const relPhotoPath = `/hounslow/300x400`;
+          const relPhotoFileName = App.State.relDataPhotoName;
+          fetchPhotoFromFBStorage({
+            relPhotoEl,
+            relPhotoPath,
+            relPhotoFileName
+          });
+        }
+      })
+      .catch(error => {
+        consol.log("Error in fetching related:", error);
       });
   },
+  */
 
   unsetSelectedStyle: () => {
     if (!App.selectedLayer) return;
@@ -933,6 +968,46 @@ const RelatedData = {
     );
   },
 
+  createImageThumbnail: originalBlob => {
+    //
+    const pica = Pica();
+    const myCanvas = document.getElementById("myCanvas");
+    pica()
+      .resize(originalBlob, myC, {
+        unsharpAmount: 80,
+        unsharpRadius: 0.6,
+        unsharpThreshold: 2
+      })
+      .then(result => pica().toBlob(result, "image/jpeg", 0.7))
+      .then(result => {
+        console.log("Resize done!", result);
+        //document.getElementById("dest-photo").src = URL.createObjectURL(result);
+        App.State.relDataPhotoBlob = result;
+      })
+      .catch(err => console.log("pica image resize failed:", err));
+  },
+
+  fetchPhotoFromFBStorage: (parentEl, path, photoId) => {
+    const storage = firebase.storage();
+    const pathRef = storage.ref(path);
+    pathRef
+      .child(photoId)
+      .getDownloadURL()
+      .then(url => {
+        fetch(url)
+          .then(response => {
+            return response.blob();
+          })
+          .then(imageBlob => {
+            parentEl.src = URL.createObjectURL(imageBlob);
+            parentEl.style.width = "100%";
+          })
+          .catch(error => {
+            //alert ("Error!:", error.message)
+          });
+      });
+  },
+
   pushRelatedDataRecord: (relDataPath, featureKey, relatedRecord) => {
     fbDatabase
       .ref(relDataPath) // need to move this constant into App.State
@@ -956,7 +1031,7 @@ const RelatedData = {
           //document.getElementById("related-data-photo").value = relPhotoEl.files[0].name;
           const storageRef = firebase.storage().ref();
           const fbFileRef = storageRef.child(
-            `test/${RelDataPhotoBlobEl.files[0].name}`
+            `hounslow/300x400/${RelDataPhotoBlobEl.files[0].name}`
           );
           fbFileRef.put(RelDataPhotoBlobEl.files[0]).then(snapshot => {
             console.log("Uploaded a file!");
