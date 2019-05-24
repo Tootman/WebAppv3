@@ -14,7 +14,8 @@ const { GenerateSW, InjectManifest } = require("workbox-webpack-plugin");
 
 module.exports = {
   //devtool: "_source-map",
-  devtool: "cheap-module-eval-source-map",
+  //devtool: "cheap-module-eval-source-map",
+  devtool: "eval",
 
   entry: {
     app: "./src/app.js"
