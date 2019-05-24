@@ -239,6 +239,10 @@ export const App = {
   whenGeoFeatureClicked: selectedFeature => {
     const fId = App.featureToKey(selectedFeature);
     const p = selectedFeature.properties;
+    App.State.relDataPhotoBlob = null;
+    App.State.relDataPhotoName = null;
+    //document.getElementById("photo-capture").value = null;
+
     App.sidebar.setContent(document.getElementById("form-template").innerHTML);
     const titleDiv = document.getElementById("relatedform-title");
     titleDiv.innerHTML = `Asset: ${p.Asset}`;
@@ -1031,14 +1035,16 @@ const RelatedData = {
           //document.getElementById("related-data-photo").value = relPhotoEl.files[0].name;
           const storageRef = firebase.storage().ref();
           const fbFileRef = storageRef.child(
-            `hounslow/300x400/${RelDataPhotoBlobEl.files[0].name}`
+            `hounslow/300x400/${App.State.relDataPhotoName}`
           );
-          fbFileRef.put(RelDataPhotoBlobEl.files[0]).then(snapshot => {
+          //fbFileRef.put(RelDataPhotoBlobEl.files[0]).then(snapshot => {
+          fbFileRef.put(App.State.relDataPhotoBlob).then(snapshot => {
             console.log("Uploaded a file!");
             document.getElementById("photo-capture").value = null;
             document.getElementById("related-data-photo").value = null;
             App.State.relDataPhotoBlob.value = null;
             App.State.relDataPhotoName = null;
+            App.sidebar.hide();
           });
         }
       })
@@ -1072,8 +1078,8 @@ const RelatedData = {
         "related-data-comments"
       ).value;
     }
-    if (document.getElementById("related-data-photo").value) {
-      relatedRecord.photo = document.getElementById("related-data-photo").value;
+    if (App.State.relDataPhotoName) {
+      relatedRecord.photo = App.State.relDataPhotoName;
     }
 
     const key = RelatedData.featureKey;
@@ -1122,10 +1128,45 @@ const RelatedData = {
 
   addPhoto: () => {
     // relData photo
-    const el = document.getElementById("photo-capture");
-    document.getElementById("related-data-photo").value = el.files[0].name;
-    App.State.relDataPhotoBlob = el.files[0];
-    App.State.relDataPhotoName = App.State.relDataPhotoBlob.name;
+    //const el = document.getElementById("photo-capture");
+    //document.getElementById("related-data-photo").value = el.files[0].name;
+    const pica = Pica();
+    const myC = document.getElementById("myCanvas");
+    const imgInputBtnEl = document.getElementById("photo-capture");
+    const myImg = new Image();
+    const myImage = imgInputBtnEl.files[0];
+    const fr = new FileReader();
+    fr.readAsDataURL(myImage);
+    fr.addEventListener("load", () => {
+      const img = new Image();
+      img.src = fr.result;
+      img.onload = () => {
+        const newWidth = 300; // ie fixed width px
+        const sizeRatio = newWidth / img.width;
+        myC.width = newWidth;
+        myC.height = img.height * sizeRatio;
+        pica
+          .resize(img, myC, {
+            unsharpAmount: 80,
+            unsharpRadius: 0.6,
+            unsharpThreshold: 2
+          })
+          .then(result => pica.toBlob(result, "image/jpeg", 0.7))
+          .then(result => {
+            //document.getElementById("dest-photo").src = URL.createObjectURL(
+            //  result
+            //);
+            App.State.relDataPhotoName = imgInputBtnEl.files[0].name;
+            App.State.relDataPhotoBlob = result;
+          })
+          .catch(error => {
+            console.log("error:", error);
+          });
+      };
+    });
+
+    //App.State.relDataPhotoBlob = el.files[0];
+    //App.State.relDataPhotoName = App.State.relDataPhotoBlob.name;
   }
 
   /*
