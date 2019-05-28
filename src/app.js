@@ -972,25 +972,6 @@ const RelatedData = {
     );
   },
 
-  createImageThumbnail: originalBlob => {
-    //
-    const pica = Pica();
-    const myCanvas = document.getElementById("myCanvas");
-    pica()
-      .resize(originalBlob, myC, {
-        unsharpAmount: 80,
-        unsharpRadius: 0.6,
-        unsharpThreshold: 2
-      })
-      .then(result => pica().toBlob(result, "image/jpeg", 0.7))
-      .then(result => {
-        console.log("Resize done!", result);
-        //document.getElementById("dest-photo").src = URL.createObjectURL(result);
-        App.State.relDataPhotoBlob = result;
-      })
-      .catch(err => console.log("pica image resize failed:", err));
-  },
-
   fetchPhotoFromFBStorage: (parentEl, path, photoId) => {
     const storage = firebase.storage();
     const pathRef = storage.ref(path);
@@ -1038,20 +1019,29 @@ const RelatedData = {
             `hounslow/300x400/${App.State.relDataPhotoName}`
           );
           //fbFileRef.put(RelDataPhotoBlobEl.files[0]).then(snapshot => {
-          fbFileRef.put(App.State.relDataPhotoBlob).then(snapshot => {
-            console.log("Uploaded a file!");
-            document.getElementById("photo-capture").value = null;
-            document.getElementById("related-data-photo").value = null;
-            App.State.relDataPhotoBlob.value = null;
-            App.State.relDataPhotoName = null;
-            App.sidebar.hide();
-          });
+          fbFileRef
+            .put(App.State.relDataPhotoBlob)
+            .then(snapshot => {
+              console.log("Uploaded a file!");
+              document.getElementById("photo-capture").value = null;
+              document.getElementById("related-data-photo").value = null;
+              App.State.relDataPhotoBlob.value = null;
+              App.State.relDataPhotoName = null;
+              App.sidebar.hide();
+            })
+            .catch(error => {
+              App.sidebar.hide();
+              alert(
+                "photo not uploaded - you need to upload it manually  from your device"
+              );
+              console.log("push photo failed");
+            });
         }
-      })
+      }); /*
       .catch(error => {
-        alert("Sorry - something went wrong - have you logged  etc?");
+        alert("Sorry - something went wrong - have you logged in etc?");
         console.log("push to fb error:", error);
-      });
+      }); */
   },
 
   submit: () => {
@@ -1132,6 +1122,7 @@ const RelatedData = {
     //document.getElementById("related-data-photo").value = el.files[0].name;
     const pica = Pica();
     const myC = document.getElementById("myCanvas");
+    myC.style.display = "block";
     const imgInputBtnEl = document.getElementById("photo-capture");
     const myImg = new Image();
     const myImage = imgInputBtnEl.files[0];

@@ -13,9 +13,9 @@ const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
 const { GenerateSW, InjectManifest } = require("workbox-webpack-plugin");
 
 module.exports = {
-  devtool: "_source-map",
+  devtool: "_source-map", //dev
   //devtool: "cheap-module-eval-source-map",
-  //devtool: "eval",
+  //devtool: "eval", // prod
 
   entry: {
     app: "./src/app.js"
