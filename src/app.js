@@ -817,6 +817,7 @@ export const App = {
     type: <input type="hidden" id="addpoint-type" readonly value = "${buttonSetType}">
 
     <p>  <textarea class="form-control" rows="2" id="addpoint-comment" placeholder = "optional comment here ..."></textarea></p>
+    <canvas id="addPointCanvas" style="display:none;margin:auto"></canvas>
     <p><button class="btn btn-primary" id="addpoint-photo">Add photo</button></p><hr>
     <p><button class="btn btn-primary" onclick="App.submitAddButtonForm()">
     Submit </button> </p>`;
