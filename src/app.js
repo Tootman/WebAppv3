@@ -869,6 +869,7 @@ export const App = {
   featureLabels: () => {
     // TODO: refactor to functional
     const bounds = Map.getBounds();
+
     if (App.State.visableFeatures !== null) {
       App.State.visableFeatures.map(layer => {
         layer.unbindTooltip();
@@ -878,6 +879,7 @@ export const App = {
     if (Map.getZoom() < 20) {
       return;
     }
+
     const redrawToolTips = () => {
       App.geoLayer.eachLayer(layer => {
         let relID = "";
@@ -890,11 +892,13 @@ export const App = {
           hasRelData = false;
         }
 
-        if (layer.getLatLng && !hasRelData) {
+        //if (layer.getLatLng && !hasRelData) {
+        if (layer.getLatLng) {
           if (bounds.contains(layer.getLatLng())) {
             App.State.visableFeatures.push(layer);
           }
-        } else if (layer.getBounds && !hasRelData) {
+          //} else if (layer.getBounds && !hasRelData) {
+        } else if (layer.getBounds) {
           if (
             bounds.intersects(layer.getBounds()) ||
             bounds.contains(layer.getBounds())
