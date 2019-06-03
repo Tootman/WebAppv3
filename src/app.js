@@ -921,10 +921,13 @@ export const App = {
     const dbRef = fbDatabase.ref(`/App/Maps/${relMapHash}/Markers/`);
     dbRef.on("child_added", (snapshot, prevChildKey) => {
       const json = snapshot.val();
+      const markerContent = `<h4>${
+        json.properties.type
+      }</h4><hr><p>${App.generatePopupPropSet(json)}</p>`;
       App.addMarkerToMarkersLayer(
         json.geometry.coordinates[1],
         json.geometry.coordinates[0],
-        App.generatePopupPropSet(snapshot.val())
+        markerContent
       );
     });
   },
