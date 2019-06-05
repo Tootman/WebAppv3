@@ -499,9 +499,35 @@ export const App = {
       .then(snap => {
         console.log("pushed new marker!");
       })
-      .catch(error => {
-        alert("Sorry - something went wrong - have you logged in etc?");
+      .then(snap => {
+        //const markerDataPhotoBlobEl = document.getElementById("photo-capture");
+        if (!!App.State.relDataPhotoBlob) {
+          //document.getElementById("related-data-photo").value = relPhotoEl.files[0].name;
+          const storageRef = firebase.storage().ref();
+          const fbFileRef = storageRef.child(
+            `hounslow/300x400/${App.State.relDataPhotoName}`
+          );
+          //fbFileRef.put(RelDataPhotoBlobEl.files[0]).then(snapshot => {
+          fbFileRef
+            .put(App.State.relDataPhotoBlob)
+            .then(snapshot => {
+              console.log("Uploaded a marker photo!");
+              document.getElementById("marker-photo-capture").value = null;
+              //document.getElementById("related-data-photo").value = null;
+              App.State.relDataPhotoBlob.value = null;
+              App.State.relDataPhotoName = null;
+              App.sidebar.hide();
+            })
+            .catch(error => {
+              App.sidebar.hide();
+              alert(
+                "photo not uploaded - you need to upload it manually  from your device"
+              );
+              console.log("push photo failed");
+            });
+        }
       });
+
     App.sidebar.hide();
   },
   generateNewPointGeoJson: ({
@@ -812,13 +838,16 @@ export const App = {
 
   addPointForm: buttonSetType => {
     const options = {};
+    App.State.relDataPhotoBlob = null;
+    App.State.relDataPhotoName = null;
     const sidebarContent = `
     <h3>Add point  - ${buttonSetType}</h3>
     type: <input type="hidden" id="addpoint-type" readonly value = "${buttonSetType}">
 
     <p>  <textarea class="form-control" rows="2" id="addpoint-comment" placeholder = "optional comment here ..."></textarea></p>
-    <canvas id="addPointCanvas" style="display:none;margin:auto"></canvas>
-    <p><button class="btn btn-primary" id="addpoint-photo">Add photo</button></p><hr>
+    <canvas id="add-point-canvas" style="display:none;margin:auto"></canvas>
+   <p><label for="marker-photo-capture" id="marker-take-photo-btn" class="btn btn-sm btn-warning">Take photo</label>
+        <input id="marker-photo-capture" onChange="RelatedData.addMarkerPhoto()" name="marker-photo-capture" style="visibility:hidden;" capture="camera" accept="image/*" type="file"/></p>
     <p><button class="btn btn-primary" onclick="App.submitAddButtonForm()">
     Submit </button> </p>`;
     App.sidebar.setContent(sidebarContent);
@@ -828,7 +857,8 @@ export const App = {
   submitAddButtonForm: () => {
     const type = document.getElementById("addpoint-type");
     const comment = document.getElementById("addpoint-comment");
-    const photo = document.getElementById("addpoint-photo");
+    const photo = App.State.relDataPhotoName;
+    App.State.relDataPhotoName;
     const timeStamp = new Date().toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
@@ -843,7 +873,7 @@ export const App = {
       lng: App.State.currentLineAddPointLng,
       user: firebase.auth().currentUser.displayName,
       comment: comment.value,
-      photo: photo.value,
+      photo: photo,
       timeStamp: timeStamp
     });
     App.pushNewPointToFirebase({
@@ -1032,7 +1062,7 @@ const RelatedData = {
             .then(snapshot => {
               console.log("Uploaded a file!");
               document.getElementById("photo-capture").value = null;
-              document.getElementById("related-data-photo").value = null;
+              //document.getElementById("related-data-photo").value = null;
               App.State.relDataPhotoBlob.value = null;
               App.State.relDataPhotoName = null;
               App.sidebar.hide();
@@ -1124,14 +1154,38 @@ const RelatedData = {
     }
   },
 
-  addPhoto: () => {
+  addMarkerPhoto: () => {
+    const canvas = document.getElementById("add-point-canvas");
+    const imgInputEl = document.getElementById("marker-photo-capture");
+    RelatedData.addPhoto(
+      canvas,
+      App.State,
+      imgInputEl,
+      "relDataPhotoBlob",
+      "relDataPhotoName"
+    );
+  },
+
+  addRelatedPhoto: () => {
+    const canvas = document.getElementById("myCanvas");
+    const imgInputEl = document.getElementById("photo-capture");
+    RelatedData.addPhoto(
+      canvas,
+      App.State,
+      imgInputEl,
+      "relDataPhotoBlob",
+      "relDataPhotoName"
+    );
+  },
+
+  addPhoto: (myC, state, imgInputBtnEl, blobProp, blobNameProp, ifProp) => {
     // relData photo
     //const el = document.getElementById("photo-capture");
     //document.getElementById("related-data-photo").value = el.files[0].name;
     const pica = Pica();
-    const myC = document.getElementById("myCanvas");
+    //const myC = document.getElementById("myCanvas");
     myC.style.display = "block";
-    const imgInputBtnEl = document.getElementById("photo-capture");
+    //const imgInputBtnEl = document.getElementById("photo-capture");
     const myImg = new Image();
     const myImage = imgInputBtnEl.files[0];
     const fr = new FileReader();
@@ -1155,8 +1209,8 @@ const RelatedData = {
             //document.getElementById("dest-photo").src = URL.createObjectURL(
             //  result
             //);
-            App.State.relDataPhotoName = imgInputBtnEl.files[0].name;
-            App.State.relDataPhotoBlob = result;
+            state[blobNameProp] = imgInputBtnEl.files[0].name;
+            state[blobProp] = result;
           })
           .catch(error => {
             console.log("error:", error);
