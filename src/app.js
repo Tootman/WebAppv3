@@ -379,10 +379,23 @@ export const App = {
       : cogIcon.classList.remove("icon-cog-spin");
   },
 
-  addMarkerToMarkersLayer: (lat, lng, content) => {
-    L.marker([lat, lng])
+  addMarkerToMarkersLayer: (lat, lng, content, photoFileName) => {
+    new App.customMarker([lat, lng])
       .bindPopup(content)
-      .addTo(App.MarkersLayer);
+      .addTo(App.MarkersLayer)
+      .on("click", function(e) {
+        App.markerClickCallback(e);
+      }).options.photoFileName = photoFileName;
+  },
+
+  markerClickCallback: e => {
+    console.log("marker!", e.target.options.photoFileName);
+    const parentEl = document.getElementById("marker-photo-img");
+    const path = "/hounslow/300x400";
+    const photoId = e.target.options.photoFileName;
+    if (!!photoId) {
+      RelatedData.fetchPhotoFromFBStorage(parentEl, path, photoId);
+    }
   },
 
   generatePopupPropSet: marker => {
@@ -395,6 +408,7 @@ export const App = {
 
   setupMarkersLayer: () => {
     App.MarkersLayer = new L.layerGroup();
+
     App.MarkersLayer.addTo(Map);
   },
 
@@ -953,11 +967,14 @@ export const App = {
       const json = snapshot.val();
       const markerContent = `<h4>${
         json.properties.type
-      }</h4><hr><p>${App.generatePopupPropSet(json)}</p>`;
+      }</h4><hr> <img id="marker-photo-img"></img><p>${App.generatePopupPropSet(
+        json
+      )}</p>`;
       App.addMarkerToMarkersLayer(
         json.geometry.coordinates[1],
         json.geometry.coordinates[0],
-        markerContent
+        markerContent,
+        json.properties.photo
       );
     });
   },
@@ -1443,6 +1460,12 @@ const initApp = () => {
       position: "bottomleft"
     })
     .addTo(Map);
+
+  App.customMarker = L.Marker.extend({
+    options: {
+      photoFileName: null
+    }
+  });
 
   //App.infoPanel.initInfoWindowButton();
   App.initSettingsControl();
