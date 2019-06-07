@@ -78,7 +78,7 @@ export const App = {
         defaultZoom: 18,
         maxZoom: 26,
         minZoom: 12,
-        zoomDelta: 2
+        zoomDelta: 1
       },
       symbology: {
         taskCompleteStyle: {
@@ -127,8 +127,8 @@ export const App = {
     featureIdLookup: {},
     //firstReturnedRelDataCallback: true,
     latestLocation: null, // lat Lng
-    currentLineAddPointLat: null,
-    currentLineAddPointLng: null,
+    currentLineaddMarkerLat: null,
+    currentLineaddMarkerLng: null,
     relDataSyncStatus: {}, // objects holds relatedData sync status flag for each feature, TRUE if synced , False
     //surveyed: {}, // true when inspected ie completed , false when not-yet-instected
     //completedResetDate: new Date(2000, 1, 1, 0, 0, 0, 0),
@@ -157,7 +157,7 @@ export const App = {
         pv: "partially visable"
       }
     },
-    AddPointButtonsPoints: [
+    addMarkerButtonsPoints: [
       {
         label: "Hazard",
         id: "hazard"
@@ -171,7 +171,7 @@ export const App = {
         id: "comment"
       }
     ],
-    AddPointButtonsLines: [
+    addMarkerButtonsLines: [
       {
         label: "Hazard",
         id: "hazard"
@@ -695,7 +695,7 @@ export const App = {
           ${featureLabel} </div>`;
         if (feature.geometry.type == "LineString") {
           const buttonsOb = App.createPopupContentButtonSet({
-            buttonSet: App.State.AddPointButtonsLines
+            buttonSet: App.State.addMarkerButtonsLines
             //user: firebase.auth().currentUser.displayName
           });
           addNoteButtonContent = buttonsOb.popupContent;
@@ -711,8 +711,8 @@ export const App = {
             App.State.symbology.beforeSelectedFillColor =
               layer.options.fillColor;
             App.State.symbology.beforeSelectedLineWeight = layer.options.weight;
-            App.State.currentLineAddPointLat = e.latlng.lat;
-            App.State.currentLineAddPointLng = e.latlng.lng;
+            App.State.currentLineaddMarkerLat = e.latlng.lat;
+            App.State.currentLineaddMarkerLng = e.latlng.lng;
             // now reset the style of the old layer
           }
           App.selectedFeature = feature; // expose selected feature and layer
@@ -850,15 +850,15 @@ export const App = {
     }
   },
 
-  addPointForm: buttonSetType => {
+  addMarkerForm: buttonSetType => {
     const options = {};
     App.State.relDataPhotoBlob = null;
     App.State.relDataPhotoName = null;
     const sidebarContent = `
     <h3>Add point  - ${buttonSetType}</h3>
-    type: <input type="hidden" id="addpoint-type" readonly value = "${buttonSetType}">
+    type: <input type="hidden" id="addMarker-type" readonly value = "${buttonSetType}">
 
-    <p>  <textarea class="form-control" rows="2" id="addpoint-comment" placeholder = "optional comment here ..."></textarea></p>
+    <p>  <textarea class="form-control" rows="2" id="addMarker-comment" placeholder = "optional comment here ..."></textarea></p>
     <canvas id="add-point-canvas" style="display:none;margin:auto"></canvas>
    <p><label for="marker-photo-capture" id="marker-take-photo-btn" class="btn btn-sm btn-warning">Take photo</label>
         <input id="marker-photo-capture" onChange="RelatedData.addMarkerPhoto()" name="marker-photo-capture" style="visibility:hidden;" capture="camera" accept="image/*" type="file"/></p>
@@ -869,8 +869,8 @@ export const App = {
   },
 
   submitAddButtonForm: () => {
-    const type = document.getElementById("addpoint-type");
-    const comment = document.getElementById("addpoint-comment");
+    const type = document.getElementById("addMarker-type");
+    const comment = document.getElementById("addMarker-comment");
     const photo = App.State.relDataPhotoName;
     App.State.relDataPhotoName;
     const timeStamp = new Date().toLocaleDateString("en-GB", {
@@ -883,8 +883,8 @@ export const App = {
     });
     const geojsonOb = App.generateNewPointGeoJson({
       type: type.value,
-      lat: App.State.currentLineAddPointLat,
-      lng: App.State.currentLineAddPointLng,
+      lat: App.State.currentLineaddMarkerLat,
+      lng: App.State.currentLineaddMarkerLng,
       user: firebase.auth().currentUser.displayName,
       comment: comment.value,
       photo: photo,
@@ -901,7 +901,7 @@ export const App = {
     <button class='btn btn-primary left-spacing'>Add point ...
     </button> <div class='dropdown-content'>0.`;
     const createButtons = buttonSet.map(button => {
-      popupContent += `<button onclick="App.addPointForm('${button.id}')"
+      popupContent += `<button onclick="App.addMarkerForm('${button.id}')"
        class="btn btn-primary dropdown-button" >${button.label}</button>`;
     });
     popupContent += `</div></div>`;
@@ -913,14 +913,14 @@ export const App = {
   featureLabels: () => {
     // TODO: refactor to functional
     const bounds = Map.getBounds();
-
+    //console.log("zoom:", Map.getZoom());
     if (App.State.visableFeatures !== null) {
       App.State.visableFeatures.map(layer => {
         layer.unbindTooltip();
       });
       App.State.visableFeatures = [];
     }
-    if (Map.getZoom() < 20) {
+    if (Map.getZoom() < 19) {
       return;
     }
 
@@ -1548,7 +1548,7 @@ Map.on("click", e => {
 Map.on("dblclick", e => {
   const addPopupToClick = e => {
     const buttonOb = App.createPopupContentButtonSet({
-      buttonSet: App.State.AddPointButtonsPoints
+      buttonSet: App.State.addMarkerButtonsPoints
     });
     L.popup()
       .setLatLng(e.latlng)
@@ -1556,8 +1556,8 @@ Map.on("dblclick", e => {
       .openOn(Map);
   };
   addPopupToClick(e);
-  App.State.currentLineAddPointLat = e.latlng.lat;
-  App.State.currentLineAddPointLng = e.latlng.lng;
+  App.State.currentLineaddMarkerLat = e.latlng.lat;
+  App.State.currentLineaddMarkerLng = e.latlng.lng;
   App.State;
 });
 Map.on("moveend", () => {
