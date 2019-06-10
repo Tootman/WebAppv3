@@ -505,8 +505,9 @@ export const App = {
   propsTotabularContent: myOb => {
     return contentStr;
   },
-  pushNewPointToFirebase: ({ mapID, json }) => {
+  pushNewMarkerToFirebase: ({ mapID, json }) => {
     const refPath = `App/Maps/${mapID}/Markers/`;
+
     fbDatabase
       .ref(refPath)
       .push(json)
@@ -522,10 +523,12 @@ export const App = {
             `hounslow/300x400/${App.State.relDataPhotoName}`
           );
           //fbFileRef.put(RelDataPhotoBlobEl.files[0]).then(snapshot => {
+
+          // see orcl-refactoring-photo-put-and-get.txt for refactor
           fbFileRef
             .put(App.State.relDataPhotoBlob)
             .then(snapshot => {
-              console.log("Uploaded a marker photo!");
+              //console.log("Uploaded a marker photo!");
               document.getElementById("marker-photo-capture").value = null;
               //document.getElementById("related-data-photo").value = null;
               App.State.relDataPhotoBlob.value = null;
@@ -751,46 +754,6 @@ export const App = {
     App.saveMapToLocalStorage(key, mapData);
   },
 
-  /*
-  fetchAndPopulateRelatedData: myMapData => {
-    const relDataRef = fbDatabase.ref(
-      `/App/Maps/${myMapData.config.relDataMapHash}/Related/`
-    );
-    relDataRef
-      .once("value")
-      .then(snap => {
-        return snap.val();
-      })
-      .then(data => {
-        const relData = App.populateRelated(data);
-
-        if (!!relData) {
-          App.State.relatedData = relData.relDataObject;
-          App.State.relDataSyncStatus = relData.relDataSyncObject;
-        } else {
-          App.State.relatedData = {};
-          App.State.relDataSyncStatus = {};
-        }
-      })
-      .then(snap => {
-        // fetch and insert relData photo if exists
-        if (!!App.State.relDataPhotoName) {
-          const relPhotoEl = document.getElementById("related-photo-img");
-          const relPhotoPath = `/hounslow/300x400`;
-          const relPhotoFileName = App.State.relDataPhotoName;
-          fetchPhotoFromFBStorage({
-            relPhotoEl,
-            relPhotoPath,
-            relPhotoFileName
-          });
-        }
-      })
-      .catch(error => {
-        consol.log("Error in fetching related:", error);
-      });
-  },
-  */
-
   unsetSelectedStyle: () => {
     if (!App.selectedLayer) return;
     App.selectedLayer.setStyle({
@@ -890,7 +853,7 @@ export const App = {
       photo: photo,
       timeStamp: timeStamp
     });
-    App.pushNewPointToFirebase({
+    App.pushNewMarkerToFirebase({
       mapID: App.State.relatedDataMapHash,
       json: geojsonOb
     });
@@ -1196,13 +1159,8 @@ const RelatedData = {
   },
 
   addPhoto: (myC, state, imgInputBtnEl, blobProp, blobNameProp, ifProp) => {
-    // relData photo
-    //const el = document.getElementById("photo-capture");
-    //document.getElementById("related-data-photo").value = el.files[0].name;
     const pica = Pica();
-    //const myC = document.getElementById("myCanvas");
     myC.style.display = "block";
-    //const imgInputBtnEl = document.getElementById("photo-capture");
     const myImg = new Image();
     const myImage = imgInputBtnEl.files[0];
     const fr = new FileReader();
@@ -1234,27 +1192,7 @@ const RelatedData = {
           });
       };
     });
-
-    //App.State.relDataPhotoBlob = el.files[0];
-    //App.State.relDataPhotoName = App.State.relDataPhotoBlob.name;
   }
-
-  /*
-  uploadRelPhoto: blobEl => {
-    const storageRef = firebase.storage().ref();
-    const fbFileRef = storageRef.child(`test/${blobEl.files[0].name}`);
-    fbFileRef
-      .put(blobEl.files[0])
-      .then(snapshot => {
-        console.log("Uploaded a file!");
-        blobEl.value = null;
-        document.getElementById("related-data-photo").value = null;
-        App.State.relDataPhotoBlob.value = null;
-        App.State.relDataPhotoName = null;
-      })
-      .catch(err => console.log("error in upload relPhoto:", err));
-  }
-  */
 };
 
 window.RelatedData = RelatedData;
@@ -1265,8 +1203,6 @@ const loadMyLayer = layerName => {
   loadProject();
 
   function loadProject() {
-    console.log("loadProject ...");
-
     const retrieveProjectsFromFirebase = () => {
       document.getElementById("message-area").innerHTML =
         "<p>waiting for network connection ...</p>";
@@ -1276,7 +1212,6 @@ const loadMyLayer = layerName => {
         .then(snapshot => {
           document.getElementById("message-area").innerHTML = null;
           const el = document.getElementById("opennewproject");
-          //el.insertAdjacentHTML("afterBegin", "Open project");
           App.State.projectsOb = snapshot.val();
           displayProjectList(snapshot.val());
         })
@@ -1296,25 +1231,13 @@ const loadMyLayer = layerName => {
         btn.setAttribute("value", item[0]); // index) is the  key
         btn.setAttribute("title", item[1].description); // index 1 is value
         btn.className = "btn btn-primary open-project-button";
-
-        /*
-        const id = item.mapID;
-        btn.addEventListener("click", e => {
-          App.retrieveMapFromFireBase(e.target.value);
-          App.State.settings.mapIndex = e.target.value; // store map Index
-        });
-      */
-
         btn.addEventListener("click", e => {
           displayMapSetOpenButtons(e.target.value); // store map Index
         });
-
         btn.innerHTML = item[1].name;
         maplist.appendChild(btn);
-        //document.getElementById("message-area").innerHTML("Now select a map");
       });
     };
-
     retrieveProjectsFromFirebase();
   }
 };
@@ -1327,7 +1250,6 @@ const displayMapSetOpenButtons = projectHash => {
   buttonParentEl.innerHTML = ""; // clear container of buttons
   const mapSet = App.State.projectsOb[projectHash].mapSet;
   Object.entries(mapSet).map(item => {
-    //console.log(item[0], item[1])
     const btn = document.createElement("button");
     btn.setAttribute("value", item[0]); // index) is the  key
     btn.setAttribute("title", item[1]); // index 1 is value
@@ -1460,14 +1382,11 @@ const initApp = () => {
       position: "bottomleft"
     })
     .addTo(Map);
-
   App.customMarker = L.Marker.extend({
     options: {
       photoFileName: null
     }
   });
-
-  //App.infoPanel.initInfoWindowButton();
   App.initSettingsControl();
   setupSideBar();
   initLocationControl();
@@ -1487,8 +1406,6 @@ const initApp = () => {
   //RelatedData.restoreRelStateFromLocalStorage()
   App.setupMarkersLayer();
   App.loadMapDataFromLocalStorage();
-
-  // window.alert("ORCL WebApp version 0.9.118");
 
   // ----- offline service worker -----------
   if ("serviceWorker" in navigator) {
