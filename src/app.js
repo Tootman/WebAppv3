@@ -546,7 +546,7 @@ export const App = {
     blobNameKey,
     failMessage
   }) => {
-    console.log("sendThumbnamilToCloudStorage");
+    console.log("sendThumbnailToCloudStorage");
     if (!!blob) {
       //document.getElementById("related-data-photo").value = relPhotoEl.files[0].name;
       const storageRef = firebase.storage().ref();
@@ -1056,37 +1056,19 @@ const RelatedData = {
         localStorage.removeItem(localStorageKey);
       })
       .then(snap => {
-        const RelDataPhotoBlobEl = document.getElementById("photo-capture");
-        if (!!App.State.relDataPhotoBlob) {
-          //document.getElementById("related-data-photo").value = relPhotoEl.files[0].name;
-          const storageRef = firebase.storage().ref();
-          const fbFileRef = storageRef.child(
-            `hounslow/300x400/${App.State.relDataPhotoName}`
-          );
-          //fbFileRef.put(RelDataPhotoBlobEl.files[0]).then(snapshot => {
-          fbFileRef
-            .put(App.State.relDataPhotoBlob)
-            .then(snapshot => {
-              console.log("Uploaded a file!");
-              document.getElementById("photo-capture").value = null;
-              //document.getElementById("related-data-photo").value = null;
-              App.State.relDataPhotoBlob.value = null;
-              App.State.relDataPhotoName = null;
-              App.sidebar.hide();
-            })
-            .catch(error => {
-              App.sidebar.hide();
-              alert(
-                "photo not uploaded - you need to upload it manually  from your device"
-              );
-              console.log("push photo failed");
-            });
-        }
-      }); /*
-      .catch(error => {
-        alert("Sorry - something went wrong - have you logged in etc?");
-        console.log("push to fb error:", error);
-      }); */
+        App.sendThumbnailToCloudStorage({
+          blob: App.State.relDataPhotoBlob,
+          storagePathAndName: `hounslow/300x400/${App.State.relDataPhotoName}`,
+          photoInputId: "photo-capture",
+          blobNamePath: App.State,
+          blobNameKey: "relDataPhotoBlob",
+          failMessage:
+            "photo not uploaded - you need to upload it manually  from your device"
+        });
+      })
+      .then(res => {
+        App.sidebar.hide();
+      });
   },
 
   submit: () => {
