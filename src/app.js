@@ -523,38 +523,56 @@ export const App = {
         console.log("pushed new marker!");
       })
       .then(snap => {
-        //const markerDataPhotoBlobEl = document.getElementById("photo-capture");
-        if (!!App.State.relDataPhotoBlob) {
-          //document.getElementById("related-data-photo").value = relPhotoEl.files[0].name;
-          const storageRef = firebase.storage().ref();
-          const fbFileRef = storageRef.child(
-            `hounslow/300x400/${App.State.relDataPhotoName}`
-          );
-          //fbFileRef.put(RelDataPhotoBlobEl.files[0]).then(snapshot => {
-
-          // see orcl-refactoring-photo-put-and-get.txt for refactor
-          fbFileRef
-            .put(App.State.relDataPhotoBlob)
-            .then(snapshot => {
-              //console.log("Uploaded a marker photo!");
-              document.getElementById("marker-photo-capture").value = null;
-              //document.getElementById("related-data-photo").value = null;
-              App.State.relDataPhotoBlob.value = null;
-              App.State.relDataPhotoName = null;
-              App.sidebar.hide();
-            })
-            .catch(error => {
-              App.sidebar.hide();
-              alert(
-                "photo not uploaded - you need to upload it manually  from your device"
-              );
-              console.log("push photo failed");
-            });
-        }
+        App.sendThumbnailToCloudStorage({
+          blob: App.State.relDataPhotoBlob,
+          storagePathAndName: `hounslow/300x400/${App.State.relDataPhotoName}`,
+          photoInputId: "marker-photo-capture",
+          blobNamePath: App.State,
+          blobNameKey: "relDataPhotoBlob",
+          failMessage:
+            "photo not uploaded - you need to upload it manually  from your device"
+        });
+      })
+      .then(res => {
+        App.sidebar.hide();
       });
-
-    App.sidebar.hide();
   },
+
+  sendThumbnailToCloudStorage: ({
+    blob,
+    storagePathAndName,
+    photoInputId,
+    blobNamePath,
+    blobNameKey,
+    failMessage
+  }) => {
+    console.log("sendThumbnamilToCloudStorage");
+    if (!!blob) {
+      //document.getElementById("related-data-photo").value = relPhotoEl.files[0].name;
+      const storageRef = firebase.storage().ref();
+      const fbFileRef = storageRef.child(storagePathAndName);
+
+      // see orcl-refactoring-photo-put-and-get.txt for refactor
+      return fbFileRef.put(blob).then(snapshot => {
+        //console.log("Uploaded a marker photo!");
+        document.getElementById(photoInputId).value = null;
+        //document.getElementById("related-data-photo").value = null;
+        blob.value = null;
+        blobNamePath[blobNameKey] = null;
+        App.sidebar.hide();
+      });
+      /*
+        .catch(error => {
+          //App.sidebar.hide();
+          alert(
+            "photo not uploaded - you need to upload it manually  from your device"
+          );
+          console.log("push photo failed");
+        });
+        */
+    }
+  },
+
   generateNewPointGeoJson: ({
     type, // point/ Marker type
     lat,
