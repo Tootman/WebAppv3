@@ -379,13 +379,21 @@ export const App = {
       : cogIcon.classList.remove("icon-cog-spin");
   },
 
-  addMarkerToMarkersLayer: (lat, lng, content, photoFileName) => {
-    new App.customMarker([lat, lng])
-      .bindPopup(content)
+  addMarkerToMarkersLayer: (lat, lng, content, photoFileName, dataPath) => {
+    const popup = L.popup();
+    if (!!photoFileName) {
+      popup.options.minWidth = 300;
+    }
+    popup.setContent(content);
+    new App.customMarker([lat, lng], {
+      photoFileName: photoFileName,
+      dataPath: dataPath
+    })
+      .bindPopup(popup)
       .addTo(App.MarkersLayer)
       .on("click", function(e) {
         App.markerClickCallback(e);
-      }).options.photoFileName = photoFileName;
+      });
   },
 
   markerClickCallback: e => {
@@ -928,6 +936,7 @@ export const App = {
     const dbRef = fbDatabase.ref(`/App/Maps/${relMapHash}/Markers/`);
     dbRef.on("child_added", (snapshot, prevChildKey) => {
       const json = snapshot.val();
+      console.log("path:", dbRef + "/" + snapshot.key);
       const markerContent = `<h4>${
         json.properties.type
       }</h4><hr> <img id="marker-photo-img"></img><p>${App.generatePopupPropSet(
@@ -1384,7 +1393,10 @@ const initApp = () => {
     .addTo(Map);
   App.customMarker = L.Marker.extend({
     options: {
-      photoFileName: null
+      photoFileName: null,
+      dataPath: null
+      //minWidth: 500,
+      //maxWidth: 500
     }
   });
   App.initSettingsControl();
