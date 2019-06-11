@@ -7,6 +7,7 @@ import "./style.scss";
 import "leaflet-offline";
 //import localforage from "localforage";
 import logoImg from "./ORCL-logo-cropped.png";
+import greenMarkerIcon from "./green-pin-25w.png";
 //import leafletKnn from "leaflet-knn";
 import fontello_ttf from "./fontello/font/fontello.ttf";
 require("./L.Control.Sidebar");
@@ -190,7 +191,10 @@ export const App = {
       }
     ],
     relDataPhotoBlob: null,
-    relDataPhotoName: null
+    relDataPhotoName: null,
+    markerIcons: {
+      commentIcon: {}
+    }
   },
 
   populateInputOptions: (el, items) => {
@@ -381,19 +385,22 @@ export const App = {
 
   addMarkerToMarkersLayer: (lat, lng, content, photoFileName, dataPath) => {
     const popup = L.popup();
-    if (!!photoFileName) {
-      popup.options.minWidth = 300;
-    }
+
     popup.setContent(content);
-    new App.customMarker([lat, lng], {
+    const myMarker = new App.customMarker([lat, lng], {
       photoFileName: photoFileName,
       dataPath: dataPath
+      //icon: App.State.markerIcons.commentMarkerIcon
     })
       .bindPopup(popup)
-      .addTo(App.MarkersLayer)
       .on("click", function(e) {
         App.markerClickCallback(e);
       });
+    if (!!photoFileName) {
+      popup.options.minWidth = 300;
+      myMarker.options.icon = App.State.markerIcons.commentMarkerIcon;
+    }
+    myMarker.addTo(App.MarkersLayer);
   },
 
   markerClickCallback: e => {
@@ -949,12 +956,12 @@ export const App = {
       });
     });
   },
-  setupFbAddMarkerNodeEventCallback: relMapHash => {
+  setupFbAddMarkerNodeEventCallback: mapHash => {
     let firstReturnedSnap = true;
-    const dbRef = fbDatabase.ref(`/App/Maps/${relMapHash}/Markers/`);
+    const dbRef = fbDatabase.ref(`/App/Maps/${mapHash}/Markers/`);
     dbRef.on("child_added", (snapshot, prevChildKey) => {
       const json = snapshot.val();
-      console.log("path:", dbRef + "/" + snapshot.key);
+      //console.log("path:", dbRef + "/" + snapshot.key);
       const markerContent = `<h4>${
         json.properties.type
       }</h4><hr> <img id="marker-photo-img"></img><p>${App.generatePopupPropSet(
@@ -968,6 +975,7 @@ export const App = {
       );
     });
   },
+
   setFeatureSymbologyToCompleted: featureKey => {
     const layer = App.geoLayer.getLayer(App.State.featureIdLookup[featureKey]);
     try {
@@ -1416,6 +1424,18 @@ const initApp = () => {
     el.style.display = "none";
   });
   //RelatedData.restoreRelStateFromLocalStorage()
+
+  App.State.markerIcons.commentMarkerIcon = L.icon({
+    iconUrl: "green-pin-25w.png",
+    //shadowUrl: "leaf-shadow.png",
+
+    iconSize: [38, 95], // size of the icon
+    shadowSize: [50, 64], // size of the shadow
+    iconAnchor: [22, 94], // point of the icon which will correspond to marker's location
+    shadowAnchor: [4, 62], // the same for the shadow
+    popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+  });
+
   App.setupMarkersLayer();
   App.loadMapDataFromLocalStorage();
 
