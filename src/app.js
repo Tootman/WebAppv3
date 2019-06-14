@@ -162,38 +162,13 @@ export const App = {
         pv: "partially visable"
       }
     },
-    addMarkerButtonsPoints: [
-      {
-        label: "Hazard",
-        id: "hazard"
-      },
-      {
-        label: "Unmapped asset",
-        id: "unmappedAsset"
-      },
-      {
-        label: "general comment",
-        id: "comment"
-      }
-    ],
-    addMarkerButtonsLines: [
-      {
-        label: "Hazard",
-        id: "hazard"
-      },
-      {
-        label: "Unmapped asset",
-        id: "unmappedAsset"
-      },
-      {
-        label: "General comment",
-        id: "comment"
-      },
-      {
-        label: "Breach in barrier",
-        id: "breach"
-      }
-    ],
+    markerTypes: {
+      hazard: "hazard",
+      unmappedAsset: "Unmapped asset",
+      comment: "Comment / note",
+      breach: "Barrier breach (hole in fence)"
+    },
+
     relDataPhotoBlob: null,
     relDataPhotoName: null,
     markerIcons: {
@@ -761,8 +736,7 @@ export const App = {
           ${featureLabel} </div>`;
         if (feature.geometry.type == "LineString") {
           const buttonsOb = App.createPopupContentButtonSet({
-            buttonSet: App.State.addMarkerButtonsLines
-            //user: firebase.auth().currentUser.displayName
+            buttonSet: App.State.markerTypes
           });
           addNoteButtonContent = buttonsOb.popupContent;
         }
@@ -881,7 +855,7 @@ export const App = {
     App.State.relDataPhotoBlob = null;
     App.State.relDataPhotoName = null;
     const sidebarContent = `
-    <h3>Add point  - ${buttonSetType}</h3>
+    <h3>Add marker  - ${buttonSetType}</h3>
     type: <input type="hidden" id="addMarker-type" readonly value = "${buttonSetType}">
 
     <p>  <textarea class="form-control" rows="2" id="addMarker-comment" placeholder = "optional comment here ..."></textarea></p>
@@ -922,14 +896,16 @@ export const App = {
     });
   },
 
-  createPopupContentButtonSet: ({ buttonSet }) => {
+  createPopupContentButtonSet: ({ markerTypes }) => {
     let popupContent = `<div class='dropdown'>
-    <button class='btn btn-primary left-spacing'>Add point ...
+    <button class='btn btn-primary left-spacing'>Add marker ...
     </button> <div class='dropdown-content'>0.`;
-    const createButtons = buttonSet.map(button => {
-      popupContent += `<button onclick="App.addMarkerForm('${button.id}')"
-       class="btn btn-primary dropdown-button" >${button.label}</button>`;
-    });
+    const createButtons = Object.entries(App.State.markerTypes).map(
+      markerType => {
+        popupContent += `<button onclick="App.addMarkerForm('${markerType[0]}')"
+       class="btn btn-primary dropdown-button" >${markerType[1]}</button>`;
+      }
+    );
     popupContent += `</div></div>`;
     return {
       popupContent
@@ -1548,7 +1524,8 @@ Map.on("click", e => {
 Map.on("dblclick", e => {
   const addPopupToClick = e => {
     const buttonOb = App.createPopupContentButtonSet({
-      buttonSet: App.State.addMarkerButtonsPoints
+      //buttonSet: App.State.addMarkerButtons
+      buttonSet: App.State.markerTypes
     });
     L.popup()
       .setLatLng(e.latlng)
