@@ -7,7 +7,11 @@ import "./style.scss";
 import "leaflet-offline";
 //import localforage from "localforage";
 import logoImg from "./ORCL-logo-cropped.png";
-import greenMarkerIcon from "./green-pin-25w.png";
+import commentMarkerIcon from "./comment-icon.png";
+import breachMarkerIcon from "./breach-icon.png";
+import hazardMarkerIcon from "./hazard-icon.png";
+import unmappedMarkerIcon from "./unmapped-icon.png";
+import MarkerIconShadow from "./marker-shadow.png";
 //import leafletKnn from "leaflet-knn";
 import fontello_ttf from "./fontello/font/fontello.ttf";
 require("./L.Control.Sidebar");
@@ -193,7 +197,10 @@ export const App = {
     relDataPhotoBlob: null,
     relDataPhotoName: null,
     markerIcons: {
-      commentIcon: {}
+      commentIcon: {},
+      breachIcon: {},
+      unmappedIcon: {},
+      hazardIcon: {}
     }
   },
 
@@ -383,23 +390,46 @@ export const App = {
       : cogIcon.classList.remove("icon-cog-spin");
   },
 
-  addMarkerToMarkersLayer: (lat, lng, content, photoFileName, dataPath) => {
+  addMarkerToMarkersLayer: (lat, lng, content, photoFileName, contentType) => {
     const popup = L.popup();
 
     popup.setContent(content);
     const myMarker = new App.customMarker([lat, lng], {
       photoFileName: photoFileName,
-      dataPath: dataPath
+      //dataPath: dataPath,
+      contentType: contentType
       //icon: App.State.markerIcons.commentMarkerIcon
     })
       .bindPopup(popup)
       .on("click", function(e) {
         App.markerClickCallback(e);
       });
+    /*
     if (!!photoFileName) {
       popup.options.minWidth = 300;
       myMarker.options.icon = App.State.markerIcons.commentMarkerIcon;
     }
+    */
+
+    switch (myMarker.options.contentType) {
+      case "breach":
+        myMarker.options.icon = App.State.markerIcons.breachIcon;
+        break;
+      case "unmappedAsset":
+        myMarker.options.icon = App.State.markerIcons.unmappedIcon;
+        // code block
+        break;
+      case "hazard":
+        myMarker.options.icon = App.State.markerIcons.hazardIcon;
+        break;
+      case "comment":
+        myMarker.options.icon = App.State.markerIcons.commentIcon;
+        break;
+      default:
+        myMarker.options.icon = App.State.markerIcons.commentIcon;
+      // code block
+    }
+
     myMarker.addTo(App.MarkersLayer);
   },
 
@@ -971,7 +1001,8 @@ export const App = {
         json.geometry.coordinates[1],
         json.geometry.coordinates[0],
         markerContent,
-        json.properties.photo
+        json.properties.photo,
+        json.properties.type
       );
     });
   },
@@ -1402,7 +1433,8 @@ const initApp = () => {
   App.customMarker = L.Marker.extend({
     options: {
       photoFileName: null,
-      dataPath: null
+      dataPath: null,
+      contentType: null
       //minWidth: 500,
       //maxWidth: 500
     }
@@ -1425,15 +1457,34 @@ const initApp = () => {
   });
   //RelatedData.restoreRelStateFromLocalStorage()
 
-  App.State.markerIcons.commentMarkerIcon = L.icon({
-    iconUrl: "green-pin-25w.png",
-    //shadowUrl: "leaf-shadow.png",
+  App.State.markerIcons.commentIcon = L.icon({
+    iconUrl: "comment-icon.png",
+    shadowUrl: "marker-shadow.png",
+    //iconSize: [38, 95], // size of the icon
+    //shadowSize: [50, 64], // size of the shadow
+    iconAnchor: [13, 41], // point of the icon which will correspond to marker's location
+    shadowAnchor: [13, 41] // the same for the shadow
+    //popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+  });
 
-    iconSize: [38, 95], // size of the icon
-    shadowSize: [50, 64], // size of the shadow
-    iconAnchor: [22, 94], // point of the icon which will correspond to marker's location
-    shadowAnchor: [4, 62], // the same for the shadow
-    popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+  App.State.markerIcons.hazardIcon = L.icon({
+    iconUrl: "hazard-icon.png",
+    shadowUrl: "marker-shadow.png",
+    iconAnchor: [13, 41], // point of the icon which will correspond to marker's location
+    shadowAnchor: [13, 41] // the same for the shadow
+  });
+
+  App.State.markerIcons.breachIcon = L.icon({
+    iconUrl: "breach-icon.png",
+    shadowUrl: "marker-shadow.png",
+    iconAnchor: [13, 41], // point of the icon which will correspond to marker's location
+    shadowAnchor: [13, 41] // the same for the shadow
+  });
+  App.State.markerIcons.unmappedIcon = L.icon({
+    iconUrl: "unmapped-icon.png",
+    shadowUrl: "marker-shadow.png",
+    iconAnchor: [13, 41], // point of the icon which will correspond to marker's location
+    shadowAnchor: [13, 41] // the same for the shadow
   });
 
   App.setupMarkersLayer();
