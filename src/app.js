@@ -734,7 +734,7 @@ export const App = {
         let addNoteButtonContent = "";
         featureContentPopup = `<div class="btn btn-primary large icon-pencil" onClick="App.whenGeoFeatureClicked(App.selectedFeature);"><br>
           ${featureLabel} </div>`;
-        if (feature.geometry.type == "LineString") {
+        if (feature.geometry.type == "LineString" || "Polygon") {
           const buttonsOb = App.createPopupContentButtonSet({
             buttonSet: App.State.markerTypes
           });
@@ -1521,7 +1521,7 @@ Map.on("click", e => {
   App.selectedFeature = null;
 });
 
-Map.on("dblclick", e => {
+Map.on("contextmenu", e => {
   const addPopupToClick = e => {
     const buttonOb = App.createPopupContentButtonSet({
       //buttonSet: App.State.addMarkerButtons
