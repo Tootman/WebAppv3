@@ -76,7 +76,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.123", date: "14 June 2019" },
+    version: { number: "0.9.124", date: "26 August 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -923,6 +923,7 @@ export const App = {
       App.State.visableFeatures = [];
     }
     if (Map.getZoom() < 19) {
+      //was 19
       return;
     }
 
@@ -941,7 +942,14 @@ export const App = {
         //if (layer.getLatLng && !hasRelData) {
         if (layer.getLatLng) {
           if (bounds.contains(layer.getLatLng())) {
-            App.State.visableFeatures.push(layer);
+            if (
+              layer.options.color == App.State.symbology.uncompletedColor ||
+              layer.options.fillColor ==
+                App.State.symbology.uncompletedfillColor
+            ) {
+              //App.State.visableFeatures.push(layer);
+              //console.log("layer pushed!");
+            }
           }
           //} else if (layer.getBounds && !hasRelData) {
         } else if (layer.getBounds) {
@@ -949,12 +957,21 @@ export const App = {
             bounds.intersects(layer.getBounds()) ||
             bounds.contains(layer.getBounds())
           ) {
-            App.State.visableFeatures.push(layer);
+            if (
+              layer.options.color == App.State.symbology.uncompletedColor ||
+              layer.options.fillColor ==
+                App.State.symbology.uncompletedfillColor
+            ) {
+              App.State.visableFeatures.push(layer);
+            }
+            //App.State.visableFeatures.push(layer);
+            //console.log("intersection");
           }
         }
       });
     };
     redrawToolTips();
+
     App.State.visableFeatures.map(layer => {
       layer.bindTooltip(layer.feature.properties.Asset, {
         permanent: true,
