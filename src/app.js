@@ -443,7 +443,7 @@ export const App = {
     }/Related/`;
     fbDatabase.ref(currentRelatedRef).off();
     const currentMarkersRef = `/App/Maps/${
-      App.State.relatedDataMapHash
+      App.State.projectConfig.mapHash
     }/Markers/`;
     fbDatabase.ref(currentMarkersRef).off();
     // remove ALL existing listeners from current map
@@ -468,7 +468,7 @@ export const App = {
         const mapData = snapshot.val();
         App.clearLocalStorageMaps();
         try {
-          App.State.relatedDataMapHash = mapData.config.relDataMapHash;
+          App.State.relatedDataMapHash = App.State.projectConfig.mapHash; //cbt todo
         } catch (err) {
           App.State.relatedDataMapHash = null;
         }
@@ -479,13 +479,17 @@ export const App = {
         App.busyWorkingIndicator(false);
 
         try {
-          App.setupAddRelatedRecordEventListener(mapData.config.relDataMapHash);
+          App.setupAddRelatedRecordEventListener(
+            App.State.projectConfig.mapHash
+          );
         } catch (err) {
           console.log("set relatedData callbacks failed");
         }
 
         try {
-          App.setupFbAddMarkerNodeEventCallback(mapData.config.relDataMapHash);
+          App.setupFbAddMarkerNodeEventCallback(
+            App.State.projectConfig.mapHash
+          );
           console.log("setUpMarkersCallback - from retrieve from Firebase");
         } catch (err) {
           console.log("failed to set Markers listeners");
@@ -832,19 +836,19 @@ export const App = {
     }
 
     try {
-      App.State.relatedDataMapHash = mapData.config.relDataMapHash;
+      App.State.relatedDataMapHash = mapData.config.relDataMapHash; // todo CBT - now from child map so rename to parentMapHash
     } catch (err) {
       App.State.relatedDataMapHash = null;
     }
     const mapKey = storageKey[0].split("mapData.")[1];
     App.setupGeoLayer(mapKey, mapData);
     try {
-      App.setupAddRelatedRecordEventListener(mapData.config.relDataMapHash);
+      App.setupAddRelatedRecordEventListener(App.State.projectConfig.mapHash);
     } catch (err) {
       console.log("failed to set RelatedData listeners");
     }
     try {
-      App.setupFbAddMarkerNodeEventCallback(mapData.config.relDataMapHash);
+      App.setupFbAddMarkerNodeEventCallback(App.State.projectConfig.mapHash);
     } catch (err) {
       console.log("failed to set Markers listeners");
     }
@@ -891,7 +895,7 @@ export const App = {
       timeStamp: timeStamp
     });
     App.pushNewMarkerToFirebase({
-      mapID: App.State.relatedDataMapHash,
+      mapID: App.State.projectConfig.mapHash,
       json: geojsonOb
     });
   },
@@ -1105,9 +1109,9 @@ const RelatedData = {
 
   submit: () => {
     RelatedData.featureKey = App.featureToKey(App.selectedFeature);
-    RelatedData.nodePath = `App/Maps/${App.State.relatedDataMapHash}/Related/${
-      RelatedData.featureKey
-    }/`;
+    RelatedData.nodePath = `App/Maps/${
+      App.State.projectConfig.mapHash
+    }/Related/${RelatedData.featureKey}/`;
     const relatedRecord = {};
     const timeStamp = new Date().toLocaleDateString("en-GB", {
       day: "numeric",
