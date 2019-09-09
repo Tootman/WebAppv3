@@ -76,7 +76,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.124", date: "26 August 2019" },
+    version: { number: "0.9.125", date: "9 Sep 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -615,6 +615,7 @@ export const App = {
   },
 
   populateRelated: related => {
+    // this method is now redundent?
     if (!related) return;
     const relDataObject = {}; // to be replaced with State etc
     const relDataSyncObject = {}; // just to make sure it's initially empty
@@ -650,20 +651,23 @@ export const App = {
       const itemFeatureKey = key.split(regex)[1]; //  element 1 is str after split point
       const relDataFeaturePath =
         "App/Maps/" + mapHash + "/Related/" + itemFeatureKey;
-      const localStorageTime = new Date(item.timestamp);
-      const stateTime = new Date(
-        App.State.relatedData[itemFeatureKey].timestamp
+
+      //const localStorageTime = new Date(item.timestamp);
+      //const stateTime = new Date(
+      //  App.State.relatedData[itemFeatureKey].timestamp
+      // );
+      //if (localStorageTime.getTime() > stateTime.getTime()) {
+      //    App.updateFeatureRelatedState(itemFeatureKey, item);
+      //    App.State.relDataSyncStatus[key] = false; // while item is sucessfully pushed to db
+
+      RelatedData.pushRelatedDataRecord(
+        relDataFeaturePath,
+        itemFeatureKey,
+        item
       );
-      if (localStorageTime.getTime() > stateTime.getTime()) {
-        App.updateFeatureRelatedState(itemFeatureKey, item);
-        App.State.relDataSyncStatus[key] = false; // while item is sucessfully pushed to db
-        RelatedData.pushRelatedDataRecord(
-          relDataFeaturePath,
-          itemFeatureKey,
-          item
-        );
-        // Trigger push of item (does this update sync status and message automatically ? )
-      }
+
+      // Trigger push of item (does this update sync status and message automatically ? )
+      //}
     });
   },
 
@@ -852,6 +856,7 @@ export const App = {
     } catch (err) {
       console.log("failed to set Markers listeners");
     }
+    App.getRelDataFromLocalStorage(App.State.projectConfig.mapHash);
   },
 
   addMarkerForm: buttonSetType => {
