@@ -52,7 +52,7 @@ self.__precacheManifest = [
     "url": "hazard-icon.png"
   },
   {
-    "revision": "f598bc6cd075ae503ea4",
+    "revision": "243e92edb2c62054341d",
     "url": "bundle.js"
   },
   {
