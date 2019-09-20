@@ -1001,7 +1001,7 @@ export const App = {
         json.properties.type
       }</h4><hr> <img id="marker-photo-img"></img><p>${App.generatePopupPropSet(
         json
-      )}</p>`;
+      )}</p><p><button class="btn btn-danger" value = "${prevChildKey}"  onclick = "App.markerOnDeleteListener(this.value)">Delete</button></p>`;
       App.addMarkerToMarkersLayer(
         json.geometry.coordinates[1],
         json.geometry.coordinates[0],
@@ -1010,6 +1010,15 @@ export const App = {
         json.properties.type
       );
     });
+  },
+
+  markerOnDeleteListener: e => {
+    const result = confirm("Are you sure?");
+    if (result != true) {
+      return;
+    }
+
+    console.log("will delete:", e);
   },
 
   setFeatureSymbologyToCompleted: featureKey => {
