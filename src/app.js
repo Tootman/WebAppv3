@@ -956,8 +956,8 @@ export const App = {
               layer.options.fillColor ==
                 App.State.symbology.uncompletedfillColor
             ) {
-              //App.State.visableFeatures.push(layer);
-              //console.log("layer pushed!");
+              App.State.visableFeatures.push(layer);
+              //console.log("point layer pushed!");
             }
           }
           //} else if (layer.getBounds && !hasRelData) {
@@ -966,6 +966,9 @@ export const App = {
             bounds.intersects(layer.getBounds()) ||
             bounds.contains(layer.getBounds())
           ) {
+            //console.log("feature:", layer.feature.properties);
+            //console.log("layerOptionsColor:", layer.options.color);
+            //console.log("layerOptionsfillColor:", layer.options.fillColor);
             if (
               layer.options.color == App.State.symbology.uncompletedColor ||
               layer.options.fillColor ==
