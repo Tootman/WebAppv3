@@ -76,7 +76,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.125", date: "9 Sep 2019" },
+    version: { number: "0.9.126", date: "24 Sep 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -365,7 +365,14 @@ export const App = {
       : cogIcon.classList.remove("icon-cog-spin");
   },
 
-  addMarkerToMarkersLayer: (lat, lng, content, photoFileName, contentType) => {
+  addMarkerToMarkersLayer: (
+    lat,
+    lng,
+    content,
+    photoFileName,
+    contentType,
+    myThis
+  ) => {
     const popup = L.popup();
 
     popup.setContent(content);
@@ -373,19 +380,9 @@ export const App = {
       photoFileName: photoFileName,
       //dataPath: dataPath,
       contentType: contentType
-      //icon: App.State.markerIcons.commentMarkerIcon
-    })
-      .bindPopup(popup)
-      .on("click", function(e) {
-        App.markerClickCallback(e);
-      });
-    /*
-    if (!!photoFileName) {
-      popup.options.minWidth = 300;
-      myMarker.options.icon = App.State.markerIcons.commentMarkerIcon;
-    }
-    */
 
+      //icon: App.State.markerIcons.commentMarkerIcon
+    });
     switch (myMarker.options.contentType) {
       case "breach":
         myMarker.options.icon = App.State.markerIcons.breachIcon;
@@ -406,10 +403,37 @@ export const App = {
     }
 
     myMarker.addTo(App.MarkersLayer);
+    const markerLayerId = myMarker._leaflet_id;
+    myMarker.layerId = myMarker._leaflet_id;
+    myMarker
+      .bindPopup(popup)
+      .on("click", function(e) {
+        App.markerClickCallback(e);
+        //console.log("bindPopup onclick called!", e, markerLayer);
+        document
+          .querySelector(".deleteMarkerBtn")
+          .addEventListener("click", e => {
+            App.markerOnDeleteListener(
+              e,
+              markerLayerId,
+              myMarker.options.photoFileName
+            );
+          });
+      })
+      .on("popupclose", function(e) {
+        //console.log("closed popup!", e);
+        document
+          .querySelector(".deleteMarkerBtn")
+          .removeEventListener("click", e => {
+            App.markerOnDeleteListener(e, markerLayerId, photoFileName);
+          });
+      });
+
+    //console.log("myMarkerSet:", myMarker);
   },
 
   markerClickCallback: e => {
-    console.log("marker!", e.target.options.photoFileName);
+    //console.log("marker!", e);
     const parentEl = document.getElementById("marker-photo-img");
     const path = "/hounslow/300x400";
     const photoId = e.target.options.photoFileName;
@@ -490,9 +514,9 @@ export const App = {
           App.setupFbAddMarkerNodeEventCallback(
             App.State.projectConfig.mapHash
           );
-          console.log("setUpMarkersCallback - from retrieve from Firebase");
+          //console.log("setUpMarkersCallback - from retrieve from Firebase");
         } catch (err) {
-          console.log("failed to set Markers listeners");
+          //console.log("failed to set Markers listeners");
         }
       })
       .catch(err => {
@@ -536,7 +560,7 @@ export const App = {
       .ref(refPath)
       .push(json)
       .then(snap => {
-        console.log("pushed new marker!");
+        //console.log("pushed new marker!");
       })
       .then(snap => {
         App.sendThumbnailToCloudStorage({
@@ -552,6 +576,17 @@ export const App = {
       .then(res => {
         App.sidebar.hide();
       });
+  },
+
+  deleteThumbnailFromCloudStorage: ({ path, key }) => {
+    console.log("delete: ", path, key);
+    const pathAndFileName = `${path}/${key}`;
+    const fbFileRef = firebase
+      .storage()
+      .ref(pathAndFileName)
+      .delete();
+    //const fbFileRef = storageRef.child(key);
+    //fbFileRef.delete();
   },
 
   sendThumbnailToCloudStorage: ({
@@ -867,7 +902,7 @@ export const App = {
     <h3>Add marker  - ${buttonSetType}</h3>
     type: <input type="hidden" id="addMarker-type" readonly value = "${buttonSetType}">
 
-    <p>  <textarea class="form-control" rows="2" id="addMarker-comment" placeholder = "optional comment here ..."></textarea></p>
+    <p>  <textarea class="form-control" rows="2" id="addMarker-comment" placeholder = "Comment / further info ..."></textarea></p>
     <canvas id="add-point-canvas" style="display:none;margin:auto"></canvas>
    <p><label for="marker-photo-capture" id="marker-take-photo-btn" class="btn btn-sm btn-warning">Take photo</label>
         <input id="marker-photo-capture" onChange="RelatedData.addMarkerPhoto()" name="marker-photo-capture" style="visibility:hidden;" capture="camera" accept="image/*" type="file"/></p>
@@ -966,9 +1001,6 @@ export const App = {
             bounds.intersects(layer.getBounds()) ||
             bounds.contains(layer.getBounds())
           ) {
-            //console.log("feature:", layer.feature.properties);
-            //console.log("layerOptionsColor:", layer.options.color);
-            //console.log("layerOptionsfillColor:", layer.options.fillColor);
             if (
               layer.options.color == App.State.symbology.uncompletedColor ||
               layer.options.fillColor ==
@@ -976,8 +1008,6 @@ export const App = {
             ) {
               App.State.visableFeatures.push(layer);
             }
-            //App.State.visableFeatures.push(layer);
-            //console.log("intersection");
           }
         }
       });
@@ -996,29 +1026,52 @@ export const App = {
     const dbRef = fbDatabase.ref(`/App/Maps/${mapHash}/Markers/`);
     dbRef.on("child_added", (snapshot, prevChildKey) => {
       const json = snapshot.val();
+      const markerKey = snapshot.key;
       //console.log("path:", dbRef + "/" + snapshot.key);
       const markerContent = `<h4>${
         json.properties.type
       }</h4><hr> <img id="marker-photo-img"></img><p>${App.generatePopupPropSet(
         json
-      )}</p><p><button class="btn btn-danger" value = "${prevChildKey}"  onclick = "App.markerOnDeleteListener(this.value)">Delete</button></p>`;
+      )}</p><p><button class="btn btn-danger deleteMarkerBtn"  value = "${markerKey}"  >Delete</button></p>`;
       App.addMarkerToMarkersLayer(
         json.geometry.coordinates[1],
         json.geometry.coordinates[0],
         markerContent,
         json.properties.photo,
-        json.properties.type
+        json.properties.type,
+        this
       );
     });
   },
 
-  markerOnDeleteListener: e => {
-    const result = confirm("Are you sure?");
+  markerOnDeleteListener: (e, markerLayerId, photoFileName) => {
+    const result = confirm("Delete this Marker?");
+    //const leafletId = sourceThis._leaflet_id;
+    const markerKey = e.target.value;
+    //console.log("leafletId:", markerLayerId);
     if (result != true) {
       return;
     }
+    console.log(
+      "will delete:",
+      `/App/Maps/${App.State.projectConfig.mapHash}/Markers/${markerKey}`,
+      markerKey
+    );
 
-    console.log("will delete:", e);
+    const refPath = `/App/Maps/${
+      App.State.projectConfig.mapHash
+    }/Markers/${markerKey}`;
+    fbDatabase
+      .ref(refPath)
+      .set(null)
+      .then(() => {
+        App.MarkersLayer.removeLayer(markerLayerId);
+      });
+
+    App.deleteThumbnailFromCloudStorage({
+      path: "hounslow/300x400/",
+      key: photoFileName
+    });
   },
 
   setFeatureSymbologyToCompleted: featureKey => {
@@ -1112,6 +1165,7 @@ const RelatedData = {
         App.sendThumbnailToCloudStorage({
           blob: App.State.relDataPhotoBlob,
           storagePathAndName: `hounslow/300x400/${App.State.relDataPhotoName}`,
+          //storagePathAndName: `test/300x400/${App.State.relDataPhotoName}`,
           photoInputId: "photo-capture",
           blobNamePath: App.State,
           blobNameKey: "relDataPhotoBlob",
@@ -1448,7 +1502,8 @@ const initApp = () => {
     options: {
       photoFileName: null,
       dataPath: null,
-      contentType: null
+      contentType: null,
+      layerId: null
       //minWidth: 500,
       //maxWidth: 500
     }
