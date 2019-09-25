@@ -1032,7 +1032,7 @@ export const App = {
         json.properties.type
       }</h4><hr> <img id="marker-photo-img"></img><p>${App.generatePopupPropSet(
         json
-      )}</p><p><button class="btn btn-danger deleteMarkerBtn"  value = "${markerKey}"  >Delete</button></p>`;
+      )}</p><p><button class="btn btn-danger btn-sm deleteMarkerBtn"  value = "${markerKey}"  >Delete</button></p>`;
       App.addMarkerToMarkersLayer(
         json.geometry.coordinates[1],
         json.geometry.coordinates[0],
