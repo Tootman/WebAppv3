@@ -5,126 +5,128 @@
 <title>ORCL - WebApp </title>
 
 <head>
-    <style>
+  <style>
     html,
     body {
-        height: 100%;
-        margin: 0;
+      height: 100%;
+      margin: 0;
     }
 
     #map {
-        width: 100%;
-        height: 100%;
+      width: 100%;
+      height: 100%;
     }
 
     .sidenav {
-        height: 100%;
-        width: 0;
-        position: fixed;
-        z-index: 1;
-        top: 0;
-        left: 0;
-        background-color: #111;
-        overflow-x: hidden;
-        transition: 0.5s;
-        padding-top: 60px;
+      height: 100%;
+      width: 0;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      background-color: #111;
+      overflow-x: hidden;
+      transition: 0.5s;
+      padding-top: 60px;
     }
 
     .sidenav a {
-        padding: 8px 8px 8px 32px;
-        text-decoration: none;
-        font-size: 25px;
-        color: #818181;
-        display: block;
-        transition: 0.3s;
+      padding: 8px 8px 8px 32px;
+      text-decoration: none;
+      font-size: 25px;
+      color: #818181;
+      display: block;
+      transition: 0.3s;
     }
 
     .sidenav a:hover {
-        color: #f1f1f1;
+      color: #f1f1f1;
     }
 
     .sidenav .closebtn {
-        position: absolute;
-        top: 0;
-        right: 25px;
-        font-size: 36px;
-        margin-left: 50px;
+      position: absolute;
+      top: 0;
+      right: 25px;
+      font-size: 36px;
+      margin-left: 50px;
     }
-    </style>
-    <meta charset="UTF-8">
-    <title>Document</title>
+  </style>
+  <meta charset="UTF-8">
+  <title>Document</title>
 </head>
 
 <body>
-    <div id='map'></div>
-    <div id="sidebar">
-        <h1>leaflet-sidebar</h1>
+  <div id='map'></div>
+  <div id="sidebar">
+    <h1>leaflet-sidebar</h1>
+  </div>
+  <template id="form-template">
+
+
+    <h5 id="relatedform-title"></h5>
+    <hr>
+    <div id="photo-div"></div>
+    <!--  <button type="submit" id="submit-form" onClick="App.submitForm()" class="">Save changes (to above map form)</button> -->
+    <p>
+      <div id="rel-data-sync-message"></div>
+      <div id="latest-related"></div>
+      <img id="related-photo-img"></img>
+    </p>
+    <p>Condition
+      <select class="form-control" id="related-data-condition" placeholder="enter one of: 1,2,3,4,5,6, Not found" />
+    </p>
+    <p>
+      <input type="hidden" id="related-data-photo" placeholder="{photo} - use the take photo button" />
+
+    </p>
+    <canvas id="myCanvas" style="display:none;margin:auto"></canvas>
+    <p><label for="photo-capture" id="take-photo-btn" class="btn btn-sm btn-warning">Add photo</label>
+      <input id="photo-capture" onChange="RelatedData.addRelatedPhoto()" name="photo-capture" style="visibility:hidden;" capture="camera" accept="image/*" type="file" /></p>
+    <textarea class="form-control" rows="3" id="related-data-comments" placeholder="Comment / note"></textarea>
+    <p><button class="btn btn-primary" onclick="RelatedData.submit()"> Submit</button></P>
+    <div id="related-data-info">
     </div>
-    <template id="form-template">
+    <hr>
+    <h5>Original map data</h5>
+    <table id="fields-section" class="table table-sm table-striped">
 
-<h5 id="relatedform-title"></h5>
-<hr>
-        <div id="photo-div"></div>
-           <!--  <button type="submit" id="submit-form" onClick="App.submitForm()" class="">Save changes (to above map form)</button> -->
-        <p>
-            <div id="rel-data-sync-message"></div>
-            <div id="latest-related"></div>
-            <img id="related-photo-img"></img>
-        </p>
-        <p>Condition
-            <select class="form-control" id="related-data-condition" placeholder="enter one of: 1,2,3,4,5,6, Not found" />
-        </p>
-        <p>
-            <input type="hidden" id="related-data-photo" placeholder="{photo} - use the take photo button" />
-            
-        </p>
-        <canvas id="myCanvas" style="display:none;margin:auto"></canvas>
-        <p><label for="photo-capture" id="take-photo-btn" class="btn btn-sm btn-warning">Take photo</label>
-        <input id="photo-capture" onChange="RelatedData.addRelatedPhoto()" name="photo-capture" style="visibility:hidden;" capture="camera" accept="image/*" type="file"/></p>
-        <p><textarea class="form-control" rows="3" id="related-data-comments" placeholder="Comment / note"></textarea></p>
-        <p><button class="btn btn-primary" onclick="RelatedData.submit()"> Submit</button></P>
-        <div id="related-data-info">
-        </div>
-        <hr>
-        <p><h5>Original map data</h5>
-        <table id="fields-section" class="table">
+      <!-- form fields inserted here -->
+    </table>
 
-            <!-- form fields inserted here -->
-        </table> </p>
-    </template>
-    <template id="settings-template">
-        <h1 class="sidebar-heading"></h1>
-        <section id="opennewproject">
-            <div id="message-area"></div>
-            <button id="open-new-project-button" onclick="" class="btn btn-primary">Open project</button>
+  </template>
+  <template id="settings-template">
+    <h1 class="sidebar-heading"></h1>
+    <section id="opennewproject">
+      <div id="message-area"></div>
+      <button id="open-new-project-button" onclick="" class="btn btn-primary">Open project</button>
 
-            <div id="maplist">
-            </div>
-        </section>
-        <!--
+      <div id="maplist">
+      </div>
+    </section>
+    <!--
         <br>
         <button type="" id="upload-map-to-firebase" onClick="uploadMapToFirebase()" class="btn btn-primary">Upload modified map</button>
         -->
-        <hr>
-        <h2 class="sidebar-sub-heading">Login </h2>
-        <p id="Login-status-message"> You need to be a registered user to write to the database </p>
-        <div id="login-form">
-            <input type="email" class="form-control" id="emailInput" placeholder="your email" />
-            <br>
-            <input type="password" class="form-control" id="passwordInput" placeholder="your password" />
-            <br>
-        </div>
-        <button id="login-btn" onClick="User().btnLogin()" class="btn btn-primary">Log in</button>
-        <button id="logout-btn" onClick="User().btnLogout()" class="btn btn-primary">Log out </button>
-        <h2 class="sidebar-sub-heading">Map info</h2>
-        <div id="map-info-section"></div>
-    </template>
-    <template id="popupContent">
-        <div id="popup-title"></div>
-        <div id="popup-edit"></div>
-    </template>
-    <script>
-    </script>
+    <hr>
+    <h2 class="sidebar-sub-heading">Login </h2>
+    <p id="Login-status-message"> You need to be a registered user to write to the database </p>
+    <div id="login-form">
+      <input type="email" class="form-control" id="emailInput" placeholder="your email" />
+      <br>
+      <input type="password" class="form-control" id="passwordInput" placeholder="your password" />
+      <br>
+    </div>
+    <button id="login-btn" onClick="User().btnLogin()" class="btn btn-primary">Log in</button>
+    <button id="logout-btn" onClick="User().btnLogout()" class="btn btn-primary">Log out </button>
+    <h2 class="sidebar-sub-heading">Map info</h2>
+    <div id="map-info-section"></div>
+  </template>
+  <template id="popupContent">
+    <div id="popup-title"></div>
+    <div id="popup-edit"></div>
+  </template>
+  <script>
+  </script>
 </body>
 
 </html>

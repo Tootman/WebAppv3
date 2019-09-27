@@ -79,14 +79,6 @@
 
 */
 
-#fields-section tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-#fields-section tr {
-  line-height: 0.2em;
-}
-
 #submit-form {
   /* float: right; */
 }
@@ -260,4 +252,8 @@ h2.sidebar-sub-heading {
   padding: 3px 15px 3px 15px;
   font-size: 1.6em;
   border-radius: 5px;
+}
+
+textarea.form-control {
+  width: 90%;
 }
