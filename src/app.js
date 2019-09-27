@@ -76,7 +76,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.127", date: "25 Sep 2019" },
+    version: { number: "0.9.128", date: "27 Sep 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -736,14 +736,19 @@ export const App = {
 
   updateSidebarRelatedFromState: (featureKey, reldiv, relatedData) => {
     // update a feature's RelatedRecord State
-    reldiv.innerHTML = "";
+    let relDivContent = "";
     const relSet = relatedData[featureKey];
     if (relSet) {
-      reldiv.innerHTML = `<h6>Latest related data</h6>`;
+      relDivContent = `<h4>Latest related data</h4>
+<table id="reldata-fields-section" class="table table-sm table-striped">`;
       Object.keys(relSet).map(key => {
-        reldiv.innerHTML += `${key}: ${relSet[key]}<br>`;
+        relDivContent += `<tr><td>${key}:</td> <td>${relSet[key]}</td></tr>`;
       });
-    } else reldiv.innerHTML = "no related data found";
+      relDivContent += `</table>`;
+    } else {
+      relDivContent = "no related data available";
+    }
+    reldiv.innerHTML = relDivContent;
   },
 
   setupGeoLayer: (key, mapData) => {
