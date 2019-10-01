@@ -76,7 +76,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.128", date: "27 Sep 2019" },
+    version: { number: "0.9.129", date: "1 Oct 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -236,6 +236,7 @@ export const App = {
       p,
       document.getElementById("fields-section")
     );
+    App.fetchOriginalDataPhoto(p, "related-orig-photo-img");
     if (!!p.photo) this.getPhoto(p.photo);
     App.updateRelDataSyncMsg(
       App.State.relDataSyncStatus[fId],
@@ -257,7 +258,7 @@ export const App = {
       if (!!App.State.relatedData[fId].photo) {
         const photoName = App.State.relatedData[fId].photo;
         const relPhotoEl = document.getElementById("related-photo-img");
-        const myTestVar = "Hello";
+        //const myTestVar = "Hello";
         const relPhotoPath = "/hounslow/300x400";
         //const relPhotoFileName = App.State.relDataPhotoName;
         RelatedData.fetchPhotoFromFBStorage(
@@ -612,15 +613,6 @@ export const App = {
         blobNamePath[blobNameKey] = null;
         App.sidebar.hide();
       });
-      /*
-        .catch(error => {
-          //App.sidebar.hide();
-          alert(
-            "photo not uploaded - you need to upload it manually  from your device"
-          );
-          console.log("push photo failed");
-        });
-        */
     }
   },
 
@@ -1115,7 +1107,22 @@ export const App = {
   },
   featureToKey: feature => {
     return `${feature.properties.OBJECTID}${feature.geometry.type}`;
+  },
+
+  fetchOriginalDataPhoto: (props, imgElId) => {
+    //console.log("fetchOriginalDataPhoto called!", props);
+    const photoPath = "/hounslow/300x400";
+    const imgEl = document.getElementById(imgElId);
+    if (!props.Photo) {
+      return;
+    }
+    if ((props.Photo == null) | (props.Photo == "")) {
+      return;
+    }
+    console.log("Existing Photo:", props.Photo);
+    RelatedData.fetchPhotoFromFBStorage(imgEl, photoPath, props.Photo);
   }
+  // end of App ob
 };
 
 window.App = App;
@@ -1142,9 +1149,6 @@ const RelatedData = {
           .then(imageBlob => {
             parentEl.src = URL.createObjectURL(imageBlob);
             parentEl.style.width = "100%";
-          })
-          .catch(error => {
-            //alert ("Error!:", error.message)
           });
       });
   },
@@ -1364,7 +1368,7 @@ const loadMyLayer = layerName => {
 };
 
 const displayMapSetOpenButtons = projectHash => {
-  console.log("projectHash:", projectHash);
+  //console.log("projectHash:", projectHash);
   // clear button list
   document.getElementById("message-area").innerHTML = "Now select a map";
   const buttonParentEl = document.querySelector("#maplist");
