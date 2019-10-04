@@ -76,7 +76,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.129", date: "1 Oct 2019" },
+    version: { number: "0.9.130", date: "4 Oct 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -84,27 +84,6 @@ export const App = {
         maxZoom: 26,
         minZoom: 12,
         zoomDelta: 1
-      },
-      symbology: {
-        taskCompleteStyle: {
-          fillColor: "grey",
-          color: "black",
-          weight: 1
-        },
-        pointTaskNotCompleteStyle: {
-          fillColor: "yellow",
-          color: "red"
-        },
-        lineTaskNotCompleteStyle: {
-          fillColor: "yellow",
-          color: "red",
-          weight: 12
-        },
-        polyTaskNotCompleteStyle: {
-          fillColor: "yellow",
-          color: "red",
-          weight: 1
-        }
       },
       mbAttr:
         '<a href="http://openstreetmap.org">OSMap</a> ©<a href="http://mapbox.com">Mapbox</a>',
@@ -143,9 +122,12 @@ export const App = {
       uncompletedLineWeight: 8,
       completedLineWeight: 4,
       uncompletedRadius: 8,
+      uncompletedFillOpacity: 0.4,
+      uncompletedOpacity: 1,
       completedColor: "grey",
       completedFillColor: "grey",
-      completedRadius: 2
+      completedRadius: 5,
+      completedOpacity: 0.4
     },
     visableFeatures: [],
     formFields: {
@@ -720,7 +702,8 @@ export const App = {
           color: symbology.completedColor, // why not working??
           fillColor: symbology.completedFillColor,
           weight: symbology.completedLineWeight,
-          radius: 1
+          radius: 8,
+          opacity: 0.3
         });
       }
     }
@@ -806,7 +789,7 @@ export const App = {
       },
       style: feature => {
         return {
-          fillOpacity: 0.4,
+          fillOpacity: App.State.symbology.uncompletedFillOpacity,
           color: App.State.symbology.uncompletedColor,
           fillColor: App.State.symbology.uncompletedFillColor,
           weight: App.State.symbology.uncompletedLineWeight
