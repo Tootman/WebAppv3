@@ -357,14 +357,11 @@ export const App = {
     myThis
   ) => {
     const popup = L.popup();
-
     popup.setContent(content);
     const myMarker = new App.customMarker([lat, lng], {
       photoFileName: photoFileName,
       //dataPath: dataPath,
       contentType: contentType
-
-      //icon: App.State.markerIcons.commentMarkerIcon
     });
     switch (myMarker.options.contentType) {
       case "breach":
@@ -382,7 +379,6 @@ export const App = {
         break;
       default:
         myMarker.options.icon = App.State.markerIcons.commentIcon;
-      // code block
     }
 
     myMarker.addTo(App.MarkersLayer);
@@ -404,19 +400,15 @@ export const App = {
           });
       })
       .on("popupclose", function(e) {
-        //console.log("closed popup!", e);
         document
           .querySelector(".deleteMarkerBtn")
           .removeEventListener("click", e => {
             App.markerOnDeleteListener(e, markerLayerId, photoFileName);
           });
       });
-
-    //console.log("myMarkerSet:", myMarker);
   },
 
   markerClickCallback: e => {
-    //console.log("marker!", e);
     const parentEl = document.getElementById("marker-photo-img");
     const path = "/hounslow/300x400";
     const photoId = e.target.options.photoFileName;
@@ -435,7 +427,6 @@ export const App = {
 
   setupMarkersLayer: () => {
     App.MarkersLayer = new L.layerGroup();
-
     App.MarkersLayer.addTo(Map);
   },
 
@@ -444,7 +435,6 @@ export const App = {
   },
 
   retrieveMapFromFireBase: function(mapHash, projectHash) {
-    //console.log("retfromfb ProjHasj:", projectHash)
     const currentRelatedRef = `/App/Maps/${
       App.State.relatedDataMapHash
     }/Related/`;
@@ -498,9 +488,7 @@ export const App = {
             App.State.projectConfig.mapHash
           );
           //console.log("setUpMarkersCallback - from retrieve from Firebase");
-        } catch (err) {
-          //console.log("failed to set Markers listeners");
-        }
+        } catch (err) {}
       })
       .catch(err => {
         console.log("Error! cannot retrieve mapdata from firebase:", err);
