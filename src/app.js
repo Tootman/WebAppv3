@@ -610,7 +610,7 @@ export const App = {
     feature.properties = properties;
     return feature;
   },
-
+  /*
   populateRelated: related => {
     // this method is now redundent?
     if (!related) return;
@@ -625,6 +625,7 @@ export const App = {
       const itemOb = {};
       const lastItem = getLastRelDataItem(related[relKey]);
       itemOb[relKey] = lastItem;
+      itemOb.childKey = relKey;
       relDataObject[relKey] = lastItem;
       relDataSyncObject[relKey] = true; // ie the feature's rela data is now synced
       return itemOb;
@@ -635,7 +636,7 @@ export const App = {
       relDataSyncObject
     };
   },
-
+ */
   getRelDataFromLocalStorage: mapHash => {
     console.log("fetching related from local storage");
     const regex = "backup.relatedData." + mapHash + ".";
@@ -668,8 +669,9 @@ export const App = {
     });
   },
 
-  updateFeatureRelatedState: (featureKey, relatedData) => {
+  updateFeatureRelatedState: (featureKey, relatedData, childKey) => {
     App.State.relatedData[featureKey] = relatedData;
+    App.State.relatedData[featureKey].childKey = childKey;
   },
 
   setCompletedStyle: ({
@@ -1059,13 +1061,20 @@ export const App = {
     const dbRef = fbDatabase.ref(`/App/Maps/${myRelDataMapHash}/Related/`);
     const handleRelatedCallback = snapshot => {
       const snap = snapshot.val();
+      /*
       const record =
         snap[
           Object.keys(snap)
             .sort()
             .reverse()[0]
         ];
-      App.updateFeatureRelatedState(snapshot.key, record);
+*/
+      const latestChildKey = Object.keys(snap)
+        .sort()
+        .reverse()[0];
+      const record = snap[latestChildKey]; // need to rename vars - confusing
+      //console.log("latestChildKey, record", latestChildKey, record);
+      App.updateFeatureRelatedState(snapshot.key, record, latestChildKey);
       App.setFeatureSymbologyToCompleted(snapshot.key);
     };
     fbDatabase.ref(dbRef).on("child_added", (snapshot, prev) => {
@@ -1205,6 +1214,8 @@ const RelatedData = {
       relatedRecord
     );
     // RelatedData.backupUpRelStateToLocalStorage();
+
+    delete relatedRecord.childKey; // strip off childKey if present, before sending
     RelatedData.pushRelatedDataRecord(RelatedData.nodePath, key, relatedRecord);
     //document.getElementById("related-data-info").innerHTML = "Submitted!";
     App.State.symbology.beforeSelectedColor =
@@ -1287,6 +1298,65 @@ const RelatedData = {
             console.log("error:", error);
           });
       };
+    });
+  },
+
+  deleteLatestRelated: params => {
+    //console.log("deleteLatestRelated called!", params);
+    // App.State.relatedData[App.selectedFeature.properties.OBJECTID + App.selectedFeature.geometry.type].childKey
+
+    // need path, childkey, and photo path, and photo id
+    /*
+    const refPath = `/App/Maps/${
+      App.State.projectConfig.mapHash
+    }/Related/${params.childNodeKey}`;
+*/
+
+    const deleteNodePath = `${params.relDataPath}/${params.childNodeKey}`;
+    console.log("delete: ", deleteNodePath);
+
+    fbDatabase
+      .ref(deleteNodePath)
+      .set(null)
+      .then(() => {
+        App.sidebar.hide();
+        //App.MarkersLayer.removeLayer(markerLayerId);
+        // update App.State, map, panel, listener
+      });
+
+    if (params.photo == null) {
+      return;
+    }
+
+    console.log("deletePhoto:", `${params.photoPath}/${params.photo}`);
+    App.deleteThumbnailFromCloudStorage({
+      path: params.photoPath,
+      key: params.photo
+    });
+  },
+
+  onLatestRelatedButtonClick: () => {
+    //console.log("deleteLatestRe:lated called!");
+    const result = confirm(
+      "Are you sure you want to delete this related data?"
+    );
+    if (result != true) {
+      return;
+    }
+    const featureKey =
+      App.selectedFeature.properties.OBJECTID +
+      App.selectedFeature.geometry.type;
+
+    const childKey = App.State.relatedData[featureKey].childKey;
+    const relDataPath = `/App/Maps/${
+      App.State.projectConfig.mapHash
+    }/Related/${featureKey}`;
+    const photoName = App.State.relatedData[featureKey].photo;
+    RelatedData.deleteLatestRelated({
+      relDataPath: relDataPath,
+      childNodeKey: childKey,
+      photo: photoName,
+      photoPath: "hounslow/300x400"
     });
   }
 };
