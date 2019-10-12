@@ -670,8 +670,13 @@ export const App = {
   },
 
   updateFeatureRelatedState: (featureKey, relatedData, childKey) => {
-    App.State.relatedData[featureKey] = relatedData;
-    App.State.relatedData[featureKey].childKey = childKey;
+    if (relatedData != null) {
+      App.State.relatedData[featureKey] = relatedData;
+      App.State.relatedData[featureKey].childKey = childKey;
+    } else {
+      // related data for this feature is romoved
+      delete App.State.relatedData[featureKey];
+    }
   },
 
   setCompletedStyle: ({
@@ -1084,6 +1089,23 @@ export const App = {
     fbDatabase.ref(dbRef).on("child_changed", snapshot => {
       handleRelatedCallback(snapshot);
     });
+    fbDatabase.ref(dbRef).on("child_removed", snapshot => {
+      //handleRelatedCallback(snapshot);
+      App.updateFeatureRelatedState(snapshot.key, null, null);
+      //App.setFeatureSymbologyToCompleted(snapshot.key); CTBC hack -
+      const layer = App.geoLayer.getLayer(
+        App.State.featureIdLookup[snapshot.key]
+      );
+      layer.setStyle({
+        color: App.State.symbology.uncompletedColor, // why not working??
+        fillColor: App.State.symbology.uncompletedfillColor,
+        weight: App.State.symbology.uncompletedLineWeight,
+        radius: App.State.symbology.uncompletedRadius,
+        opacity: App.State.symbology.uncompletedOpacity
+      });
+
+      console.log("removed callback called", snapshot);
+    });
   },
   featureToKey: feature => {
     return `${feature.properties.OBJECTID}${feature.geometry.type}`;
@@ -1313,15 +1335,20 @@ const RelatedData = {
 */
 
     const deleteNodePath = `${params.relDataPath}/${params.childNodeKey}`;
-    console.log("delete: ", deleteNodePath);
-
+    console.log("delete: ", params.feature);
+    const myFeature = params.feature;
     fbDatabase
       .ref(deleteNodePath)
       .set(null)
       .then(() => {
         App.sidebar.hide();
+        // delete App.State.relatedData[myFeature];
+        console.log("delete relDataPath:", myFeature);
         //App.MarkersLayer.removeLayer(markerLayerId);
         // update App.State, map, panel, listener
+      })
+      .catch(error => {
+        console.log("delete catch error:", error);
       });
 
     if (params.photo == null) {
@@ -1356,6 +1383,7 @@ const RelatedData = {
       relDataPath: relDataPath,
       childNodeKey: childKey,
       photo: photoName,
+      feature: featureKey,
       photoPath: "hounslow/300x400"
     });
   }
