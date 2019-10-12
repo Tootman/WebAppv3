@@ -76,7 +76,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.130", date: "4 Oct 2019" },
+    version: { number: "0.9.131", date: "12 Oct 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -1088,6 +1088,7 @@ export const App = {
 
     fbDatabase.ref(dbRef).on("child_changed", snapshot => {
       handleRelatedCallback(snapshot);
+      //Map.closePopup();
     });
     fbDatabase.ref(dbRef).on("child_removed", snapshot => {
       //handleRelatedCallback(snapshot);
@@ -1103,8 +1104,15 @@ export const App = {
         radius: App.State.symbology.uncompletedRadius,
         opacity: App.State.symbology.uncompletedOpacity
       });
+      (App.State.symbology.beforeSelectedColor =
+        App.State.symbology.uncompletedColor),
+        (App.State.symbology.beforeSelectedFillColor =
+          App.State.symbology.uncompletedfillColor),
+        (App.State.symbology.beforeSelectedLineWeight =
+          App.State.symbology.uncompletedLineWeight);
 
       console.log("removed callback called", snapshot);
+      Map.closePopup();
     });
   },
   featureToKey: feature => {
