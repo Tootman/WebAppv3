@@ -1203,6 +1203,13 @@ const RelatedData = {
   },
 
   submit: () => {
+    // validate condition inputbox
+    const conditionInputEl = document.getElementById("related-data-condition");
+    if (conditionInputEl.value == "null") {
+      conditionInputEl.focus();
+      return;
+    }
+
     RelatedData.featureKey = App.featureToKey(App.selectedFeature);
     RelatedData.nodePath = `App/Maps/${
       App.State.projectConfig.mapHash
