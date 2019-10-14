@@ -708,6 +708,9 @@ export const App = {
     // update a feature's RelatedRecord State
     let relDivContent = "";
     const relSet = relatedData[featureKey];
+    const delRelatedSection = document.getElementById(
+      "delete-latest-rel-data-section"
+    );
     if (relSet) {
       relDivContent = `<h4>Latest related data</h4>
 <table id="reldata-fields-section" class="table table-sm table-striped">`;
@@ -715,8 +718,10 @@ export const App = {
         relDivContent += `<tr><td>${key}:</td> <td>${relSet[key]}</td></tr>`;
       });
       relDivContent += `</table>`;
+      delRelatedSection.style.display = "block";
     } else {
       relDivContent = "no related data available";
+      delRelatedSection.style.display = "none";
     }
     reldiv.innerHTML = relDivContent;
   },
