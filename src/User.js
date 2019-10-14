@@ -42,7 +42,7 @@ export const User = function() {
   }
 
   function userSignedIn() {
-    msg.innerHTML = "you are now signed in!";
+    msg.innerHTML = `Hi ${firebase.auth().currentUser.displayName}`;
     pw.innerHTML = null;
     loginBtn.style.display = "none";
     logoutBtn.style.display = "block";

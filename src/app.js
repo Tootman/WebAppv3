@@ -76,7 +76,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.131", date: "12 Oct 2019" },
+    version: { number: "0.9.132", date: "14 Oct 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -197,10 +197,15 @@ export const App = {
     } else if (syncStatus == true) {
       msg = "successful sync";
     } else if (syncStatus == false) {
-      msg =
-        "Data not yet synced - please connect to network before closing this App";
+      msg = `Data not yet synced - please connect to network before closing this App`;
+      if (document.getElementById("photo-capture").value != "") {
+        msg += `<br> <span style="color:red"> Photo will be lost if panel closed
+        before data sent </span>`;
+      }
     }
+
     el.innerHTML = msg;
+
     el.style = "color:'CornflowerBlue' ";
   },
 
@@ -1418,8 +1423,9 @@ const loadMyLayer = layerName => {
 
   function loadProject() {
     const retrieveProjectsFromFirebase = () => {
-      document.getElementById("message-area").innerHTML =
-        "<p>waiting for network connection ...</p>";
+      document.getElementById(
+        "message-area"
+      ).innerHTML = `<p>waiting for network connection ...</p>`;
       fbDatabase
         .ref("/App/Projects")
         .once("value")
