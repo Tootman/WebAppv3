@@ -146,10 +146,10 @@ export const App = {
         '<a href="http://openstreetmap.org">OSMap</a> ©<a href="http://mapbox.com">Mapbox</a>',
       mbUrl:
         "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w",
-      uploadjsonURL: "https://geo.danieljsimmons.uk/dan1/upload/uploadjson.php",
-      editform: {
-        assetConditionOptions: [6, 5, 4, 3, 2, 1, "n/a"]
-      }
+      uploadjsonURL: "https://geo.danieljsimmons.uk/dan1/upload/uploadjson.php"
+      //editform: {
+      //  assetConditionOptions: [6, 5, 4, 3, 2, 1, "n/a"]
+      //}
     },
     projectsOb: {},
     projectConfig: {
@@ -158,7 +158,8 @@ export const App = {
       projectName: "",
       projectDescription: "",
       //completedResetDate: new Date(2000, 1, 1, 0, 0, 0, 0)
-      completedResetDate: null
+      completedResetDate: null,
+      schema: {}
     },
     //projectHash:"",
     relatedData: {}, // init vall - could contain data for other maps as well as this one
@@ -187,6 +188,8 @@ export const App = {
       completedOpacity: 0.4
     },
     visableFeatures: [],
+
+    /*
     formFields: {
       condition: {
         null: "",
@@ -201,6 +204,7 @@ export const App = {
         pv: "partially visable"
       }
     },
+    */
     markerTypes: {
       hazard: "hazard",
       unmappedAsset: "Unmapped asset",
@@ -219,6 +223,10 @@ export const App = {
   },
 
   populateInputOptions: (el, items) => {
+    const nullOption = document.createElement("option");
+    nullOption.value = null;
+    nullOption.text = "";
+    el.add(nullOption);
     Object.keys(items).forEach(key => {
       const option = document.createElement("option");
       option.value = key;
@@ -291,10 +299,15 @@ export const App = {
       document.getElementById("latest-related"),
       App.State.relatedData
     );
-    App.populateInputOptions(
-      document.getElementById("related-data-condition"),
-      App.State.formFields.condition
-    );
+    try {
+      App.populateInputOptions(
+        document.getElementById("related-data-condition"),
+        //App.State.formFields.condition
+        App.State.projectConfig.schema.formFields.condition
+      );
+    } catch {
+      console.log("failed to fetch condition list");
+    }
     App.sidebar.show();
     // fetch and insert relData photo if exists
 
@@ -517,6 +530,7 @@ export const App = {
     App.State.projectConfig.projectHash = projectHash;
     App.State.projectConfig.mapName =
       App.State.projectsOb[projectHash].mapSet[mapHash];
+    App.State.projectConfig.schema = App.State.projectsOb[projectHash].schema;
     App.markersLayer = null;
     App.sidebar.hide();
     App.busyWorkingIndicator(true);
