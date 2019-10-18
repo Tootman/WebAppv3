@@ -56,6 +56,26 @@ export const User = function() {
     loginForm.style.display = "block";
   }
 
+  function initLoginForm() {
+    console.log("initLoginForm");
+    if (firebase.auth().currentUser) {
+      userSignedIn();
+      console.log("user is logged in");
+    } else {
+      console.log("user is logged out");
+      userSignedOut();
+    }
+  }
+
+  return {
+    btnLogin: signIn,
+    btnLogout: signOut,
+    //testFunc: testFunc,
+    initLoginForm: initLoginForm
+  };
+};
+
+/*
   function testFunc() {
     console.log("testing only!");
     return "hello";
@@ -71,21 +91,5 @@ export const User = function() {
     }
   };
 
-  function initLoginForm() {
-    console.log("initLoginForm");
-    if (firebase.auth().currentUser) {
-      userSignedIn();
-      console.log("user is logged in");
-    } else {
-      console.log("user is logged out");
-      userSignedOut();
-    }
-  }
 
-  return {
-    btnLogin: signIn,
-    btnLogout: signOut,
-    testFunc: testFunc,
-    initLoginForm: initLoginForm
-  };
-};
+*/

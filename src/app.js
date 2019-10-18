@@ -17,8 +17,65 @@ import fontello_ttf from "./fontello/font/fontello.ttf";
 require("./L.Control.Sidebar");
 require("./L.Control.Locate.min");
 import { tilesDb } from "./offline-tiles-module.js";
-import { User } from "./User.js";
+//import { User } from "./User.js";
 import Pica from "pica";
+
+const User = {
+  signIn: () => {
+    const email = document.getElementById("emailInput");
+    const pw = document.getElementById("passwordInput");
+    firebase
+      .auth()
+      .signInWithEmailAndPassword(email.value, pw.value)
+      .then(function(user) {
+        User.userSignedIn();
+      })
+      .catch(function(error) {
+        alert("sorry couldn't sign in -  Error: " + error);
+      });
+  },
+
+  signOut: () => {
+    firebase
+      .auth()
+      .signOut()
+      .then(
+        function() {
+          User.userSignedOut();
+        },
+        function(error) {}
+      );
+  },
+
+  userSignedIn: () => {
+    document.getElementById("Login-status-message").innerHTML = `Hi ${
+      firebase.auth().currentUser.displayName
+    }`;
+    document.getElementById("passwordInput").innerHTML = null;
+    document.getElementById("login-btn").style.display = "none";
+    document.getElementById("logout-btn").style.display = "block";
+    document.getElementById("login-form").style.display = "none";
+  },
+
+  userSignedOut: () => {
+    document.getElementById("Login-status-message").innerHTML =
+      "Bye  - you have now signed out";
+    document.getElementById("login-btn").style.display = "block";
+    document.getElementById("logout-btn").style.display = "none";
+    document.getElementById("login-form").style.display = "block";
+  },
+
+  initLoginForm: () => {
+    console.log("initLoginForm");
+    if (firebase.auth().currentUser) {
+      User.userSignedIn();
+      console.log("user is logged in");
+    } else {
+      console.log("user is logged out");
+      User.userSignedOut();
+    }
+  }
+};
 
 const myMap = {
   setupBaseLayer: function() {
@@ -323,7 +380,7 @@ export const App = {
           App.sidebar.setContent(
             document.getElementById("settings-template").innerHTML
           );
-          User().initLoginForm();
+          User.initLoginForm();
           document
             .getElementById("open-new-project-button")
             .addEventListener("click", function() {
