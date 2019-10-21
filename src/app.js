@@ -125,7 +125,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.133", date: "18 Oct 2019" },
+    version: { number: "0.9.134", date: "21 Oct 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -147,7 +147,8 @@ export const App = {
       projectDescription: "",
       completedResetDate: null,
       schema: {},
-      photoPath: ""
+      photoPath: "",
+      featureFieldName: ""
     },
     relatedData: {}, // init vall - could contain data for other maps as well as this one
     relatedDataMapHash: null,
@@ -244,7 +245,9 @@ export const App = {
     App.State.relDataPhotoName = null;
     App.sidebar.setContent(document.getElementById("form-template").innerHTML);
     const titleDiv = document.getElementById("relatedform-title");
-    titleDiv.innerHTML = `Asset: ${p.Asset}`;
+    titleDiv.innerHTML = `Asset: ${
+      p[App.State.projectConfig.featureFieldName]
+    }`;
     App.generateFeatureEditFormElements(
       p,
       document.getElementById("fields-section")
@@ -477,6 +480,7 @@ export const App = {
     // remove ALL existing listeners from current map
     let nodePath = `/App/Maps/${mapHash}`;
     //App.State.completedResetDate = new Date(App.State.projectsOb.)
+    // TODO ?? refactor so dont need to explicitly assign indevidually ?? - and/or take from fb project directly
     App.State.projectConfig.projectName =
       App.State.projectsOb[projectHash].name;
     App.State.projectConfig.projectDescription =
@@ -489,6 +493,8 @@ export const App = {
     App.State.projectConfig.schema = App.State.projectsOb[projectHash].schema;
     App.State.projectConfig.photoPath =
       App.State.projectsOb[projectHash].photoPath;
+    App.State.projectConfig.featureFieldName =
+      App.State.projectsOb[projectHash].featureFieldName;
     App.markersLayer = null;
     App.sidebar.hide();
     App.busyWorkingIndicator(true);
@@ -723,7 +729,7 @@ export const App = {
             );
           }
           if (key == "childKey") {
-            return;
+            return; // ignore  this field
           }
         }
 
@@ -746,7 +752,7 @@ export const App = {
     App.State.featureIdLookup = {};
     const featureLabelField = mapData.Meta
       ? mapData.Meta.LabelProperty
-      : "Asset";
+      : App.State.projectConfig.featureFieldName;
 
     const setupFeatureToObjectIdLookup = () => {
       Object.keys(App.geoLayer._layers).map(layerId => {
@@ -951,7 +957,6 @@ export const App = {
   featureLabels: () => {
     // TODO: refactor to functional
     const bounds = Map.getBounds();
-    //console.log("zoom:", Map.getZoom());
     if (App.State.visableFeatures !== null) {
       App.State.visableFeatures.map(layer => {
         layer.unbindTooltip();
@@ -959,7 +964,6 @@ export const App = {
       App.State.visableFeatures = [];
     }
     if (Map.getZoom() < 19) {
-      //was 19
       return;
     }
 
@@ -1004,10 +1008,13 @@ export const App = {
     redrawToolTips();
 
     App.State.visableFeatures.map(layer => {
-      layer.bindTooltip(layer.feature.properties.Asset, {
-        permanent: true,
-        interactive: true
-      });
+      layer.bindTooltip(
+        layer.feature.properties[App.State.projectConfig.featureFieldName],
+        {
+          permanent: true,
+          interactive: true
+        }
+      );
     });
   },
   setupFbAddMarkerNodeEventCallback: mapHash => {
@@ -1584,8 +1591,6 @@ const initApp = () => {
       dataPath: null,
       contentType: null,
       layerId: null
-      //minWidth: 500,
-      //maxWidth: 500
     }
   });
   App.initSettingsControl();
@@ -1609,11 +1614,8 @@ const initApp = () => {
   App.State.markerIcons.commentIcon = L.icon({
     iconUrl: "comment-icon.png",
     shadowUrl: "marker-shadow.png",
-    //iconSize: [38, 95], // size of the icon
-    //shadowSize: [50, 64], // size of the shadow
     iconAnchor: [13, 41], // point of the icon which will correspond to marker's location
     shadowAnchor: [13, 41] // the same for the shadow
-    //popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
   });
 
   App.State.markerIcons.hazardIcon = L.icon({
