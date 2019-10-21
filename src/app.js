@@ -50,7 +50,6 @@ const User = {
     document.getElementById("logout-btn").style.display = "block";
     document.getElementById("login-form").style.display = "none";
   },
-
   userSignedOut: () => {
     document.getElementById("Login-status-message").innerHTML =
       "Bye  - you have now signed out";
@@ -60,7 +59,6 @@ const User = {
   },
 
   initLoginForm: () => {
-    console.log("initLoginForm");
     if (firebase.auth().currentUser) {
       User.userSignedIn();
       console.log("user is logged in");
@@ -170,8 +168,8 @@ export const App = {
       uncompletedOpacity: 1,
       completedColor: "grey",
       completedFillColor: "grey",
-      completedRadius: 5,
-      completedOpacity: 0.4
+      completedRadius: 8,
+      completedOpacity: 0.3
     },
     visableFeatures: [],
 
@@ -213,14 +211,11 @@ export const App = {
     `;
     const mapInfoContent = ` <h3> Map info </h3><p>
     map name: ${state.projectConfig.mapName}
-    </p>
-    `;
+    </p>`;
     const sysInfo = `<h3>App info</h3>
-    <p>
-    Software version number: ${state.version.number} <br>
+    <p> Software version number: ${state.version.number} <br>
     Software version date: ${state.version.date}
-    </p>
-    `;
+    </p>`;
     return `${mapInfoContent}<hr>${projectInfoContent}<hr>${sysInfo}`;
   },
 
@@ -238,9 +233,7 @@ export const App = {
         before data sent </span>`;
       }
     }
-
     el.innerHTML = msg;
-
     el.style = "color:'CornflowerBlue' ";
   },
 
@@ -249,7 +242,6 @@ export const App = {
     const p = selectedFeature.properties;
     App.State.relDataPhotoBlob = null;
     App.State.relDataPhotoName = null;
-
     App.sidebar.setContent(document.getElementById("form-template").innerHTML);
     const titleDiv = document.getElementById("relatedform-title");
     titleDiv.innerHTML = `Asset: ${p.Asset}`;
@@ -271,7 +263,6 @@ export const App = {
     try {
       App.populateInputOptions(
         document.getElementById("related-data-condition"),
-        //App.State.formFields.condition
         App.State.projectConfig.schema.formFields.condition
       );
     } catch {
@@ -402,7 +393,6 @@ export const App = {
     popup.setContent(content);
     const myMarker = new App.customMarker([lat, lng], {
       photoFileName: photoFileName,
-      //dataPath: dataPath,
       contentType: contentType
     });
     switch (myMarker.options.contentType) {
@@ -430,7 +420,6 @@ export const App = {
       .bindPopup(popup)
       .on("click", function(e) {
         App.markerClickCallback(e);
-        //console.log("bindPopup onclick called!", e, markerLayer);
         document
           .querySelector(".deleteMarkerBtn")
           .addEventListener("click", e => {
@@ -532,7 +521,6 @@ export const App = {
           App.setupFbAddMarkerNodeEventCallback(
             App.State.projectConfig.mapHash
           );
-          //console.log("setUpMarkersCallback - from retrieve from Firebase");
         } catch (err) {}
       })
       .catch(err => {
@@ -556,7 +544,6 @@ export const App = {
       alert("couldnt save project config to localStorage");
     }
   },
-
   clearLocalStorageMaps: () => {
     const keys = App.getLocalStorageMapDataKey();
     keys.map(item => {
@@ -575,9 +562,7 @@ export const App = {
     fbDatabase
       .ref(refPath)
       .push(json)
-      .then(snap => {
-        //console.log("pushed new marker!");
-      })
+      .then(snap => {})
       .then(snap => {
         App.sendThumbnailToCloudStorage({
           blob: App.State.relDataPhotoBlob,
@@ -597,14 +582,11 @@ export const App = {
   },
 
   deleteThumbnailFromCloudStorage: ({ path, key }) => {
-    console.log("delete: ", path, key);
     const pathAndFileName = `${path}/${key}`;
     const fbFileRef = firebase
       .storage()
       .ref(pathAndFileName)
       .delete();
-    //const fbFileRef = storageRef.child(key);
-    //fbFileRef.delete();
   },
 
   sendThumbnailToCloudStorage: ({
@@ -615,17 +597,13 @@ export const App = {
     blobNameKey,
     failMessage
   }) => {
-    console.log("sendThumbnailToCloudStorage");
     if (!!blob) {
-      //document.getElementById("related-data-photo").value = relPhotoEl.files[0].name;
       const storageRef = firebase.storage().ref();
       const fbFileRef = storageRef.child(storagePathAndName);
 
       // see orcl-refactoring-photo-put-and-get.txt for refactor
       return fbFileRef.put(blob).then(snapshot => {
-        //console.log("Uploaded a marker photo!");
         document.getElementById(photoInputId).value = null;
-        //document.getElementById("related-data-photo").value = null;
         blob.value = null;
         blobNamePath[blobNameKey] = null;
         App.sidebar.hide();
@@ -718,8 +696,8 @@ export const App = {
           color: symbology.completedColor, // why not working??
           fillColor: symbology.completedFillColor,
           weight: symbology.completedLineWeight,
-          radius: 8,
-          opacity: 0.3
+          radius: symbology.completedRadius,
+          opacity: symbology.completedOpacity
         });
       }
     }
@@ -743,6 +721,9 @@ export const App = {
               value,
               App.State.projectConfig.schema.formFields.condition
             );
+          }
+          if (key == "childKey") {
+            return;
           }
         }
 
@@ -994,7 +975,6 @@ export const App = {
           hasRelData = false;
         }
 
-        //if (layer.getLatLng && !hasRelData) {
         if (layer.getLatLng) {
           if (bounds.contains(layer.getLatLng())) {
             if (
@@ -1003,10 +983,8 @@ export const App = {
                 App.State.symbology.uncompletedfillColor
             ) {
               App.State.visableFeatures.push(layer);
-              //console.log("point layer pushed!");
             }
           }
-          //} else if (layer.getBounds && !hasRelData) {
         } else if (layer.getBounds) {
           if (
             bounds.intersects(layer.getBounds()) ||
@@ -1038,7 +1016,6 @@ export const App = {
     dbRef.on("child_added", (snapshot, prevChildKey) => {
       const json = snapshot.val();
       const markerKey = snapshot.key;
-      //console.log("path:", dbRef + "/" + snapshot.key);
       const markerContent = `<h4>${
         json.properties.type
       }</h4><hr> <img id="marker-photo-img"></img><p>${App.generatePopupPropSet(
@@ -1057,17 +1034,10 @@ export const App = {
 
   markerOnDeleteListener: (e, markerLayerId, photoFileName) => {
     const result = confirm("Delete this Marker?");
-    //const leafletId = sourceThis._leaflet_id;
     const markerKey = e.target.value;
-    //console.log("leafletId:", markerLayerId);
     if (result != true) {
       return;
     }
-    console.log(
-      "will delete:",
-      `/App/Maps/${App.State.projectConfig.mapHash}/Markers/${markerKey}`,
-      markerKey
-    );
 
     const refPath = `/App/Maps/${
       App.State.projectConfig.mapHash
@@ -1114,7 +1084,6 @@ export const App = {
         .sort()
         .reverse()[0];
       const record = snap[latestChildKey]; // need to rename vars - confusing
-      //console.log("latestChildKey, record", latestChildKey, record);
       App.updateFeatureRelatedState(snapshot.key, record, latestChildKey);
       App.setFeatureSymbologyToCompleted(snapshot.key);
     };
@@ -1124,12 +1093,9 @@ export const App = {
 
     fbDatabase.ref(dbRef).on("child_changed", snapshot => {
       handleRelatedCallback(snapshot);
-      //Map.closePopup();
     });
     fbDatabase.ref(dbRef).on("child_removed", snapshot => {
-      //handleRelatedCallback(snapshot);
       App.updateFeatureRelatedState(snapshot.key, null, null);
-      //App.setFeatureSymbologyToCompleted(snapshot.key); CTBC hack -
       const layer = App.geoLayer.getLayer(
         App.State.featureIdLookup[snapshot.key]
       );
@@ -1147,7 +1113,6 @@ export const App = {
         (App.State.symbology.beforeSelectedLineWeight =
           App.State.symbology.uncompletedLineWeight);
 
-      console.log("removed callback called", snapshot);
       Map.closePopup();
     });
   },
@@ -1156,7 +1121,6 @@ export const App = {
   },
 
   fetchOriginalDataPhoto: (props, imgElId) => {
-    //console.log("fetchOriginalDataPhoto called!", props);
     const photoPath = App.State.projectConfig.photoPath;
     const imgEl = document.getElementById(imgElId);
     if (!props.Photo) {
@@ -1165,7 +1129,6 @@ export const App = {
     if ((props.Photo == null) | (props.Photo == "")) {
       return;
     }
-    console.log("Existing Photo:", props.Photo);
     RelatedData.fetchPhotoFromFBStorage(imgEl, photoPath, props.Photo);
   }
   // end of App ob
@@ -1383,15 +1346,12 @@ const RelatedData = {
 
   deleteLatestRelated: params => {
     const deleteNodePath = `${params.relDataPath}/${params.childNodeKey}`;
-    console.log("delete: ", params.feature);
     const myFeature = params.feature;
     fbDatabase
       .ref(deleteNodePath)
       .set(null)
       .then(() => {
         App.sidebar.hide();
-        // delete App.State.relatedData[myFeature];
-        console.log("delete relDataPath:", myFeature);
       })
       .catch(error => {
         console.log("delete catch error:", error);
@@ -1401,7 +1361,6 @@ const RelatedData = {
       return;
     }
 
-    console.log("deletePhoto:", `${params.photoPath}/${params.photo}`);
     App.deleteThumbnailFromCloudStorage({
       path: params.photoPath,
       key: params.photo
@@ -1409,7 +1368,6 @@ const RelatedData = {
   },
 
   onLatestRelatedButtonClick: () => {
-    //console.log("deleteLatestRe:lated called!");
     const result = confirm(
       "Are you sure you want to delete this related data?"
     );
@@ -1463,9 +1421,7 @@ const loadMyLayer = layerName => {
     };
 
     const displayProjectList = projectsOb => {
-      // console.log("Display projects ...", projectListOb)
       const el = document.getElementById("opennewproject");
-      //el.insertAdjacentHTML("afterBegin", "Select a project");
       document.getElementById("message-area").innerHTML = "Select a project";
       Object.entries(projectsOb).map(item => {
         const btn = document.createElement("button");
@@ -1484,7 +1440,6 @@ const loadMyLayer = layerName => {
 };
 
 const displayMapSetOpenButtons = projectHash => {
-  //console.log("projectHash:", projectHash);
   // clear button list
   document.getElementById("message-area").innerHTML = "Now select a map";
   const buttonParentEl = document.querySelector("#maplist");
