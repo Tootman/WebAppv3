@@ -1,23 +1,17 @@
 import L from "leaflet";
-//import firebase from "firebase";
 import firebase from "firebase";
-//import "firebase/auth";
-//import "firebase/database";
 import "./style.scss";
 import "leaflet-offline";
-//import localforage from "localforage";
 import logoImg from "./ORCL-logo-cropped.png";
 import commentMarkerIcon from "./comment-icon.png";
 import breachMarkerIcon from "./breach-icon.png";
 import hazardMarkerIcon from "./hazard-icon.png";
 import unmappedMarkerIcon from "./unmapped-icon.png";
 import MarkerIconShadow from "./marker-shadow.png";
-//import leafletKnn from "leaflet-knn";
 import fontello_ttf from "./fontello/font/fontello.ttf";
 require("./L.Control.Sidebar");
 require("./L.Control.Locate.min");
 import { tilesDb } from "./offline-tiles-module.js";
-//import { User } from "./User.js";
 import Pica from "pica";
 
 const User = {
@@ -146,7 +140,6 @@ export const App = {
         '<a href="http://openstreetmap.org">OSMap</a> ©<a href="http://mapbox.com">Mapbox</a>',
       mbUrl:
         "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w"
-      //uploadjsonURL: "https://geo.danieljsimmons.uk/dan1/upload/uploadjson.php"
     },
     projectsOb: {},
     projectConfig: {
@@ -155,21 +148,18 @@ export const App = {
       projectName: "",
       projectDescription: "",
       completedResetDate: null,
-      schema: {}
+      schema: {},
+      photoPath: ""
     },
-    //projectHash:"",
     relatedData: {}, // init vall - could contain data for other maps as well as this one
-    //mapHash: null,
     relatedDataMapHash: null,
     Markers: {},
     featureIdLookup: {},
-    //firstReturnedRelDataCallback: true,
     latestLocation: null, // lat Lng
     currentLineaddMarkerLat: null,
     currentLineaddMarkerLng: null,
     relDataSyncStatus: {}, // objects holds relatedData sync status flag for each feature, TRUE if synced , False
     //surveyed: {}, // true when inspected ie completed , false when not-yet-instected
-    //completedResetDate: new Date(2000, 1, 1, 0, 0, 0, 0),
     symbology: {
       uncompletedColor: "red",
       uncompletedfillColor: "red",
@@ -259,7 +249,6 @@ export const App = {
     const p = selectedFeature.properties;
     App.State.relDataPhotoBlob = null;
     App.State.relDataPhotoName = null;
-    //document.getElementById("photo-capture").value = null;
 
     App.sidebar.setContent(document.getElementById("form-template").innerHTML);
     const titleDiv = document.getElementById("relatedform-title");
@@ -295,9 +284,7 @@ export const App = {
       if (!!App.State.relatedData[fId].photo) {
         const photoName = App.State.relatedData[fId].photo;
         const relPhotoEl = document.getElementById("related-photo-img");
-        //const myTestVar = "Hello";
-        const relPhotoPath = "/hounslow/300x400";
-        //const relPhotoFileName = App.State.relDataPhotoName;
+        const relPhotoPath = App.State.projectConfig.photoPath;
         RelatedData.fetchPhotoFromFBStorage(
           relPhotoEl,
           relPhotoPath,
@@ -465,7 +452,7 @@ export const App = {
 
   markerClickCallback: e => {
     const parentEl = document.getElementById("marker-photo-img");
-    const path = "/hounslow/300x400";
+    const path = App.State.projectConfig.photoPath;
     const photoId = e.target.options.photoFileName;
     if (!!photoId) {
       RelatedData.fetchPhotoFromFBStorage(parentEl, path, photoId);
@@ -511,6 +498,8 @@ export const App = {
     App.State.projectConfig.mapName =
       App.State.projectsOb[projectHash].mapSet[mapHash];
     App.State.projectConfig.schema = App.State.projectsOb[projectHash].schema;
+    App.State.projectConfig.photoPath =
+      App.State.projectsOb[projectHash].photoPath;
     App.markersLayer = null;
     App.sidebar.hide();
     App.busyWorkingIndicator(true);
@@ -592,7 +581,9 @@ export const App = {
       .then(snap => {
         App.sendThumbnailToCloudStorage({
           blob: App.State.relDataPhotoBlob,
-          storagePathAndName: `hounslow/300x400/${App.State.relDataPhotoName}`,
+          storagePathAndName: `${App.State.projectConfig.photoPath}/${
+            App.State.relDataPhotoName
+          }`,
           photoInputId: "marker-photo-capture",
           blobNamePath: App.State,
           blobNameKey: "relDataPhotoBlob",
@@ -1089,7 +1080,7 @@ export const App = {
       });
 
     App.deleteThumbnailFromCloudStorage({
-      path: "hounslow/300x400/",
+      path: `${App.State.projectConfig.photoPath}/`,
       key: photoFileName
     });
   },
@@ -1166,7 +1157,7 @@ export const App = {
 
   fetchOriginalDataPhoto: (props, imgElId) => {
     //console.log("fetchOriginalDataPhoto called!", props);
-    const photoPath = "/hounslow/300x400";
+    const photoPath = App.State.projectConfig.photoPath;
     const imgEl = document.getElementById(imgElId);
     if (!props.Photo) {
       return;
@@ -1233,7 +1224,9 @@ const RelatedData = {
       .then(snap => {
         App.sendThumbnailToCloudStorage({
           blob: App.State.relDataPhotoBlob,
-          storagePathAndName: `hounslow/300x400/${App.State.relDataPhotoName}`,
+          storagePathAndName: `${App.State.projectConfig.photoPath}/${
+            App.State.relDataPhotoName
+          }`,
           //storagePathAndName: `test/300x400/${App.State.relDataPhotoName}`,
           photoInputId: "photo-capture",
           blobNamePath: App.State,
@@ -1437,7 +1430,7 @@ const RelatedData = {
       childNodeKey: childKey,
       photo: photoName,
       feature: featureKey,
-      photoPath: "hounslow/300x400"
+      photoPath: App.State.projectConfig.photoPath
     });
   }
 };
