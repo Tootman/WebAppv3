@@ -145,11 +145,8 @@ export const App = {
       mbAttr:
         '<a href="http://openstreetmap.org">OSMap</a> ©<a href="http://mapbox.com">Mapbox</a>',
       mbUrl:
-        "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w",
-      uploadjsonURL: "https://geo.danieljsimmons.uk/dan1/upload/uploadjson.php"
-      //editform: {
-      //  assetConditionOptions: [6, 5, 4, 3, 2, 1, "n/a"]
-      //}
+        "https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZGFuc2ltbW9ucyIsImEiOiJjamRsc2NieTEwYmxnMnhsN3J5a3FoZ3F1In0.m0ct-AGSmSX2zaCMbXl0-w"
+      //uploadjsonURL: "https://geo.danieljsimmons.uk/dan1/upload/uploadjson.php"
     },
     projectsOb: {},
     projectConfig: {
@@ -157,7 +154,6 @@ export const App = {
       mapHash: null,
       projectName: "",
       projectDescription: "",
-      //completedResetDate: new Date(2000, 1, 1, 0, 0, 0, 0)
       completedResetDate: null,
       schema: {}
     },
@@ -189,22 +185,6 @@ export const App = {
     },
     visableFeatures: [],
 
-    /*
-    formFields: {
-      condition: {
-        null: "",
-        c1: "(1 - hazard)",
-        c2: "2 - (unfit for purpose)",
-        c3: "3",
-        c4: "4",
-        c5: "5",
-        c6: "6 - (as new)",
-        rm: "removed / not found",
-        nv: "not visable",
-        pv: "partially visable"
-      }
-    },
-    */
     markerTypes: {
       hazard: "hazard",
       unmappedAsset: "Unmapped asset",
@@ -686,33 +666,7 @@ export const App = {
     feature.properties = properties;
     return feature;
   },
-  /*
-  populateRelated: related => {
-    // this method is now redundent?
-    if (!related) return;
-    const relDataObject = {}; // to be replaced with State etc
-    const relDataSyncObject = {}; // just to make sure it's initially empty
-    const getLastRelDataItem = RelDataSet => {
-      const sortedKeys = Object.keys(RelDataSet).sort();
-      const lastDataItem = RelDataSet[sortedKeys[sortedKeys.length - 1]];
-      return lastDataItem;
-    };
-    App.State.relatedData = Object.keys(related).map((relKey, index) => {
-      const itemOb = {};
-      const lastItem = getLastRelDataItem(related[relKey]);
-      itemOb[relKey] = lastItem;
-      itemOb.childKey = relKey;
-      relDataObject[relKey] = lastItem;
-      relDataSyncObject[relKey] = true; // ie the feature's rela data is now synced
-      return itemOb;
-    });
-    App.getRelDataFromLocalStorage(App.State.projectConfig.mapHash);
-    return {
-      relDataObject,
-      relDataSyncObject
-    };
-  },
- */
+
   getRelDataFromLocalStorage: mapHash => {
     console.log("fetching related from local storage");
     const regex = "backup.relatedData." + mapHash + ".";
@@ -791,7 +745,17 @@ export const App = {
       relDivContent = `<h4>Latest related data</h4>
 <table id="reldata-fields-section" class="table table-sm table-striped">`;
       Object.keys(relSet).map(key => {
-        relDivContent += `<tr><td>${key}:</td> <td>${relSet[key]}</td></tr>`;
+        let value = relSet[key];
+        if (!!App.State.projectConfig.schema.formFields.condition) {
+          if (key == "condition") {
+            value = RelatedData.conditionFieldValToLabel(
+              value,
+              App.State.projectConfig.schema.formFields.condition
+            );
+          }
+        }
+
+        relDivContent += `<tr><td>${key}:</td> <td>${value}</td></tr>`;
       });
       relDivContent += `</table>`;
       delRelatedSection.style.display = "block";
@@ -1226,6 +1190,11 @@ const RelatedData = {
     );
   },
 
+  conditionFieldValToLabel: (inKey, conditionSchema) => {
+    const value = conditionSchema[inKey];
+    return value;
+  },
+
   fetchPhotoFromFBStorage: (parentEl, path, photoId) => {
     const storage = firebase.storage();
     const pathRef = storage.ref(path);
@@ -1420,16 +1389,6 @@ const RelatedData = {
   },
 
   deleteLatestRelated: params => {
-    //console.log("deleteLatestRelated called!", params);
-    // App.State.relatedData[App.selectedFeature.properties.OBJECTID + App.selectedFeature.geometry.type].childKey
-
-    // need path, childkey, and photo path, and photo id
-    /*
-    const refPath = `/App/Maps/${
-      App.State.projectConfig.mapHash
-    }/Related/${params.childNodeKey}`;
-*/
-
     const deleteNodePath = `${params.relDataPath}/${params.childNodeKey}`;
     console.log("delete: ", params.feature);
     const myFeature = params.feature;
@@ -1440,8 +1399,6 @@ const RelatedData = {
         App.sidebar.hide();
         // delete App.State.relatedData[myFeature];
         console.log("delete relDataPath:", myFeature);
-        //App.MarkersLayer.removeLayer(markerLayerId);
-        // update App.State, map, panel, listener
       })
       .catch(error => {
         console.log("delete catch error:", error);
