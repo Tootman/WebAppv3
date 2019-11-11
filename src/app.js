@@ -564,7 +564,7 @@ export const App = {
   },
   pushNewMarkerToFirebase: ({ mapID, json }) => {
     const refPath = `App/Maps/${mapID}/Markers/`;
-
+    // set message to user to '... please waut -  uploading data
     fbDatabase
       .ref(refPath)
       .push(json)
@@ -898,6 +898,7 @@ export const App = {
     App.State.relDataPhotoName = null;
     const sidebarContent = `
     <h3>Add marker  - ${buttonSetType}</h3>
+    <div id="marker-user-msg" class = "marker-user-msg"></div>
     type: <input type="hidden" id="addMarker-type" readonly value = "${buttonSetType}">
 
     <p>  <textarea class="form-control" rows="2" id="addMarker-comment" placeholder = "Comment / further info ..."></textarea></p>
@@ -914,6 +915,7 @@ export const App = {
     const type = document.getElementById("addMarker-type");
     const comment = document.getElementById("addMarker-comment");
     const photo = App.State.relDataPhotoName;
+    const userMsgDiv = document.getElementById("marker-user-msg");
     App.State.relDataPhotoName;
     const timeStamp = new Date().toLocaleDateString("en-GB", {
       day: "numeric",
@@ -932,6 +934,7 @@ export const App = {
       photo: photo,
       timeStamp: timeStamp
     });
+    userMsgDiv.innerHTML = "...Please wait - uploading data";
     App.pushNewMarkerToFirebase({
       mapID: App.State.projectConfig.mapHash,
       json: geojsonOb
