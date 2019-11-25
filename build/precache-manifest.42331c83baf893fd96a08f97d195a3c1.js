@@ -4,7 +4,7 @@ self.__precacheManifest = [
     "url": "fontello/font/fontello.svg"
   },
   {
-    "revision": "c415c2c3a89f84e8cddd36349a0aaa3b",
+    "revision": "24e92302a1508d206587500baf194be7",
     "url": "index.html"
   },
   {
@@ -52,7 +52,7 @@ self.__precacheManifest = [
     "url": "hazard-icon.png"
   },
   {
-    "revision": "bc3fbfa135cd5941f99b",
+    "revision": "ac0ea87b637af6478402",
     "url": "bundle.js"
   },
   {
