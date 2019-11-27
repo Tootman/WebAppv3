@@ -188,7 +188,9 @@ export const App = {
       breachIcon: {},
       unmappedIcon: {},
       hazardIcon: {}
-    }
+    },
+    mapComment: ""
+    // mapCommentChanged: false
   },
 
   populateInputOptions: (el, items) => {
@@ -210,9 +212,22 @@ export const App = {
     Description: ${state.projectConfig.projectDescription}<br>
     ResetDate: ${state.projectConfig.completedResetDate}<p>
     `;
+    /*
+    let localMapComment = "";
+    try {
+      localMapComment = localStorage.getItem("localMapComment");
+    } catch (err) {
+      console.log("no localMapComment found");
+    }
+    */
     const mapInfoContent = ` <h3> Map info </h3><p>
     map name: ${state.projectConfig.mapName}
-    </p>`;
+    </p>
+    <div id="mapComment">
+    <h3>Map Notes</h3>
+      <textarea class="form-control" rows="2" id="map-comment-box" placeholder = "Any comments / notes about this map ..." onkeydown = "App.showMapCommentButton()" ></textarea>
+      <button class="n-sm btn-primary" id="save-map-comment" onClick="App.writeMapComment()">Save comment</button>
+     </div>`;
     const sysInfo = `<h3>App info</h3>
     <p> Software version number: ${state.version.number} <br>
     Software version date: ${state.version.date}
@@ -362,6 +377,9 @@ export const App = {
             });
           const infoEl = document.getElementById("map-info-section");
           infoEl.innerHTML = App.populateInfoPanel(App.State);
+          document.getElementById("map-comment-box").value =
+            App.State.mapComment;
+          document.getElementById("save-map-comment").hidden = true;
           App.sidebar.show();
         };
         return settingsControl_div;
@@ -510,6 +528,12 @@ export const App = {
         } catch (err) {
           App.State.relatedDataMapHash = null;
         }
+        const mconfig = mapData.config;
+        if (!!mconfig.mapComment) {
+          //App.State.mapComment = mconfig.mapComment;
+        } else {
+          //App.State.mapComment = "";
+        }
         App.setupGeoLayer(mapHash, mapData);
         App.removeMarkersLayerMarkers();
         //App.setupMarkersLayer(mapData);
@@ -523,11 +547,14 @@ export const App = {
         } catch (err) {
           console.log("set relatedData callbacks failed");
         }
-
         try {
           App.setupFbAddMarkerNodeEventCallback(
             App.State.projectConfig.mapHash
           );
+        } catch (err) {}
+        try {
+          App.State.mapComment = "";
+          App.setupFbMapCommentCallback(App.State.projectConfig.mapHash);
         } catch (err) {}
       })
       .catch(err => {
@@ -550,6 +577,16 @@ export const App = {
     } catch (e) {
       alert("couldnt save project config to localStorage");
     }
+    /*
+    try {
+      localStorage.setItem(
+        "localMapComment",
+        JSON.stringify(mapData.config.mapComment)
+      );
+    } catch (e) {
+      alert("couldnt set localMapComment config to localStorage");
+    }
+    */
   },
   clearLocalStorageMaps: () => {
     const keys = App.getLocalStorageMapDataKey();
@@ -890,6 +927,10 @@ export const App = {
     } catch (err) {
       console.log("failed to set Markers listeners");
     }
+    try {
+      App.State.mapComment = "";
+      App.setupFbMapCommentCallback(App.State.projectConfig.mapHash);
+    } catch (err) {}
     App.getRelDataFromLocalStorage(App.State.projectConfig.mapHash);
   },
 
@@ -1043,6 +1084,16 @@ export const App = {
     });
   },
 
+  setupFbMapCommentCallback: mapHash => {
+    const mapCommentRef = fbDatabase.ref(
+      `/App/Maps/${mapHash}/config/mapComment`
+    );
+    mapCommentRef.on("value", function(snapshot) {
+      App.State.mapComment = snapshot.val(); //el.value.replace(/\\n/g, "\n")
+    });
+    //mapCommentRef
+  },
+
   markerOnDeleteListener: (e, markerLayerId, photoFileName) => {
     const result = confirm("Delete this Marker?");
     const markerKey = e.target.value;
@@ -1083,14 +1134,6 @@ export const App = {
     const dbRef = fbDatabase.ref(`/App/Maps/${myRelDataMapHash}/Related/`);
     const handleRelatedCallback = snapshot => {
       const snap = snapshot.val();
-      /*
-      const record =
-        snap[
-          Object.keys(snap)
-            .sort()
-            .reverse()[0]
-        ];
-*/
       const latestChildKey = Object.keys(snap)
         .sort()
         .reverse()[0];
@@ -1141,6 +1184,24 @@ export const App = {
       return;
     }
     RelatedData.fetchPhotoFromFBStorage(imgEl, photoPath, props.Photo);
+  },
+  writeMapComment: () => {
+    const mapCommentBox = document.getElementById("map-comment-box");
+    const pathRef = `App/Maps/${App.State.projectConfig.mapHash}/config`;
+    const commentPath = fbDatabase.ref(pathRef);
+    const mapCommentNode = commentPath.child("mapComment");
+    mapCommentNode.set(mapCommentBox.value).then(res => {
+      document.getElementById("save-map-comment").hidden = true;
+    });
+  },
+
+  hideMapCommentButton: () => {
+    document.getElementById("save-map-comment").hidden = true;
+  },
+
+  showMapCommentButton: () => {
+    // show the mapCommentBox save buttons
+    document.getElementById("save-map-comment").hidden = false;
   }
   // end of App ob
 };
