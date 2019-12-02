@@ -191,8 +191,7 @@ export const App = {
     },
     mapComment: "",
     stats: {
-      totalNumberOfFeatures: 0,
-      featuresCompleted: 0
+      totalNumberOfFeatures: 0
     }
   },
 
@@ -226,6 +225,7 @@ export const App = {
     const mapInfoContent = ` <h3> Map info </h3><p>
     map name: ${state.projectConfig.mapName}
     </p>
+    <div id='map-stats-section'></div>
     <div id="mapComment">
     <h3>Map Notes</h3>
       <textarea class="form-control" rows="2" id="map-comment-box" placeholder = "Any comments / notes about this map ..." onkeydown = "App.showMapCommentButton()" ></textarea>
@@ -236,6 +236,19 @@ export const App = {
     Software version date: ${state.version.date}
     </p>`;
     return `${mapInfoContent}<hr>${projectInfoContent}<hr>${sysInfo}`;
+  },
+
+  gatherMapStats: () => {
+    const mapStatsSection = document.getElementById("map-stats-section");
+    const completedFeatures = Object.keys(App.State.relatedData).length;
+    const percentage = (
+      (completedFeatures / App.State.stats.totalNumberOfFeatures) *
+      100
+    ).toFixed(0);
+    const myContent = `${completedFeatures} of ${
+      App.State.stats.totalNumberOfFeatures
+    } (${percentage}&#37) features completed`;
+    mapStatsSection.innerHTML = myContent;
   },
 
   updateRelDataSyncMsg: (syncStatus, el) => {
@@ -384,6 +397,7 @@ export const App = {
             App.State.mapComment;
           document.getElementById("save-map-comment").hidden = true;
           App.sidebar.show();
+          App.gatherMapStats();
         };
         return settingsControl_div;
       }
@@ -542,9 +556,6 @@ export const App = {
         //App.setupMarkersLayer(mapData);
         document.getElementById("opennewproject").style.display = "none";
         App.busyWorkingIndicator(false);
-
-        App.State.stats.featuresCompleted = 0;
-        //App.State.stats.totalNumberOfFeatures = 0;
         try {
           App.setupAddRelatedRecordEventListener(
             App.State.projectConfig.mapHash
@@ -741,7 +752,6 @@ export const App = {
       const refDate = completedResetDate.getTime();
       var relDate = relDataDate.getTime();
       if (relDataDate > completedResetDate) {
-        App.State.stats.featuresCompleted++;
         layer.setStyle({
           color: symbology.completedColor, // why not working??
           fillColor: symbology.completedFillColor,
@@ -1161,7 +1171,6 @@ export const App = {
     fbDatabase.ref(dbRef).on("child_removed", snapshot => {
       App.updateFeatureRelatedState(snapshot.key, null, null);
       //console.log("ChildRemoved!");
-      App.State.stats.featuresCompleted--; // decrement
       const layer = App.geoLayer.getLayer(
         App.State.featureIdLookup[snapshot.key]
       );
