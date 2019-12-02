@@ -189,8 +189,11 @@ export const App = {
       unmappedIcon: {},
       hazardIcon: {}
     },
-    mapComment: ""
-    // mapCommentChanged: false
+    mapComment: "",
+    stats: {
+      totalNumberOfFeatures: 0,
+      featuresCompleted: 0
+    }
   },
 
   populateInputOptions: (el, items) => {
@@ -540,6 +543,8 @@ export const App = {
         document.getElementById("opennewproject").style.display = "none";
         App.busyWorkingIndicator(false);
 
+        App.State.stats.featuresCompleted = 0;
+        //App.State.stats.totalNumberOfFeatures = 0;
         try {
           App.setupAddRelatedRecordEventListener(
             App.State.projectConfig.mapHash
@@ -736,6 +741,7 @@ export const App = {
       const refDate = completedResetDate.getTime();
       var relDate = relDataDate.getTime();
       if (relDataDate > completedResetDate) {
+        App.State.stats.featuresCompleted++;
         layer.setStyle({
           color: symbology.completedColor, // why not working??
           fillColor: symbology.completedFillColor,
@@ -784,6 +790,8 @@ export const App = {
 
   setupGeoLayer: (key, mapData) => {
     // TODO: major refactor needed to make functional
+
+    App.State.stats.totalNumberOfFeatures = 0;
     App.mapMeta = mapData.meta;
     App.State.projectConfig.mapHash = key;
     myMap.myLayerGroup.clearLayers(App.geoLayer);
@@ -803,6 +811,8 @@ export const App = {
     App.geoLayer = L.geoJson(mapData.Geo, {
       onEachFeature: (feature, layer) => {
         let featureLabel = feature.properties[featureLabelField];
+        App.State.stats.totalNumberOfFeatures++;
+        //console.log("onEachFeatureCalled!");
         App.setCompletedStyle({
           feature: feature,
           layer: layer,
@@ -1150,6 +1160,8 @@ export const App = {
     });
     fbDatabase.ref(dbRef).on("child_removed", snapshot => {
       App.updateFeatureRelatedState(snapshot.key, null, null);
+      //console.log("ChildRemoved!");
+      App.State.stats.featuresCompleted--; // decrement
       const layer = App.geoLayer.getLayer(
         App.State.featureIdLookup[snapshot.key]
       );
@@ -1702,7 +1714,6 @@ const initApp = () => {
     iconAnchor: [13, 41], // point of the icon which will correspond to marker's location
     shadowAnchor: [13, 41] // the same for the shadow
   });
-
   App.setupMarkersLayer();
   App.loadMapDataFromLocalStorage();
 
