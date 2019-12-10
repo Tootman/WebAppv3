@@ -271,3 +271,17 @@ textarea#map-comment-box.form-control {
 div#sidebar {
   overscroll-behavior: none;
 }
+
+div#my-toast {
+  top: 0px;
+  position: absolute;
+  z-index: 10000000;
+  left: 50%;
+  color: white;
+  font-family: Helvetica Neue, Arial, Helvetica, sans-serif;
+  padding: 3px;
+  transition-delay: 0.2s;
+  transition-property: opacity;
+  transition-duration: 0.2s;
+  background-color: #8280d8;
+}
