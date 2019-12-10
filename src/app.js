@@ -377,7 +377,7 @@ export const App = {
       onAdd: e => {
         const settingsControl_div = L.DomUtil.create(
           "button",
-          "main-button-control btn btn-lg btn-danger icon-cog"
+          "main-button-control btn btn-lg icon-cog"
         );
         settingsControl_div.innerHTML = "";
         settingsControl_div.title = "Settings";
@@ -414,9 +414,17 @@ export const App = {
 
   busyWorkingIndicator: busyWorking => {
     const cogIcon = document.getElementsByClassName("icon-cog")[0];
-    busyWorking
-      ? cogIcon.classList.add("icon-cog-spin")
-      : cogIcon.classList.remove("icon-cog-spin");
+    const mainButton = document.querySelector(".main-button-control");
+
+    if (busyWorking) {
+      cogIcon.classList.add("icon-cog-spin");
+      mainButton.classList.remove("btn-primary");
+      mainButton.classList.add("btn-disabled");
+    } else {
+      cogIcon.classList.remove("icon-cog-spin");
+      mainButton.classList.add("btn-primary");
+      mainButton.classList.remove("btn-disabled");
+    }
   },
 
   addMarkerToMarkersLayer: (
@@ -545,12 +553,14 @@ export const App = {
         } catch (err) {
           App.State.relatedDataMapHash = null;
         }
+        /*
         const mconfig = mapData.config;
         if (!!mconfig.mapComment) {
           //App.State.mapComment = mconfig.mapComment;
         } else {
           //App.State.mapComment = "";
         }
+        */
         App.setupGeoLayer(mapHash, mapData);
         App.removeMarkersLayerMarkers();
         //App.setupMarkersLayer(mapData);
@@ -1808,29 +1818,31 @@ Map.on("moveend", () => {
   //console.log("finished featureLabels!");
   //const myToast = document.getElementById("my-toast");
   //myToast.style.opacity = 0;
+  App.busyWorkingIndicator(false);
 });
 
-/*
 Map.on("movestart", () => {
   //console.log("moveStart!");
-  const myToast = document.getElementById("my-toast");
-  myToast.innerHTML = "Moving!"
-  myToast.style.opacity = 1;
+  //const myToast = document.getElementById("my-toast");
+  //myToast.innerHTML = "Moving!"
+  //myToast.style.opacity = 1;
+  App.busyWorkingIndicator(true);
 });
-*/
 
 Map.on("zoomstart", () => {
   //console.log("moveStart!");
-  const myToast = document.getElementById("my-toast");
+  //const myToast = document.getElementById("my-toast");
   //myToast.innerHTML = "zooming!";
-  myToast.style.opacity = 0.5;
+  //myToast.style.opacity = 0.5;
+  App.busyWorkingIndicator(true);
 });
 
 Map.on("zoomend", () => {
   //console.log("moveStart!");
-  const myToast = document.getElementById("my-toast");
+  //const myToast = document.getElementById("my-toast");
   //myToast.innerHTML = "Zoom end!";
-  myToast.style.opacity = 0;
+  //myToast.style.opacity = 0;
+  App.busyWorkingIndicator(false);
 });
 
 function updateLatestLocation(e) {
