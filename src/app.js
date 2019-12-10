@@ -125,7 +125,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.136c", date: "10 Dec 2019" },
+    version: { number: "0.9.136i", date: "10 Dec 2019" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
@@ -1803,17 +1803,34 @@ Map.on("contextmenu", e => {
 });
 
 Map.on("moveend", () => {
-  console.log("Starting feature labels!");
+  //console.log("Starting feature labels!");
   App.featureLabels();
-  console.log("finished featureLabels!");
-  const myToast = document.getElementById("my-toast");
-  myToast.style.opacity = 0;
+  //console.log("finished featureLabels!");
+  //const myToast = document.getElementById("my-toast");
+  //myToast.style.opacity = 0;
 });
 
+/*
 Map.on("movestart", () => {
   //console.log("moveStart!");
   const myToast = document.getElementById("my-toast");
+  myToast.innerHTML = "Moving!"
   myToast.style.opacity = 1;
+});
+*/
+
+Map.on("zoomstart", () => {
+  //console.log("moveStart!");
+  const myToast = document.getElementById("my-toast");
+  //myToast.innerHTML = "zooming!";
+  myToast.style.opacity = 0.5;
+});
+
+Map.on("zoomend", () => {
+  //console.log("moveStart!");
+  const myToast = document.getElementById("my-toast");
+  //myToast.innerHTML = "Zoom end!";
+  myToast.style.opacity = 0;
 });
 
 function updateLatestLocation(e) {
