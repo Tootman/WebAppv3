@@ -265,6 +265,9 @@ textarea.form-control {
 
 textarea#map-comment-box.form-control {
   font-size: small;
-  background-color: yellow;
   font-family: (Helvetica Neue, Arial, Helvetica, sans-serif);
+}
+
+div#sidebar {
+  overscroll-behavior: none;
 }
