@@ -125,7 +125,7 @@ const myMap = {
 // the App object holds the GeoJSON layer and manages all it's interactions with the user
 export const App = {
   State: {
-    version: { number: "0.9.136i", date: "10 Dec 2019" },
+    version: { number: "0.9.137", date: "6 Jan 2020" },
     settings: {
       map: {
         defaultCenter: [51.4384332, -0.3147865], // Ham
