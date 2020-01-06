@@ -1751,6 +1751,9 @@ const initApp = () => {
         });
     });
   }
+  window.onbeforeunload = () => {
+    return true;
+  }; // check if user really wants to close webApp window or navigate away from it
 };
 
 initApp();
